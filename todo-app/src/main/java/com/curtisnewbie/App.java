@@ -46,11 +46,11 @@ public class App extends Application {
         primaryStage.setOnCloseRequest(e -> {
             System.exit(0);
         });
+        System.out.println("-------------- JavaFX TODO-APP Application Up And Running ------------- ");
     }
 
     public static void main(String... args) {
         System.out.println("-------------- Initialising JavaFX TODO-APP Application --------------- ");
         launch(args);
-        System.out.println("-------------- JavaFX TODO-APP Application Up And Running ------------- ");
     }
 }
