@@ -20,6 +20,7 @@ import java.util.Date;
 public class TodoJobView extends HBox {
 
     private static final String CHECKBOX_NAME = "DONE:";
+    private static final float WRAP_RATIO = 0.6f;
 
     /**
      * {@code TodoJob} that this view represents
@@ -46,6 +47,7 @@ public class TodoJobView extends HBox {
     public TodoJobView(String name) {
         this.todoJob = new TodoJob();
         this.nameLabel = LabelFactory.getClassicLabel(name);
+        this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStr(new Date()));
         this.doneCb.setSelected(false);
         this.getChildren().addAll(startDateLabel, nameLabel, LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
@@ -59,6 +61,7 @@ public class TodoJobView extends HBox {
     public TodoJobView(TodoJob todoJob) {
         this.todoJob = todoJob;
         this.nameLabel = LabelFactory.getClassicLabel(todoJob.getName());
+        this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStr(todoJob.getStartDate()));
         this.doneCb.setSelected(todoJob.isDone());
         this.getChildren().addAll(startDateLabel, nameLabel, LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
