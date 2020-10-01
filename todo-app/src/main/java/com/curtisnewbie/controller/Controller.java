@@ -50,7 +50,7 @@ public class Controller implements Initializable {
      * @param jobName
      */
     public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(jobName);
+        TodoJobView jobView = new TodoJobView(jobName, this);
         addTodoJobView(jobView);
     }
 
@@ -59,7 +59,7 @@ public class Controller implements Initializable {
         config = ioHandler.readConfig();
         // load previous job list if exists
         for (TodoJob j : ioHandler.loadTodoJob(config.getSavePath())) {
-            addTodoJobView(new TodoJobView(j));
+            addTodoJobView(new TodoJobView(j, this));
         }
         // save the whole to-do list on app shutdown
         App.registerOnClose(() -> {
@@ -68,12 +68,13 @@ public class Controller implements Initializable {
         });
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
+        sortListView();
     }
 
     /**
      * Sort the {@code ListView} based on 1. whether they are finished and 2. their create date
      */
-    private void sortListView() {
+    protected void sortListView() {
         listView.getItems().sort((a, b) -> {
             int res = Boolean.compare(a.getTodoJob().isDone(), b.getTodoJob().isDone());
             if (res != 0)

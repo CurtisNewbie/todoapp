@@ -6,6 +6,7 @@ import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.LabelFactory;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 
 import java.util.Date;
@@ -44,12 +45,16 @@ public class TodoJobView extends HBox {
      *
      * @param name
      */
-    public TodoJobView(String name) {
+    public TodoJobView(String name, Controller controller) {
         this.todoJob = new TodoJob(name);
         this.nameLabel = LabelFactory.getClassicLabel(name);
         this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStr(new Date()));
         this.doneCb.setSelected(false);
+        this.doneCb.setOnAction(e -> {
+            this.todoJob.setDone(doneCb.isSelected());
+            controller.sortListView();
+        });
         this.getChildren().addAll(startDateLabel, nameLabel, LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
     }
 
@@ -58,12 +63,16 @@ public class TodoJobView extends HBox {
      *
      * @param todoJob
      */
-    public TodoJobView(TodoJob todoJob) {
+    public TodoJobView(TodoJob todoJob, Controller controller) {
         this.todoJob = todoJob;
         this.nameLabel = LabelFactory.getClassicLabel(todoJob.getName());
         this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStr(todoJob.getStartDate()));
         this.doneCb.setSelected(todoJob.isDone());
+        this.doneCb.setOnAction(e -> {
+            this.todoJob.setDone(doneCb.isSelected());
+            controller.sortListView();
+        });
         this.getChildren().addAll(startDateLabel, nameLabel, LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
     }
 
