@@ -1,8 +1,5 @@
 package com.curtisnewbie.entity;
 
-import lombok.Data;
-import lombok.NonNull;
-
 import java.util.Date;
 
 /**
@@ -12,7 +9,6 @@ import java.util.Date;
  *
  * @author yongjie.zhuang
  */
-@Data
 public class TodoJob {
 
     private String name;
@@ -22,4 +18,39 @@ public class TodoJob {
     private Date startDate;
 
     private Date endDate;
+
+    public TodoJob() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
 }

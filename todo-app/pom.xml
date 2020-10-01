@@ -33,12 +33,6 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lambok.version}</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
