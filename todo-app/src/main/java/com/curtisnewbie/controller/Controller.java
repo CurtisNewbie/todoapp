@@ -1,5 +1,6 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.io.IOHandler;
@@ -9,9 +10,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -56,5 +57,10 @@ public class Controller implements Initializable {
         for (TodoJob j : ioHandler.loadTodoJob(config.getSavePath())) {
             addTodoJobView(new TodoJobView(j));
         }
+        // save the whole to-do list on app shutdown
+        App.registerOnClose(() -> {
+            List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
+            ioHandler.writeTodoJob(list, config.getSavePath());
+        });
     }
 }

@@ -1,5 +1,6 @@
 package com.curtisnewbie;
 
+import com.curtisnewbie.util.OnClose;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -7,6 +8,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>
@@ -24,6 +27,7 @@ public class App extends Application {
 
     private static Stage primaryStage;
     private static Parent parent;
+    private static List<OnClose> onCloseList = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -44,9 +48,28 @@ public class App extends Application {
         primaryStage.setMinHeight(MIN_HEIGHT);
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
+            // activate all registered callbacks
+            App.invokesOnCloseList();
+            // exit application
             System.exit(0);
         });
         System.out.println("-------------- JavaFX TODO-APP Application Up And Running ------------- ");
+    }
+
+    /**
+     * Register a callback for closing certain resources for application shutdown
+     *
+     * @param oc callback
+     */
+    public static void registerOnClose(OnClose oc) {
+        App.onCloseList.add(oc);
+    }
+
+    /**
+     * Invokes all registered callbacks
+     */
+    private static void invokesOnCloseList() {
+        App.onCloseList.forEach(OnClose::close);
     }
 
     public static void main(String... args) {
