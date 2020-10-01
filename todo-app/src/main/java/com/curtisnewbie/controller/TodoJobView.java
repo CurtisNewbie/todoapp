@@ -45,7 +45,7 @@ public class TodoJobView extends HBox {
      * @param name
      */
     public TodoJobView(String name) {
-        this.todoJob = new TodoJob();
+        this.todoJob = new TodoJob(name);
         this.nameLabel = LabelFactory.getClassicLabel(name);
         this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStr(new Date()));

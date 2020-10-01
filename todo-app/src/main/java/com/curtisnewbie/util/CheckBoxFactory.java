@@ -12,6 +12,7 @@ import javafx.scene.control.CheckBox;
  * @author yongjie.zhuang
  */
 public class CheckBoxFactory {
+
     private CheckBoxFactory() {
     }
 

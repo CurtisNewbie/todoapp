@@ -5,12 +5,15 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextInputDialog;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -62,5 +65,28 @@ public class Controller implements Initializable {
             List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
             ioHandler.writeTodoJob(list, config.getSavePath());
         });
+        // register a ContextMenu for the ListView
+        listView.setContextMenu(createCtxMenu());
+    }
+
+    private JobCtxMenu createCtxMenu() {
+        JobCtxMenu ctxMenu = new JobCtxMenu();
+        ctxMenu.addMenuItem("Delete", e -> {
+            int selected = listView.getSelectionModel().getSelectedIndex();
+            listView.getItems().remove(selected);
+        });
+        ctxMenu.addMenuItem("Add", e -> {
+            Platform.runLater(() -> {
+                TextInputDialog dialog = new TextInputDialog("NewJob");
+                dialog.setHeaderText("Add New TODO");
+                dialog.setTitle("Add a new TODO");
+                dialog.setContentText("Enter the name of the TODO:");
+                Optional<String> result = dialog.showAndWait();
+                if (!result.isEmpty() && !result.get().isBlank()) {
+                    addTodoJobView(result.get());
+                }
+            });
+        });
+        return ctxMenu;
     }
 }
