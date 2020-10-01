@@ -56,7 +56,9 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        System.out.printf("Configuration path: '%s'\n", ioHandler.getConfPath());
         config = ioHandler.readConfig();
+        System.out.printf("Saved at path: '%s'\n", config.getSavePath());
         // load previous job list if exists
         for (TodoJob j : ioHandler.loadTodoJob(config.getSavePath())) {
             addTodoJobView(new TodoJobView(j, this));

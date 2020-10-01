@@ -41,4 +41,9 @@ public interface IOHandler {
      * @param savePath path to where the job-list is saved
      */
     void writeTodoJob(List<TodoJob> jobs, String savePath);
+
+    /**
+     * Get Conf file path
+     */
+    String getConfPath();
 }

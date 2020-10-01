@@ -2,7 +2,6 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -14,9 +13,11 @@ import java.util.List;
  * @author zhuangyongj
  */
 public class IOHandlerImpl implements IOHandler {
-    private static final String CONF_PATH = "settings.conf";
-    private static final String DEF_SAVE_PATH = "save.json";
+    private static final String DIR_NAME = "todo-app";
+    private static final String CONF_NAME = "settings.conf";
+    private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
 
     @Override
     public List<TodoJob> loadTodoJob(String savePath) {
@@ -39,6 +40,8 @@ public class IOHandlerImpl implements IOHandler {
         File conf = new File(getConfPath());
         if (!conf.exists()) {
             try {
+                if (!conf.getParentFile().exists())
+                    conf.getParentFile().mkdir();
                 conf.createNewFile();
                 writeDefaultConfIntoFile(conf);
             } catch (IOException e) {
@@ -88,13 +91,22 @@ public class IOHandlerImpl implements IOHandler {
         if (!file.exists())
             throw new FileNotFoundException("Cannot write default configuration, file doesn't exist");
         Config defaultConfig = new Config();
-        defaultConfig.setSavePath(DEF_SAVE_PATH);
+        defaultConfig.setSavePath(getDefSavePath());
         try (FileWriter fw = new FileWriter(file)) {
             fw.write(objectMapper.writeValueAsString(defaultConfig));
         }
     }
 
-    private String getConfPath() {
-        return IOHandlerImpl.CONF_PATH;
+    private String getDefSavePath() {
+        return getBasePath() + File.separator + DEF_SAVE_NAME;
+    }
+
+    @Override
+    public String getConfPath() {
+        return getBasePath() + File.separator + IOHandlerImpl.CONF_NAME;
+    }
+
+    private String getBasePath() {
+        return BASE_PATH;
     }
 }
