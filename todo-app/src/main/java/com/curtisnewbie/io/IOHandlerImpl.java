@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class IOHandlerImpl implements IOHandler {
         File saveFile = new File(savePath);
         try {
             if (!saveFile.exists()) {
-                throw new FileNotFoundException();
+                return new ArrayList<>();
             } else {
                 return Arrays.asList(objectMapper.readValue(saveFile, TodoJob[].class));
             }
