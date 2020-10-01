@@ -73,7 +73,7 @@ public class IOHandlerImpl implements IOHandler {
                 saveFile.createNewFile();
             }
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile))) {
-                bw.write(objectMapper.writeValueAsString(jobs));
+                bw.write(new String(objectMapper.writeValueAsBytes(jobs), "UTF-8"));
             }
         } catch (IOException e) {
             e.printStackTrace();
