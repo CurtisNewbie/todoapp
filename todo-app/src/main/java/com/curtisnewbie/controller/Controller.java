@@ -12,6 +12,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -69,6 +70,19 @@ public class Controller implements Initializable {
         listView.setContextMenu(createCtxMenu());
     }
 
+    /**
+     * Sort the {@code ListView} based on 1. whether they are finished and 2. their create date
+     */
+    private void sortListView() {
+        listView.getItems().sort((a, b) -> {
+            int res = Boolean.compare(a.getTodoJob().isDone(), b.getTodoJob().isDone());
+            if (res != 0)
+                return res;
+            else
+                return a.getTodoJob().getStartDate().compareTo(b.getTodoJob().getStartDate());
+        });
+    }
+
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
         ctxMenu.addMenuItem("Delete", e -> {
@@ -84,6 +98,7 @@ public class Controller implements Initializable {
                 Optional<String> result = dialog.showAndWait();
                 if (!result.isEmpty() && !result.get().isBlank()) {
                     addTodoJobView(result.get());
+                    sortListView();
                 }
             });
         });
