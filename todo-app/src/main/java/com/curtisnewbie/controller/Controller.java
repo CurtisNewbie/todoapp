@@ -1,10 +1,16 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.config.Config;
+import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.io.IOHandler;
+import com.curtisnewbie.io.IOHandlerImpl;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -18,6 +24,10 @@ public class Controller implements Initializable {
 
     @FXML
     private ListView<TodoJobView> listView;
+
+    private Config config;
+
+    private final IOHandler ioHandler = new IOHandlerImpl();
 
     /**
      * Add {@code TodoJobView} into the {@code ListView}
@@ -41,11 +51,10 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        TodoJobView jobView = new TodoJobView("Feels gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels " +
-                "gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels gucciFeels " + "gucci");
-        addTodoJobView(jobView);
-        addTodoJobView("Todo job 1");
-        addTodoJobView("Todo job 2");
-        addTodoJobView("Todo job 3");
+        config = ioHandler.readConfig();
+        // load previous job list if exists
+        for (TodoJob j : ioHandler.loadTodoJob(config.getSavePath())) {
+            addTodoJobView(new TodoJobView(j));
+        }
     }
 }
