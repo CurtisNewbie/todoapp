@@ -6,7 +6,6 @@ import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +79,7 @@ public class IOHandlerImpl implements IOHandler {
             if (!saveFile.exists()) {
                 saveFile.createNewFile();
             }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile))) {
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
                 objectMapper.writeValue(bw, jobs);
             }
         } catch (IOException e) {
