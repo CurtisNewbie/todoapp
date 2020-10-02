@@ -5,6 +5,7 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
+import com.curtisnewbie.util.StrUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -101,7 +102,7 @@ public class Controller implements Initializable {
                 dialog.setContentText("Enter the name of the TODO:");
                 Optional<String> result = dialog.showAndWait();
                 if (!result.isEmpty() && !result.get().isBlank()) {
-                    addTodoJobView(result.get().trim());
+                    addTodoJobView(StrUtil.correctEncoding(result.get().trim()));
                     sortListView();
                 }
             });
