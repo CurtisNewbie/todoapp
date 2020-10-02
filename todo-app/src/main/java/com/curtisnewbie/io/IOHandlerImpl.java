@@ -2,12 +2,15 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author zhuangyongj
@@ -18,6 +21,7 @@ public class IOHandlerImpl implements IOHandler {
     private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
+    private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     public List<TodoJob> loadTodoJob(String savePath) {
@@ -79,6 +83,24 @@ public class IOHandlerImpl implements IOHandler {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    @Override
+    public void exportTodoJob(List<TodoJob> jobs, File file) {
+        singleThreadExecutor.execute(() -> {
+            try {
+                if (!file.exists())
+                    file.createNewFile();
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                    for (TodoJob j : jobs) {
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS",
+                                DateUtil.toDateStr(j.getStartDate()), j.getName()));
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**

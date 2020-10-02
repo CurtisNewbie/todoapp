@@ -10,9 +10,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.net.URL;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -103,6 +104,14 @@ public class Controller implements Initializable {
                     addTodoJobView(result.get());
                     sortListView();
                 }
+            });
+        });
+        ctxMenu.addMenuItem("Export Human-readable Form", e -> {
+            Platform.runLater(() -> {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Export TO-DO List");
+                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
         });
         return ctxMenu;

@@ -72,6 +72,10 @@ public class App extends Application {
         App.onCloseList.forEach(OnClose::close);
     }
 
+    public static Stage getPrimaryStage(){
+        return App.primaryStage;
+    }
+
     public static void main(String... args) {
         System.out.println("-------------- Initialising JavaFX TODO-APP Application --------------- ");
         launch(args);

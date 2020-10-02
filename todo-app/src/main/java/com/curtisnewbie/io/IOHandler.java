@@ -3,6 +3,7 @@ package com.curtisnewbie.io;
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -41,6 +42,14 @@ public interface IOHandler {
      * @param savePath path to where the job-list is saved
      */
     void writeTodoJob(List<TodoJob> jobs, String savePath);
+
+    /**
+     * Export job list (in a human-readable form) to file.
+     *
+     * @param jobs job-list
+     * @param file file that the jobs exported to
+     */
+    void exportTodoJob(List<TodoJob> jobs, File file);
 
     /**
      * Get Conf file path
