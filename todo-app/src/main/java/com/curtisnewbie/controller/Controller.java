@@ -41,7 +41,7 @@ public class Controller implements Initializable {
      * @param jobView
      */
     public void addTodoJobView(TodoJobView jobView) {
-        jobView.prefWidthProperty().bind(listView.widthProperty());
+        jobView.prefWidthProperty().bind(listView.widthProperty().subtract(20));
         listView.getItems().add(jobView);
     }
 
