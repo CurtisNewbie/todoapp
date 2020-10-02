@@ -4,11 +4,10 @@
 
     <groupId>com.curtisnewbie</groupId>
     <artifactId>todo-app</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>todo-app</name>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
