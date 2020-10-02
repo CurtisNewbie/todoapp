@@ -6,6 +6,8 @@ import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.nio.Buffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +32,9 @@ public class IOHandlerImpl implements IOHandler {
             if (!saveFile.exists()) {
                 return new ArrayList<>();
             } else {
-                return Arrays.asList(objectMapper.readValue(saveFile, TodoJob[].class));
+                try (BufferedReader br = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+                    return Arrays.asList(objectMapper.readValue(br, TodoJob[].class));
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,7 +81,7 @@ public class IOHandlerImpl implements IOHandler {
                 saveFile.createNewFile();
             }
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile))) {
-                bw.write(new String(objectMapper.writeValueAsBytes(jobs), "UTF-8"));
+                objectMapper.writeValue(bw, jobs);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,7 +95,7 @@ public class IOHandlerImpl implements IOHandler {
             try {
                 if (!file.exists())
                     file.createNewFile();
-                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
                         bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS",
                                 DateUtil.toDateStr(j.getStartDate()), j.getName()));

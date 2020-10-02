@@ -102,7 +102,7 @@ public class Controller implements Initializable {
                 dialog.setContentText("Enter the name of the TODO:");
                 Optional<String> result = dialog.showAndWait();
                 if (!result.isEmpty() && !result.get().isBlank()) {
-                    addTodoJobView(StrUtil.correctEncoding(result.get().trim()));
+                    addTodoJobView(result.get().trim());
                     sortListView();
                 }
             });

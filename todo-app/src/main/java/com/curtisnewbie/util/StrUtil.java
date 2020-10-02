@@ -23,6 +23,7 @@ public class StrUtil {
      * @param str
      * @return
      */
+    @Deprecated(forRemoval = true)
     public static String correctEncoding(String str) {
         try {
             // to UTF-8
