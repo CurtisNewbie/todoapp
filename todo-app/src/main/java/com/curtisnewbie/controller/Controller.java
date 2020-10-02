@@ -83,7 +83,7 @@ public class Controller implements Initializable {
             if (res != 0)
                 return res;
             else
-                return a.getTodoJob().getStartDate().compareTo(b.getTodoJob().getStartDate());
+                return b.getTodoJob().getStartDate().compareTo(a.getTodoJob().getStartDate());
         });
     }
 
