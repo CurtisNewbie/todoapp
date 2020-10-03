@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
@@ -22,6 +23,7 @@ public class App extends Application {
 
     private static final String TITLE = "TO-DO";
     private static final String FXML_FILE = "ui.fxml";
+    private static final String ICON_FILE = "icon.png";
     private final int MIN_WIDTH = 550;
     private final int MIN_HEIGHT = 400;
 
@@ -32,9 +34,10 @@ public class App extends Application {
     @Override
     public void init() throws Exception {
         ClassLoader classLoader = this.getClass().getClassLoader();
-        try (InputStream in = classLoader.getResourceAsStream(FXML_FILE)) {
+        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);
+        ) {
             FXMLLoader loader = new FXMLLoader();
-            App.parent = loader.load(in);
+            App.parent = loader.load(fxmlIn);
         }
     }
 
@@ -43,16 +46,17 @@ public class App extends Application {
         App.primaryStage = stage;
         Scene s = new Scene(parent);
         stage.setScene(s);
-        primaryStage.setTitle(TITLE);
-        primaryStage.setMinWidth(MIN_WIDTH);
-        primaryStage.setMinHeight(MIN_HEIGHT);
-        primaryStage.show();
-        primaryStage.setOnCloseRequest(e -> {
+        stage.setTitle(TITLE);
+        stage.setMinWidth(MIN_WIDTH);
+        stage.setMinHeight(MIN_HEIGHT);
+        stage.show();
+        stage.setOnCloseRequest(e -> {
             // activate all registered callbacks
             App.invokesOnCloseList();
             // exit application
             System.exit(0);
         });
+        stage.getIcons().add(new Image(App.class.getClassLoader().getResourceAsStream(ICON_FILE)));
         System.out.println("-------------- JavaFX TODO-APP Application Up And Running ------------- ");
     }
 
