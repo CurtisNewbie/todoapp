@@ -2,6 +2,7 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,7 +26,7 @@ public class IOHandlerImpl implements IOHandler {
     private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
     @Override
-    public List<TodoJob> loadTodoJob(String savePath) {
+    public List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException {
         File saveFile = new File(savePath);
         try {
             if (!saveFile.exists()) {
@@ -37,9 +38,8 @@ public class IOHandlerImpl implements IOHandler {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(1);
+            throw new FailureToLoadException(e);
         }
-        return null;
     }
 
     @Override

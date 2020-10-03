@@ -3,14 +3,15 @@ package com.curtisnewbie.controller;
 import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
-import com.curtisnewbie.util.StrUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -62,16 +63,21 @@ public class Controller implements Initializable {
         config = ioHandler.readConfig();
         System.out.printf("Saved at path: '%s'\n", config.getSavePath());
         // load previous job list if exists
-        for (TodoJob j : ioHandler.loadTodoJob(config.getSavePath())) {
-            addTodoJobView(new TodoJobView(j, this));
+        try {
+            var list = ioHandler.loadTodoJob(config.getSavePath());
+            for (TodoJob j : list) {
+                addTodoJobView(new TodoJobView(j, this));
+            }
+        } catch (FailureToLoadException e) {
+            e.printStackTrace();
         }
+
         // save the whole to-do list on app shutdown
-        App.registerOnClose(() -> {
-            List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
-            ioHandler.writeTodoJob(list, config.getSavePath());
-        });
+        App.registerOnClose(() -> save());
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
+        // register ctrl+s key event handler for ListView
+        registerCtrlSHandler(listView);
         sortListView();
     }
 
@@ -124,5 +130,26 @@ public class Controller implements Initializable {
             });
         });
         return ctxMenu;
+    }
+
+    /**
+     * Save the to-do list based on config
+     */
+    private void save() {
+        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
+        ioHandler.writeTodoJob(list, config.getSavePath());
+    }
+
+    /**
+     * Register ctrl+s key event handler for ListView, which triggers {@link #save()}
+     *
+     * @param lv
+     */
+    private void registerCtrlSHandler(ListView<TodoJobView> lv) {
+        lv.setOnKeyReleased(e -> {
+            if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
+                save();
+            }
+        });
     }
 }

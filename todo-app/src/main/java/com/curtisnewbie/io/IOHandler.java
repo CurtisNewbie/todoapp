@@ -2,6 +2,8 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.exception.FailureToLoadException;
+import com.sun.net.httpserver.Authenticator;
 
 import java.io.File;
 import java.util.List;
@@ -21,7 +23,7 @@ public interface IOHandler {
      * @param savePath path to where the job-list is saved
      * @return a list of {@code TodoJob}
      */
-    List<TodoJob> loadTodoJob(String savePath);
+    List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException;
 
     /**
      * Generate the configuration file if not exists
