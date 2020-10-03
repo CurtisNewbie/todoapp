@@ -9,6 +9,7 @@ import com.curtisnewbie.io.IOHandlerImpl;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
@@ -16,6 +17,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -68,7 +70,9 @@ public class Controller implements Initializable {
             for (TodoJob j : list) {
                 addTodoJobView(new TodoJobView(j, this));
             }
+            toastInfo("Successfully loaded todo list");
         } catch (FailureToLoadException e) {
+            toastError("Failed to load todo list");
             e.printStackTrace();
         }
 
@@ -138,6 +142,7 @@ public class Controller implements Initializable {
     private void save() {
         List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
         ioHandler.writeTodoJob(list, config.getSavePath());
+        System.out.println("Saved");
     }
 
     /**
@@ -146,10 +151,29 @@ public class Controller implements Initializable {
      * @param lv
      */
     private void registerCtrlSHandler(ListView<TodoJobView> lv) {
-        lv.setOnKeyReleased(e -> {
+        lv.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
                 save();
+                toastInfo("Saved -- " + new Date().toString());
             }
+        });
+    }
+
+    private void toastInfo(String msg) {
+        Platform.runLater(() -> {
+            var alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("INFO");
+            alert.setContentText(msg);
+            alert.show();
+        });
+    }
+
+    private void toastError(String msg) {
+        Platform.runLater(() -> {
+            var alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("ERROR");
+            alert.setContentText(msg);
+            alert.show();
         });
     }
 }
