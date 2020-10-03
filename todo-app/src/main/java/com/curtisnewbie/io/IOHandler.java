@@ -36,7 +36,7 @@ public interface IOHandler {
     Config readConfig();
 
     /**
-     * Save the job list to file
+     * Save the job list to file (that can be loaded later on)
      *
      * @param jobs     job-list
      * @param savePath path to where the job-list is saved

@@ -44,18 +44,20 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void generateConfIfNotExists() {
-        File conf = new File(getConfPath());
-        if (!conf.exists()) {
-            try {
-                if (!conf.getParentFile().exists())
-                    conf.getParentFile().mkdir();
-                conf.createNewFile();
-                writeDefaultConfIntoFile(conf);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+        singleThreadExecutor.execute(() -> {
+            File conf = new File(getConfPath());
+            if (!conf.exists()) {
+                try {
+                    if (!conf.getParentFile().exists())
+                        conf.getParentFile().mkdir();
+                    conf.createNewFile();
+                    writeDefaultConfIntoFile(conf);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -74,18 +76,20 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeTodoJob(List<TodoJob> jobs, String savePath) {
-        File saveFile = new File(savePath);
-        try {
-            if (!saveFile.exists()) {
-                saveFile.createNewFile();
+        singleThreadExecutor.submit(() -> {
+            File saveFile = new File(savePath);
+            try {
+                if (!saveFile.exists()) {
+                    saveFile.createNewFile();
+                }
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
+                    objectMapper.writeValue(bw, jobs);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
             }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
-                objectMapper.writeValue(bw, jobs);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        });
     }
 
     @Override

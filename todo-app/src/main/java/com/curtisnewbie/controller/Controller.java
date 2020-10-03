@@ -115,6 +115,14 @@ public class Controller implements Initializable {
                 ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
         });
+        ctxMenu.addMenuItem("Backup", e -> {
+            Platform.runLater(() -> {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Backup TO-DO List");
+                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                ioHandler.writeTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile.getAbsolutePath());
+            });
+        });
         return ctxMenu;
     }
 }
