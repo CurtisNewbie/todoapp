@@ -69,7 +69,12 @@ public class IOHandlerImpl implements IOHandler {
             config = objectMapper.readValue(conf, Config.class);
         } catch (IOException e) {
             e.printStackTrace();
-            System.exit(1);
+            try {
+                // overwrite the file if exception is caught
+                writeDefaultConfIntoFile(conf);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
         return config;
     }
