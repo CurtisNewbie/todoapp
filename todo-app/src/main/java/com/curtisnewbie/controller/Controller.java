@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.Clipboard;
@@ -115,19 +116,16 @@ public class Controller implements Initializable {
                     sortListView();
                 }
             });
-        });
-        ctxMenu.addMenuItem("Delete", e -> {
+        }).addMenuItem("Delete", e -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             listView.getItems().remove(selected);
-        });
-        ctxMenu.addMenuItem("Copy", e -> {
+        }).addMenuItem("Copy", e -> {
             Platform.runLater(() -> {
                 int selected = listView.getSelectionModel().getSelectedIndex();
                 if (selected >= 0)
                     copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
             });
-        });
-        ctxMenu.addMenuItem("Backup", e -> {
+        }).addMenuItem("Backup", e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Backup TO-DO List");
@@ -135,8 +133,7 @@ public class Controller implements Initializable {
                 ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
                                             nFile.getAbsolutePath());
             });
-        });
-        ctxMenu.addMenuItem("Export Human-readable Form", e -> {
+        }).addMenuItem("Export Human-readable Form", e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Export TO-DO List");
@@ -186,7 +183,8 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setResizable(true);
-            alert.setContentText(msg);
+            Label label = new Label(msg);
+            alert.getDialogPane().setContent(label);
             alert.show();
         });
     }
@@ -195,7 +193,8 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.ERROR);
             alert.setResizable(true);
-            alert.setContentText(msg);
+            Label label = new Label(msg);
+            alert.getDialogPane().setContent(label);
             alert.show();
         });
     }

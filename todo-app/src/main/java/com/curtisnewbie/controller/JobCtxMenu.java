@@ -19,10 +19,12 @@ public class JobCtxMenu extends ContextMenu {
      *
      * @param itemName name of {@code MenuItem}
      * @param eh       EventHandler
+     * @return current {@code JobCtxMenu}, this is convenient for method chaining
      */
-    public void addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
+    public JobCtxMenu addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
         var menuItem = new MenuItem(itemName);
         menuItem.setOnAction(eh);
         this.getItems().add(menuItem);
+        return this;
     }
 }
