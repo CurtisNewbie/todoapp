@@ -2,6 +2,8 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
+import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
@@ -34,7 +36,8 @@ import java.util.stream.Collectors;
  * @author yongjie.zhuang
  */
 public class Controller implements Initializable {
-
+    private static final String ENG = "eng";
+    private static final String CHN = "chn";
     private static final int PADDING = 30;
 
     @FXML
@@ -43,6 +46,30 @@ public class Controller implements Initializable {
     private Config config;
 
     private final IOHandler ioHandler = new IOHandlerImpl();
+
+    private String ADD_TITLE;
+    private String DELETE_TITLE;
+    private String COPY_TITLE;
+    private String BACKUP_TITLE;
+    private String EXPORT_TITLE;
+    private String ABOUT_TITLE;
+
+    public Controller() {
+        PropertiesLoader props = PropertiesLoader.getInstance();
+        boolean isEng = props.get(PropertyConstants.LANGUAGE).contains(ENG);
+        String suffix;
+        if (isEng)
+            suffix = ENG;
+        else
+            suffix = CHN;
+
+        ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
+        DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
+        COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
+        BACKUP_TITLE = props.get(PropertyConstants.TITLE_BACKUP_PREFIX + suffix);
+        EXPORT_TITLE = props.get(PropertyConstants.TITLE_EXPORT_PREFIX + suffix);
+        ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
+    }
 
     /**
      * Add {@code TodoJobView} into the {@code ListView}
@@ -104,7 +131,7 @@ public class Controller implements Initializable {
 
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
-        ctxMenu.addMenuItem("Add", e -> {
+        ctxMenu.addMenuItem(ADD_TITLE, e -> {
             Platform.runLater(() -> {
                 TextInputDialog dialog = new TextInputDialog("NewJob");
                 dialog.setHeaderText("Add New TODO");
@@ -116,16 +143,16 @@ public class Controller implements Initializable {
                     sortListView();
                 }
             });
-        }).addMenuItem("Delete", e -> {
+        }).addMenuItem(DELETE_TITLE, e -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             listView.getItems().remove(selected);
-        }).addMenuItem("Copy", e -> {
+        }).addMenuItem(COPY_TITLE, e -> {
             Platform.runLater(() -> {
                 int selected = listView.getSelectionModel().getSelectedIndex();
                 if (selected >= 0)
                     copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
             });
-        }).addMenuItem("Backup", e -> {
+        }).addMenuItem(BACKUP_TITLE, e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Backup TO-DO List");
@@ -133,15 +160,14 @@ public class Controller implements Initializable {
                 ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
                                             nFile.getAbsolutePath());
             });
-        }).addMenuItem("Export Human-readable Form", e -> {
+        }).addMenuItem(EXPORT_TITLE, e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Export TO-DO List");
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
-        });
-        ctxMenu.addMenuItem("About", e -> {
+        }).addMenuItem(ABOUT_TITLE, e -> {
             Platform.runLater(() -> {
                 toastPaths();
             });
