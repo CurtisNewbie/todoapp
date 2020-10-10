@@ -12,6 +12,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.stage.FileChooser;
 
@@ -134,6 +136,12 @@ public class Controller implements Initializable {
                                             nFile.getAbsolutePath());
             });
         });
+        ctxMenu.addMenuItem("Copy", e -> {
+            Platform.runLater(() -> {
+                int selected = listView.getSelectionModel().getSelectedIndex();
+                copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
+            });
+        });
         return ctxMenu;
     }
 
@@ -183,5 +191,17 @@ public class Controller implements Initializable {
             alert.setContentText(msg);
             alert.show();
         });
+    }
+
+    /**
+     * Copy content to clipboard
+     *
+     * @param content text
+     */
+    private void copyToClipBoard(String content) {
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent cc = new ClipboardContent();
+        cc.putString(content);
+        clipboard.setContent(cc);
     }
 }
