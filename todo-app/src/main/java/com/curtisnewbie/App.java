@@ -24,8 +24,8 @@ public class App extends Application {
     private static final String TITLE = "TO-DO";
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
-    private final int MIN_WIDTH = 550;
-    private final int MIN_HEIGHT = 400;
+    private final int MIN_WIDTH = 500;
+    private final int MIN_HEIGHT = 350;
 
     private static Stage primaryStage;
     private static Parent parent;

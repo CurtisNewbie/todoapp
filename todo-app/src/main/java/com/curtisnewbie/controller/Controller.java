@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
  */
 public class Controller implements Initializable {
 
+    private static final int PADDING = 30;
+
     @FXML
     private ListView<TodoJobView> listView;
 
@@ -47,7 +49,7 @@ public class Controller implements Initializable {
      * @param jobView
      */
     public void addTodoJobView(TodoJobView jobView) {
-        jobView.prefWidthProperty().bind(listView.widthProperty().subtract(20));
+        jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
         listView.getItems().add(jobView);
     }
 
@@ -63,9 +65,7 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        System.out.printf("Configuration path: '%s'\n", ioHandler.getConfPath());
         config = ioHandler.readConfig();
-        System.out.printf("Saved at path: '%s'\n", config.getSavePath());
         // load previous job list if exists
         try {
             var list = ioHandler.loadTodoJob(config.getSavePath());
@@ -85,6 +85,7 @@ public class Controller implements Initializable {
         // register ctrl+s key event handler for ListView
         registerCtrlSHandler(listView);
         sortListView();
+        printPaths();
     }
 
     /**
@@ -142,6 +143,11 @@ public class Controller implements Initializable {
                 ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
         });
+        ctxMenu.addMenuItem("About", e -> {
+            Platform.runLater(() -> {
+                toastPaths();
+            });
+        });
         return ctxMenu;
     }
 
@@ -180,6 +186,7 @@ public class Controller implements Initializable {
             var alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setHeaderText("INFO");
             alert.setContentText(msg);
+            alert.setResizable(true);
             alert.show();
         });
     }
@@ -188,6 +195,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText("ERROR");
+            alert.setResizable(true);
             alert.setContentText(msg);
             alert.show();
         });
@@ -203,5 +211,15 @@ public class Controller implements Initializable {
         ClipboardContent cc = new ClipboardContent();
         cc.putString(content);
         clipboard.setContent(cc);
+    }
+
+    private void printPaths() {
+        System.out.printf("Configuration path: '%s'\n", ioHandler.getConfPath());
+        System.out.printf("Saved at path: '%s'\n", config.getSavePath());
+    }
+
+    private void toastPaths() {
+        toastInfo(String.format("Configuration path: '%s'\n", ioHandler.getConfPath()) +
+                  String.format("Saved at path: '%s'\n", config.getSavePath()) + "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
     }
 }
