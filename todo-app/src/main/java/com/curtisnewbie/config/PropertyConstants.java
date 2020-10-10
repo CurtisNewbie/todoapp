@@ -8,7 +8,6 @@ package com.curtisnewbie.config;
  * @author yongjie.zhuang
  */
 public interface PropertyConstants {
-    String LANGUAGE = "app.lang";
     String TITLE_ADD_PREFIX = "title.add.";
     String TITLE_DELETE_PREFIX = "title.delete.";
     String TITLE_COPY_PREFIX = "title.copy.";

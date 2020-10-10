@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
  */
 public class IOHandlerImpl implements IOHandler {
     private static final String DIR_NAME = "todo-app";
-    private static final String CONF_NAME = "settings.conf";
+    private static final String CONF_NAME = "settings.json";
     private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
@@ -44,20 +44,18 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void generateConfIfNotExists() {
-        singleThreadExecutor.execute(() -> {
-            File conf = new File(getConfPath());
-            if (!conf.exists()) {
-                try {
-                    if (!conf.getParentFile().exists())
-                        conf.getParentFile().mkdir();
-                    conf.createNewFile();
-                    writeDefaultConfIntoFile(conf);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+        File conf = new File(getConfPath());
+        if (!conf.exists()) {
+            try {
+                if (!conf.getParentFile().exists())
+                    conf.getParentFile().mkdirs();
+                conf.createNewFile();
+                writeDefaultConfIntoFile(conf);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
             }
-        });
+        }
     }
 
     @Override
@@ -96,7 +94,7 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeTodoJobSync(List<TodoJob> jobs, String savePath) {
-       writeTodoJob(jobs, savePath);
+        writeTodoJob(jobs, savePath);
     }
 
     @Override
@@ -135,6 +133,7 @@ public class IOHandlerImpl implements IOHandler {
             throw new FileNotFoundException("Cannot write default configuration, file doesn't exist");
         Config defaultConfig = new Config();
         defaultConfig.setSavePath(getDefSavePath());
+        defaultConfig.setLanguage(Config.DEF_LANGUAGE);
         try (FileWriter fw = new FileWriter(file)) {
             fw.write(objectMapper.writeValueAsString(defaultConfig));
         }
