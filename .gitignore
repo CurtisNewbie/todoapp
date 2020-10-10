@@ -27,3 +27,5 @@ target/
 *.iml
 *.json
 *.conf
+
+dependency-reduced-pom.xml
