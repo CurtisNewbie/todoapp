@@ -123,7 +123,8 @@ public class Controller implements Initializable {
         ctxMenu.addMenuItem("Copy", e -> {
             Platform.runLater(() -> {
                 int selected = listView.getSelectionModel().getSelectedIndex();
-                copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
+                if (selected >= 0)
+                    copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
             });
         });
         ctxMenu.addMenuItem("Backup", e -> {
@@ -184,9 +185,8 @@ public class Controller implements Initializable {
     private void toastInfo(String msg) {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("INFO");
-            alert.setContentText(msg);
             alert.setResizable(true);
+            alert.setContentText(msg);
             alert.show();
         });
     }
@@ -194,7 +194,6 @@ public class Controller implements Initializable {
     private void toastError(String msg) {
         Platform.runLater(() -> {
             var alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("ERROR");
             alert.setResizable(true);
             alert.setContentText(msg);
             alert.show();
