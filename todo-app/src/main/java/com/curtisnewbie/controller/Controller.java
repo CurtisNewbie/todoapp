@@ -77,7 +77,7 @@ public class Controller implements Initializable {
         }
 
         // save the whole to-do list on app shutdown
-        App.registerOnClose(() -> save());
+        App.registerOnClose(() -> saveSync());
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
@@ -130,30 +130,38 @@ public class Controller implements Initializable {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Backup TO-DO List");
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                ioHandler.writeTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile.getAbsolutePath());
+                ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
+                                            nFile.getAbsolutePath());
             });
         });
         return ctxMenu;
     }
 
     /**
-     * Save the to-do list based on config
+     * Save the to-do list based on config in a synchronous way
      */
-    private void save() {
+    private void saveSync() {
         List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
-        ioHandler.writeTodoJob(list, config.getSavePath());
-        System.out.println("Saved");
+        ioHandler.writeTodoJobSync(list, config.getSavePath());
     }
 
     /**
-     * Register ctrl+s key event handler for ListView, which triggers {@link #save()}
+     * Save the to-do list based on config in a asynchronous way
+     */
+    private void saveAsync() {
+        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
+        ioHandler.writeTodoJobAsync(list, config.getSavePath());
+    }
+
+    /**
+     * Register ctrl+s key event handler for ListView, which triggers {@link #saveAsync()}
      *
      * @param lv
      */
     private void registerCtrlSHandler(ListView<TodoJobView> lv) {
         lv.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
-                save();
+                saveAsync();
                 toastInfo("Saved -- " + new Date().toString());
             }
         });

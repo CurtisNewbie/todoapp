@@ -79,21 +79,30 @@ public class IOHandlerImpl implements IOHandler {
         return config;
     }
 
-    @Override
-    public void writeTodoJob(List<TodoJob> jobs, String savePath) {
-        singleThreadExecutor.submit(() -> {
-            File saveFile = new File(savePath);
-            try {
-                if (!saveFile.exists()) {
-                    saveFile.createNewFile();
-                }
-                try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
-                    objectMapper.writeValue(bw, jobs);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+    private void writeTodoJob(List<TodoJob> jobs, String savePath) {
+        File saveFile = new File(savePath);
+        try {
+            if (!saveFile.exists()) {
+                saveFile.createNewFile();
             }
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
+                objectMapper.writeValue(bw, jobs);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    @Override
+    public void writeTodoJobSync(List<TodoJob> jobs, String savePath) {
+       writeTodoJob(jobs, savePath);
+    }
+
+    @Override
+    public void writeTodoJobAsync(List<TodoJob> jobs, String savePath) {
+        singleThreadExecutor.execute(() -> {
+            writeTodoJob(jobs, savePath);
         });
     }
 
@@ -105,8 +114,8 @@ public class IOHandlerImpl implements IOHandler {
                     file.createNewFile();
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS",
-                                DateUtil.toDateStr(j.getStartDate()), j.getName()));
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS", DateUtil.toDateStr(j.getStartDate()),
+                                               j.getName()));
                     }
                 }
             } catch (IOException e) {

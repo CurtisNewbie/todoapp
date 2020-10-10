@@ -38,15 +38,23 @@ public interface IOHandler {
     Config readConfig();
 
     /**
-     * Save the job list to file (that can be loaded later on)
+     * Save the job list to file (that can be loaded later on) in a synchronous way
      *
      * @param jobs     job-list
      * @param savePath path to where the job-list is saved
      */
-    void writeTodoJob(List<TodoJob> jobs, String savePath);
+    void writeTodoJobSync(List<TodoJob> jobs, String savePath);
 
     /**
-     * Export job list (in a human-readable form) to file.
+     * Save the job list to file (that can be loaded later on) in an asynchronous way
+     *
+     * @param jobs     job-list
+     * @param savePath path to where the job-list is saved
+     */
+    void writeTodoJobAsync(List<TodoJob> jobs, String savePath);
+
+    /**
+     * Export job list (in a human-readable form) to file
      *
      * @param jobs job-list
      * @param file file that the jobs exported to
