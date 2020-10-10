@@ -102,10 +102,6 @@ public class Controller implements Initializable {
 
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
-        ctxMenu.addMenuItem("Delete", e -> {
-            int selected = listView.getSelectionModel().getSelectedIndex();
-            listView.getItems().remove(selected);
-        });
         ctxMenu.addMenuItem("Add", e -> {
             Platform.runLater(() -> {
                 TextInputDialog dialog = new TextInputDialog("NewJob");
@@ -119,12 +115,14 @@ public class Controller implements Initializable {
                 }
             });
         });
-        ctxMenu.addMenuItem("Export Human-readable Form", e -> {
+        ctxMenu.addMenuItem("Delete", e -> {
+            int selected = listView.getSelectionModel().getSelectedIndex();
+            listView.getItems().remove(selected);
+        });
+        ctxMenu.addMenuItem("Copy", e -> {
             Platform.runLater(() -> {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Export TO-DO List");
-                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
+                int selected = listView.getSelectionModel().getSelectedIndex();
+                copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
             });
         });
         ctxMenu.addMenuItem("Backup", e -> {
@@ -136,10 +134,12 @@ public class Controller implements Initializable {
                                             nFile.getAbsolutePath());
             });
         });
-        ctxMenu.addMenuItem("Copy", e -> {
+        ctxMenu.addMenuItem("Export Human-readable Form", e -> {
             Platform.runLater(() -> {
-                int selected = listView.getSelectionModel().getSelectedIndex();
-                copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Export TO-DO List");
+                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
         });
         return ctxMenu;
