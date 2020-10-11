@@ -56,6 +56,7 @@ public class Controller implements Initializable {
     private final String BACKUP_TITLE;
     private final String EXPORT_TITLE;
     private final String ABOUT_TITLE;
+    private final Language language;
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -65,10 +66,13 @@ public class Controller implements Initializable {
             lang = Language.DEFAULT.key;
         boolean isChn = lang.equals(Language.CHN.key);
         String suffix;
-        if (isChn)
+        if (isChn) {
+            language = Language.CHN;
             suffix = Language.CHN.key;
-        else
+        } else {
+            language = Language.ENG;
             suffix = Language.ENG.key;
+        }
 
         EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
         BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
@@ -181,7 +185,8 @@ public class Controller implements Initializable {
                 fileChooser.setInitialFileName("export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
                 fileChooser.getExtensionFilters().add(getExportExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
+                ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile,
+                                        language);
             });
         }).addMenuItem(ABOUT_TITLE, e -> {
             Platform.runLater(() -> {

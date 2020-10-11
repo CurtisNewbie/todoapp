@@ -2,6 +2,8 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
+import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
@@ -106,14 +108,21 @@ public class IOHandlerImpl implements IOHandler {
     }
 
     @Override
-    public void exportTodoJob(List<TodoJob> jobs, File file) {
+    public void exportTodoJob(List<TodoJob> jobs, File file, Language lang) {
         singleThreadExecutor.execute(() -> {
             try {
                 if (!file.exists())
                     file.createNewFile();
+                String suffix;
+                if (lang.equals(Language.CHN))
+                    suffix = Language.CHN.key;
+                else
+                    suffix = Language.ENG.key;
+                String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + suffix);
+                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS", DateUtil.toDateStrSlash(j.getStartDate()),
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDateStrSlash(j.getStartDate()),
                                                j.getName()));
                     }
                 }

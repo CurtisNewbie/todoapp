@@ -8,6 +8,11 @@ package com.curtisnewbie.config;
  * @author yongjie.zhuang
  */
 public interface PropertyConstants {
+    // ------------------ text ------------------
+    String TEXT_DONE_PREFIX = "text.done.";
+    String TEXT_IN_PROGRESS_PREFIX = "text.in.progress.";
+
+    // ------------------ titles ----------------
     String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
     String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
     String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";

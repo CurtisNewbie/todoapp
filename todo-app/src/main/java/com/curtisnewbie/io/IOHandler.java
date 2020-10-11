@@ -1,6 +1,7 @@
 package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
+import com.curtisnewbie.config.Language;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.sun.net.httpserver.Authenticator;
@@ -58,8 +59,9 @@ public interface IOHandler {
      *
      * @param jobs job-list
      * @param file file that the jobs exported to
+     * @param lang the language to use
      */
-    void exportTodoJob(List<TodoJob> jobs, File file);
+    void exportTodoJob(List<TodoJob> jobs, File file, Language lang);
 
     /**
      * Get Conf file path
