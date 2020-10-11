@@ -40,11 +40,15 @@ public class Controller implements Initializable {
 
     @FXML
     private ListView<TodoJobView> listView;
-
     private Config config;
-
     private final IOHandler ioHandler = new IOHandlerImpl();
 
+    private String TODO_LOADING_FAILURE_TITLE;
+    private String CONFIG_PATH_TITLE;
+    private String SAVE_PATH_TITLE;
+    private String NEW_TODO_NAME_TITLE;
+    private String ADD_NEW_TODO_TITLE;
+    private String NEW_TODO_TITLE;
     private String ADD_TITLE;
     private String DELETE_TITLE;
     private String COPY_TITLE;
@@ -82,9 +86,8 @@ public class Controller implements Initializable {
             for (TodoJob j : list) {
                 addTodoJobView(new TodoJobView(j, this));
             }
-            toastInfo("Successfully loaded todo list");
         } catch (FailureToLoadException e) {
-            toastError("Failed to load todo list");
+            toastError(TODO_LOADING_FAILURE_TITLE);
             e.printStackTrace();
         }
 
@@ -95,7 +98,6 @@ public class Controller implements Initializable {
         // register ctrl+s key event handler for ListView
         registerCtrlSHandler(listView);
         sortListView();
-        printPaths();
     }
 
     /**
@@ -115,10 +117,9 @@ public class Controller implements Initializable {
         JobCtxMenu ctxMenu = new JobCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, e -> {
             Platform.runLater(() -> {
-                TextInputDialog dialog = new TextInputDialog("NewJob");
-                dialog.setHeaderText("Add New TODO");
-                dialog.setTitle("Add a new TODO");
-                dialog.setContentText("Enter the name of the TODO:");
+                TextInputDialog dialog = new TextInputDialog(NEW_TODO_TITLE);
+                dialog.setTitle(ADD_NEW_TODO_TITLE);
+                dialog.setContentText(NEW_TODO_NAME_TITLE);
                 Optional<String> result = dialog.showAndWait();
                 if (!result.isEmpty() && !result.get().isBlank()) {
                     addTodoJobView(result.get().trim());
@@ -223,14 +224,10 @@ public class Controller implements Initializable {
         clipboard.setContent(cc);
     }
 
-    private void printPaths() {
-        System.out.printf("Configuration path: '%s'\n", ioHandler.getConfPath());
-        System.out.printf("Saved at path: '%s'\n", config.getSavePath());
-    }
-
     private void toastPaths() {
-        toastInfo(String.format("Configuration path: '%s'\n", ioHandler.getConfPath()) +
-                  String.format("Saved at path: '%s'\n", config.getSavePath()) + "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
+        toastInfo(String.format("%s '%s'\n", CONFIG_PATH_TITLE, ioHandler.getConfPath()) +
+                  String.format("%s '%s'\n", SAVE_PATH_TITLE, config.getSavePath()) +
+                  "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
     }
 
     /**
@@ -248,6 +245,12 @@ public class Controller implements Initializable {
         else
             suffix = ENG;
 
+        TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
+        SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
+        CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);
+        NEW_TODO_NAME_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_NAME_PREFIX + suffix);
+        ADD_NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_ADD_NEW_TODO_PREFIX + suffix);
+        NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_PREFIX + suffix);
         ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
         DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
         COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
