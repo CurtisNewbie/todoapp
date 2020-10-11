@@ -4,6 +4,7 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
+import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -62,16 +63,16 @@ public class IOHandlerImpl implements IOHandler {
     public Config readConfig() {
         generateConfIfNotExists();
         File conf = new File(getConfPath());
-        Config config = null;
+        Config config;
         try {
             config = objectMapper.readValue(conf, Config.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // recoverable exception
             try {
                 // overwrite the file if exception is caught
-                writeDefaultConfIntoFile(conf);
+                config = writeDefaultConfIntoFile(conf);
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                throw new RuntimeException(ioException); // unrecoverable exception
             }
         }
         return config;
@@ -126,9 +127,10 @@ public class IOHandlerImpl implements IOHandler {
      * Write the default configuration (text) into the file
      *
      * @param file
+     * @return defaultConfig
      * @throws IOException
      */
-    private void writeDefaultConfIntoFile(File file) throws IOException {
+    private Config writeDefaultConfIntoFile(File file) throws IOException {
         if (!file.exists())
             throw new FileNotFoundException("Cannot write default configuration, file doesn't exist");
         Config defaultConfig = new Config();
@@ -137,6 +139,7 @@ public class IOHandlerImpl implements IOHandler {
         try (FileWriter fw = new FileWriter(file)) {
             fw.write(objectMapper.writeValueAsString(defaultConfig));
         }
+        return defaultConfig;
     }
 
     private String getDefSavePath() {
