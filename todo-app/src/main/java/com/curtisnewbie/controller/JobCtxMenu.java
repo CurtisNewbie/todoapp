@@ -10,7 +10,7 @@ import javafx.scene.control.MenuItem;
  * {@code ContextMenu} of {@code TodoJobView}
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 public class JobCtxMenu extends ContextMenu {
 

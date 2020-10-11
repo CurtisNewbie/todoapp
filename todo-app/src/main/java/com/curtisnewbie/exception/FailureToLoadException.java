@@ -5,7 +5,7 @@ package com.curtisnewbie.exception;
  * Indicate that the file cannot be loaded
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 public class FailureToLoadException extends Exception {
 

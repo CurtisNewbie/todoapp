@@ -7,7 +7,7 @@ import java.io.UnsupportedEncodingException;
  * Util class for Strings
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 public class StrUtil {
     private static final String UTF8 = "UTF-8";

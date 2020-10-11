@@ -5,7 +5,7 @@ package com.curtisnewbie.util;
  * Class that allows registering callbacks
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 @FunctionalInterface
 public interface OnClose {

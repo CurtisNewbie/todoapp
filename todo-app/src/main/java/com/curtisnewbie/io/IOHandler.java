@@ -4,10 +4,8 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
-import com.sun.net.httpserver.Authenticator;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -15,7 +13,7 @@ import java.util.List;
  * Class that handles I/O related operations.
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 public interface IOHandler {
 

@@ -9,7 +9,7 @@ import java.io.Serializable;
  * Config entity serialised/deserialized from JSON
  * </p>
  *
- * @author zhuangyongj
+ * @author yongjie.zhuang
  */
 public class Config implements Serializable {
 
