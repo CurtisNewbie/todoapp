@@ -140,16 +140,41 @@ public class IOHandlerImpl implements IOHandler {
      * @throws IOException
      */
     private Config writeDefaultConfIntoFile(File file) throws IOException {
-        if (!file.exists())
-            throw new FileNotFoundException("Cannot write default configuration, file doesn't exist");
         Config defaultConfig = new Config();
         defaultConfig.setSavePath(getDefSavePath());
         defaultConfig.setLanguage(Language.DEFAULT.key);
-        try (FileWriter fw = new FileWriter(file)) {
-            fw.write(objectMapper.writeValueAsString(defaultConfig));
-        }
+        writeConfig(defaultConfig, file);
         return defaultConfig;
     }
+
+    @Override
+    public void writeConfigAsync(Config config) {
+        singleThreadExecutor.execute(() -> {
+            File file = new File(getConfPath());
+            try {
+                if (!file.exists())
+                    file.createNewFile();
+                writeConfig(config, file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+
+    /**
+     * Write configuration (text) into the file
+     *
+     * @param config
+     * @param file
+     * @throws IOException
+     */
+    private void writeConfig(Config config, File file) throws IOException {
+        try (FileWriter fw = new FileWriter(file)) {
+            fw.write(objectMapper.writeValueAsString(config));
+        }
+    }
+
 
     private String getDefSavePath() {
         return getBasePath() + File.separator + DEF_SAVE_NAME;

@@ -7,6 +7,7 @@ import com.curtisnewbie.exception.FailureToLoadException;
 import com.sun.net.httpserver.Authenticator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -30,6 +31,11 @@ public interface IOHandler {
      * Generate the configuration file if not exists
      */
     void generateConfIfNotExists();
+
+    /**
+     * Attempt to write (or overwrite) config file in an asynchronous way
+     */
+    void writeConfigAsync(Config config);
 
     /**
      * Load {@code Config} from file

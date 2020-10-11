@@ -11,16 +11,10 @@ import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
 import com.curtisnewbie.util.DateUtil;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -39,13 +33,10 @@ import java.util.stream.Collectors;
  * @author yongjie.zhuang
  */
 public class Controller implements Initializable {
+
     private static final int PADDING = 30;
 
-    @FXML
-    private ListView<TodoJobView> listView;
-    private Config config;
-    private final IOHandler ioHandler = new IOHandlerImpl();
-
+    private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
     private final String TODO_LOADING_FAILURE_TITLE;
@@ -62,6 +53,11 @@ public class Controller implements Initializable {
     private final String ABOUT_TITLE;
     private final Language language;
 
+    @FXML
+    private ListView<TodoJobView> listView;
+    private Config config;
+    private final IOHandler ioHandler = new IOHandlerImpl();
+
     public Controller() {
         config = ioHandler.readConfig();
         PropertiesLoader props = PropertiesLoader.getInstance();
@@ -77,7 +73,7 @@ public class Controller implements Initializable {
             language = Language.ENG;
             suffix = Language.ENG.key;
         }
-
+        CHOOSE_LANGUAGE_TITLE = props.get(PropertyConstants.TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
         EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
         BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
         TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
@@ -151,9 +147,10 @@ public class Controller implements Initializable {
 
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, e -> onAddHandler(e)).addMenuItem(DELETE_TITLE, e -> onDeleteHandler(e))
-                .addMenuItem(COPY_TITLE, e -> onCopyHandler(e)).addMenuItem(BACKUP_TITLE, e -> onBackupHandler(e))
-                .addMenuItem(EXPORT_TITLE, e -> onExportHandler(e)).addMenuItem(ABOUT_TITLE, e -> onAboutHandler(e));
+        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
+                .addMenuItem(COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler)
+                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
+                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -287,6 +284,26 @@ public class Controller implements Initializable {
     private void onAboutHandler(ActionEvent e) {
         Platform.runLater(() -> {
             toastPaths();
+        });
+    }
+
+    private void onLanguageHandler(ActionEvent e) {
+        String engChoice = "English";
+        String chnChoice = "中文";
+        Platform.runLater(() -> {
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            choiceDialog.setTitle(CHOOSE_LANGUAGE_TITLE);
+            choiceDialog.getItems().add(engChoice);
+            choiceDialog.getItems().add(chnChoice);
+            Optional<String> opt = choiceDialog.showAndWait();
+            if (opt.isPresent()) {
+                if (opt.get().equals(engChoice) && !language.equals(Language.ENG)) {
+                    config.setLanguage(Language.ENG.key);
+                } else {
+                    config.setLanguage(Language.CHN.key);
+                }
+            }
+            ioHandler.writeConfigAsync(config);
         });
     }
 }
