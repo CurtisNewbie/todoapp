@@ -37,6 +37,7 @@ public class Controller implements Initializable {
 
     private static final int PADDING = 30;
 
+    private final String SAVED_TEXT;
     private final String SAVE_ON_CLOSE_TEXT;
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
@@ -77,7 +78,7 @@ public class Controller implements Initializable {
             language = Language.ENG;
             suffix = Language.ENG.key;
         }
-
+        SAVED_TEXT = props.get(PropertyConstants.TEXT_SAVED_PREFIX + suffix);
         SAVE_ON_CLOSE_TEXT = props.get(PropertyConstants.TEXT_SAVE_ON_CLOSE_PREFIX + suffix);
         CHOOSE_LANGUAGE_TITLE = props.get(PropertyConstants.TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
         EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
@@ -194,7 +195,7 @@ public class Controller implements Initializable {
             if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
                 saveAsync();
                 saved.set(true);
-                toastInfo("Saved -- " + new Date().toString());
+                toastInfo(SAVED_TEXT + " - " + new Date().toString());
             }
         });
     }
