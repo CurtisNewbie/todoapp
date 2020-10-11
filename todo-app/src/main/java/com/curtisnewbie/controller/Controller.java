@@ -37,6 +37,7 @@ public class Controller implements Initializable {
 
     private static final int PADDING = 30;
 
+    private final String SAVE_ON_CLOSE_TEXT;
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
@@ -76,6 +77,8 @@ public class Controller implements Initializable {
             language = Language.ENG;
             suffix = Language.ENG.key;
         }
+
+        SAVE_ON_CLOSE_TEXT = props.get(PropertyConstants.TEXT_SAVE_ON_CLOSE_PREFIX + suffix);
         CHOOSE_LANGUAGE_TITLE = props.get(PropertyConstants.TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
         EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
         BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
@@ -129,7 +132,11 @@ public class Controller implements Initializable {
         // save the whole to-do list on app shutdown only when it needs to
         App.registerOnClose(() -> {
             if (!saved.get()) {
-                saveSync();
+                Alert alert = new Alert(Alert.AlertType.WARNING, SAVE_ON_CLOSE_TEXT, ButtonType.OK, ButtonType.CANCEL);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK) {
+                    saveSync();
+                }
             }
         });
         // register a ContextMenu for the ListView

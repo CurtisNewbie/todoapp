@@ -11,6 +11,7 @@ public interface PropertyConstants {
     // ------------------ text ------------------
     String TEXT_DONE_PREFIX = "text.done.";
     String TEXT_IN_PROGRESS_PREFIX = "text.in.progress.";
+    String TEXT_SAVE_ON_CLOSE_PREFIX = "text.save.choice.";
 
     // ------------------ titles ----------------
     String TITLE_CHOOSE_LANGUAGE_PREFIX = "title.lang.choice.";
