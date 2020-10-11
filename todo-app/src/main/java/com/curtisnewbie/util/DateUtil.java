@@ -15,7 +15,18 @@ public class DateUtil {
     private DateUtil() {
     }
 
-    private static final SimpleDateFormat shortDateFormat = new SimpleDateFormat("dd/MM/YYYY");
+    private static final SimpleDateFormat shortDateFormatSlash = new SimpleDateFormat("dd/MM/YYYY");
+    private static final SimpleDateFormat shortDateFormatDash = new SimpleDateFormat("dd-MM-YYYY");
+
+    /**
+     * Convert date to yyyy/MM/dd string
+     *
+     * @param d date
+     * @return date string in yyyy/MM/dd
+     */
+    public static String toDateStrSlash(Date d) {
+        return shortDateFormatSlash.format(d);
+    }
 
     /**
      * Convert date to yyyy-MM-dd string
@@ -23,7 +34,7 @@ public class DateUtil {
      * @param d date
      * @return date string in yyyy-MM-dd
      */
-    public static String toDateStr(Date d) {
-        return shortDateFormat.format(d);
+    public static String toDateStrDash(Date d) {
+        return shortDateFormatDash.format(d);
     }
 }

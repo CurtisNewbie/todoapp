@@ -4,7 +4,6 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
-import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -113,7 +112,7 @@ public class IOHandlerImpl implements IOHandler {
                     file.createNewFile();
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS", DateUtil.toDateStr(j.getStartDate()),
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? "DONE" : "IN PROGRESS", DateUtil.toDateStrSlash(j.getStartDate()),
                                                j.getName()));
                     }
                 }

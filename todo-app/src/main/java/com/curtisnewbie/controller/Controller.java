@@ -8,6 +8,7 @@ import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
+import com.curtisnewbie.util.DateUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -22,10 +23,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -129,7 +127,8 @@ public class Controller implements Initializable {
             });
         }).addMenuItem(DELETE_TITLE, e -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
-            listView.getItems().remove(selected);
+            if (selected >= 0)
+                listView.getItems().remove(selected);
         }).addMenuItem(COPY_TITLE, e -> {
             Platform.runLater(() -> {
                 int selected = listView.getSelectionModel().getSelectedIndex();
@@ -140,6 +139,8 @@ public class Controller implements Initializable {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Backup TO-DO List");
+                fileChooser.setInitialFileName(DateUtil.toDateStrDash(new Date()));
+                fileChooser.getExtensionFilters().add(getBackupExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
                                             nFile.getAbsolutePath());
@@ -148,6 +149,7 @@ public class Controller implements Initializable {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle("Export TO-DO List");
+                fileChooser.getExtensionFilters().add(getExportExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
             });
@@ -237,7 +239,7 @@ public class Controller implements Initializable {
     private void handleLanguageConfig() {
         PropertiesLoader props = PropertiesLoader.getInstance();
         String lang = config.getLanguage();
-        if(lang == null)
+        if (lang == null)
             lang = Config.DEF_LANGUAGE;
         boolean isChn = lang.equals("chn");
         String suffix;
@@ -253,4 +255,13 @@ public class Controller implements Initializable {
         EXPORT_TITLE = props.get(PropertyConstants.TITLE_EXPORT_PREFIX + suffix);
         ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
     }
+
+    private FileChooser.ExtensionFilter getExportExtFilter() {
+        return new FileChooser.ExtensionFilter("txt", Arrays.asList("*.txt"));
+    }
+
+    private FileChooser.ExtensionFilter getBackupExtFilter() {
+        return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
+    }
 }
+
