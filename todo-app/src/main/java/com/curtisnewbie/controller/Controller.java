@@ -42,20 +42,49 @@ public class Controller implements Initializable {
     private Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
 
-    private String BACKUP_TODO_TITLE;
-    private String EXPORT_TODO_TITLE;
-    private String TODO_LOADING_FAILURE_TITLE;
-    private String CONFIG_PATH_TITLE;
-    private String SAVE_PATH_TITLE;
-    private String NEW_TODO_NAME_TITLE;
-    private String ADD_NEW_TODO_TITLE;
-    private String NEW_TODO_TITLE;
-    private String ADD_TITLE;
-    private String DELETE_TITLE;
-    private String COPY_TITLE;
-    private String BACKUP_TITLE;
-    private String EXPORT_TITLE;
-    private String ABOUT_TITLE;
+    private final String BACKUP_TODO_TITLE;
+    private final String EXPORT_TODO_TITLE;
+    private final String TODO_LOADING_FAILURE_TITLE;
+    private final String CONFIG_PATH_TITLE;
+    private final String SAVE_PATH_TITLE;
+    private final String NEW_TODO_NAME_TITLE;
+    private final String ADD_NEW_TODO_TITLE;
+    private final String NEW_TODO_TITLE;
+    private final String ADD_TITLE;
+    private final String DELETE_TITLE;
+    private final String COPY_TITLE;
+    private final String BACKUP_TITLE;
+    private final String EXPORT_TITLE;
+    private final String ABOUT_TITLE;
+
+    public Controller() {
+        config = ioHandler.readConfig();
+        PropertiesLoader props = PropertiesLoader.getInstance();
+        String lang = config.getLanguage();
+        if (lang == null)
+            lang = Language.DEFAULT.key;
+        boolean isChn = lang.equals(Language.CHN.key);
+        String suffix;
+        if (isChn)
+            suffix = Language.CHN.key;
+        else
+            suffix = Language.ENG.key;
+
+        EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
+        BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
+        TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
+        SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
+        CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);
+        NEW_TODO_NAME_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_NAME_PREFIX + suffix);
+        ADD_NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_ADD_NEW_TODO_PREFIX + suffix);
+        NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_PREFIX + suffix);
+        ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
+        DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
+        COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
+        BACKUP_TITLE = props.get(PropertyConstants.TITLE_BACKUP_PREFIX + suffix);
+        EXPORT_TITLE = props.get(PropertyConstants.TITLE_EXPORT_PREFIX + suffix);
+        ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
+    }
 
     /**
      * Add {@code TodoJobView} into the {@code ListView}
@@ -79,8 +108,6 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        config = ioHandler.readConfig();
-        handleLanguageConfig();
         // load previous job list if exists
         try {
             var list = ioHandler.loadTodoJob(config.getSavePath());
@@ -230,37 +257,6 @@ public class Controller implements Initializable {
         toastInfo(String.format("%s '%s'\n", CONFIG_PATH_TITLE, ioHandler.getConfPath()) +
                   String.format("%s '%s'\n", SAVE_PATH_TITLE, config.getSavePath()) +
                   "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
-    }
-
-    /**
-     * Handle language-related configurations
-     */
-    private void handleLanguageConfig() {
-        PropertiesLoader props = PropertiesLoader.getInstance();
-        String lang = config.getLanguage();
-        if (lang == null)
-            lang = Language.DEFAULT.key;
-        boolean isChn = lang.equals(Language.CHN.key);
-        String suffix;
-        if (isChn)
-            suffix = Language.CHN.key;
-        else
-            suffix = Language.ENG.key;
-
-        EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
-        BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
-        TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
-        SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
-        CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);
-        NEW_TODO_NAME_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_NAME_PREFIX + suffix);
-        ADD_NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_ADD_NEW_TODO_PREFIX + suffix);
-        NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_PREFIX + suffix);
-        ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
-        DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
-        COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
-        BACKUP_TITLE = props.get(PropertyConstants.TITLE_BACKUP_PREFIX + suffix);
-        EXPORT_TITLE = props.get(PropertyConstants.TITLE_EXPORT_PREFIX + suffix);
-        ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
     }
 
     private FileChooser.ExtensionFilter getExportExtFilter() {
