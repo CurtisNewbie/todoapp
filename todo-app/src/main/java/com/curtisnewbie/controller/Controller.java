@@ -23,6 +23,7 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -55,8 +56,10 @@ public class Controller implements Initializable {
 
     @FXML
     private ListView<TodoJobView> listView;
-    private Config config;
+    private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
+    /** record whether user has content that is saved */
+    private final AtomicBoolean saved = new AtomicBoolean(true);
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -123,8 +126,12 @@ public class Controller implements Initializable {
             e.printStackTrace();
         }
 
-        // save the whole to-do list on app shutdown
-        App.registerOnClose(() -> saveSync());
+        // save the whole to-do list on app shutdown only when it needs to
+        App.registerOnClose(() -> {
+            if (!saved.get()) {
+                saveSync();
+            }
+        });
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
@@ -179,6 +186,7 @@ public class Controller implements Initializable {
         lv.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
                 saveAsync();
+                saved.set(true);
                 toastInfo("Saved -- " + new Date().toString());
             }
         });
@@ -240,13 +248,16 @@ public class Controller implements Initializable {
                 addTodoJobView(result.get().trim());
                 sortListView();
             }
+            saved.set(false);
         });
     }
 
     private void onDeleteHandler(ActionEvent e) {
         int selected = listView.getSelectionModel().getSelectedIndex();
-        if (selected >= 0)
+        if (selected >= 0) {
             listView.getItems().remove(selected);
+            saved.set(false);
+        }
     }
 
     private void onCopyHandler(ActionEvent e) {
