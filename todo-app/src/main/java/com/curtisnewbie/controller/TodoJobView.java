@@ -49,7 +49,7 @@ public class TodoJobView extends HBox {
         this.todoJob = new TodoJob(name);
         this.nameLabel = LabelFactory.getClassicLabel(name);
         this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO).subtract(15));
-        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(new Date()));
+        this.startDateLabel = LabelFactory.getRightPaddedLabel(DateUtil.toDateStrSlash(new Date()));
         this.doneCb.setSelected(false);
         this.doneCb.setOnAction(e -> {
             this.todoJob.setDone(doneCb.isSelected());

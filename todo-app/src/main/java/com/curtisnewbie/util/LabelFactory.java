@@ -29,6 +29,13 @@ public class LabelFactory {
         return label;
     }
 
+
+    public static Label getRightPaddedLabel(String name) {
+        Label label = getBaseLabel(name);
+        label.setPadding(new Insets(2, 5, 2, 2));
+        return label;
+    }
+
     private static Label getBaseLabel(String name) {
         Label label = new Label(name);
         label.setWrapText(true);

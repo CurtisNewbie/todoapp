@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  */
 public class Controller implements Initializable {
 
-    private static final int PADDING = 30;
+    private static final int PADDING = 35;
 
     private final String SAVED_TEXT;
     private final String SAVE_ON_CLOSE_TEXT;
