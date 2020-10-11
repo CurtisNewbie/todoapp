@@ -4,7 +4,7 @@
 
     <groupId>com.curtisnewbie</groupId>
     <artifactId>todo-app</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
     <packaging>jar</packaging>
 
     <name>todo-app</name>
