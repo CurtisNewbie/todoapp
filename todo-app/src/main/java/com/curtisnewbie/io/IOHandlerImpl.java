@@ -1,6 +1,7 @@
 package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
+import com.curtisnewbie.config.Language;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
@@ -134,7 +135,7 @@ public class IOHandlerImpl implements IOHandler {
             throw new FileNotFoundException("Cannot write default configuration, file doesn't exist");
         Config defaultConfig = new Config();
         defaultConfig.setSavePath(getDefSavePath());
-        defaultConfig.setLanguage(Config.DEF_LANGUAGE);
+        defaultConfig.setLanguage(Language.DEFAULT.key);
         try (FileWriter fw = new FileWriter(file)) {
             fw.write(objectMapper.writeValueAsString(defaultConfig));
         }

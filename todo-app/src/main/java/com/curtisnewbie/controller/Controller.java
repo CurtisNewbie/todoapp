@@ -2,6 +2,7 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
+import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
@@ -34,8 +35,6 @@ import java.util.stream.Collectors;
  * @author yongjie.zhuang
  */
 public class Controller implements Initializable {
-    private static final String ENG = "eng";
-    private static final String CHN = "chn";
     private static final int PADDING = 30;
 
     @FXML
@@ -43,6 +42,8 @@ public class Controller implements Initializable {
     private Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
 
+    private String BACKUP_TODO_TITLE;
+    private String EXPORT_TODO_TITLE;
     private String TODO_LOADING_FAILURE_TITLE;
     private String CONFIG_PATH_TITLE;
     private String SAVE_PATH_TITLE;
@@ -139,8 +140,8 @@ public class Controller implements Initializable {
         }).addMenuItem(BACKUP_TITLE, e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Backup TO-DO List");
-                fileChooser.setInitialFileName(DateUtil.toDateStrDash(new Date()));
+                fileChooser.setTitle(BACKUP_TODO_TITLE);
+                fileChooser.setInitialFileName("backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
                 fileChooser.getExtensionFilters().add(getBackupExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
@@ -149,7 +150,8 @@ public class Controller implements Initializable {
         }).addMenuItem(EXPORT_TITLE, e -> {
             Platform.runLater(() -> {
                 FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Export TO-DO List");
+                fileChooser.setTitle(EXPORT_TODO_TITLE);
+                fileChooser.setInitialFileName("export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
                 fileChooser.getExtensionFilters().add(getExportExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile);
@@ -237,14 +239,16 @@ public class Controller implements Initializable {
         PropertiesLoader props = PropertiesLoader.getInstance();
         String lang = config.getLanguage();
         if (lang == null)
-            lang = Config.DEF_LANGUAGE;
-        boolean isChn = lang.equals("chn");
+            lang = Language.DEFAULT.key;
+        boolean isChn = lang.equals(Language.CHN.key);
         String suffix;
         if (isChn)
-            suffix = CHN;
+            suffix = Language.CHN.key;
         else
-            suffix = ENG;
+            suffix = Language.ENG.key;
 
+        EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
+        BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
         TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
         SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
         CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);

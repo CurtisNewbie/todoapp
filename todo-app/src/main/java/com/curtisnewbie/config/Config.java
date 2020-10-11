@@ -13,8 +13,6 @@ import java.io.Serializable;
  */
 public class Config implements Serializable {
 
-    public static final String DEF_LANGUAGE = "eng";
-
     /**
      * Path to where the to-do list is saved on disk
      */

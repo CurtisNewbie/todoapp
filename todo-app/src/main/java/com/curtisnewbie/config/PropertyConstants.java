@@ -8,6 +8,8 @@ package com.curtisnewbie.config;
  * @author yongjie.zhuang
  */
 public interface PropertyConstants {
+    String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
+    String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
     String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
     String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
     String TITLE_CONFIG_PATH_PREFIX = "title.config.path.";
