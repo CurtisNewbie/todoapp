@@ -60,7 +60,7 @@ public class Controller implements Initializable {
     private ListView<TodoJobView> listView;
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
-    /** record whether user has content that is saved */
+    /** record whether user has content that is not saved */
     private final AtomicBoolean saved = new AtomicBoolean(true);
 
     public Controller() {
