@@ -19,28 +19,28 @@ public class LabelFactory {
 
     public static Label getClassicLabel(String name) {
         Label label = getBaseLabel(name);
-        label.setPadding(new Insets(2, 2, 2, 2));
+        label.setPadding(new Insets(3, 2, 3, 2));
         return label;
     }
 
     public static Label getLeftPaddedLabel(String name) {
         Label label = getBaseLabel(name);
-        label.setPadding(new Insets(2, 2, 2, 15));
+        label.setPadding(new Insets(3, 2, 3, 15));
         return label;
     }
 
 
     public static Label getRightPaddedLabel(String name) {
         Label label = getBaseLabel(name);
-        label.setPadding(new Insets(2, 5, 2, 2));
+        label.setPadding(new Insets(3, 15, 3, 2));
         return label;
     }
 
     private static Label getBaseLabel(String name) {
         Label label = new Label(name);
-        label.setWrapText(true);
+        label.setWrapText(false);
         label.setBorder(Border.EMPTY);
-        label.setAlignment(Pos.CENTER);
+        label.setAlignment(Pos.BASELINE_CENTER);
         return label;
     }
 }

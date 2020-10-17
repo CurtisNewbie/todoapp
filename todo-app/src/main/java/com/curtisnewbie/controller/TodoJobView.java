@@ -2,15 +2,15 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerRegisteredException;
-import com.curtisnewbie.util.CheckBoxFactory;
-import com.curtisnewbie.util.DateUtil;
-import com.curtisnewbie.util.LabelFactory;
+import com.curtisnewbie.util.*;
 import com.curtisnewbie.callback.OnEvent;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.text.Text;
 
 import java.util.Date;
 
@@ -24,7 +24,6 @@ import java.util.Date;
 public class TodoJobView extends HBox {
 
     private static final String CHECKBOX_NAME = "DONE:";
-    private static final float WRAP_RATIO = 0.7f;
 
     /**
      * {@code TodoJob} that this view represents
@@ -33,7 +32,7 @@ public class TodoJobView extends HBox {
     /**
      * The name of this {@code TodoJob}
      */
-    private final Label nameLabel;
+    private final Text nameText;
     /**
      * The date when this {@code TodoJob} is created
      */
@@ -52,13 +51,13 @@ public class TodoJobView extends HBox {
      */
     public TodoJobView(String name) {
         this.todoJob = new TodoJob(name);
-        this.nameLabel = LabelFactory.getClassicLabel(name);
-        this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO).subtract(15));
+        this.nameText = TextFactory.getClassicText(name);
+        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.6f));
         this.startDateLabel = LabelFactory.getRightPaddedLabel(DateUtil.toDateStrSlash(new Date()));
         this.doneCb.setSelected(false);
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, nameLabel, expandingBox(),
-                LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), TextFactory.wrapWithPadding(nameText
+                , padding()), MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
@@ -69,13 +68,13 @@ public class TodoJobView extends HBox {
      */
     public TodoJobView(TodoJob todoJob) {
         this.todoJob = todoJob;
-        this.nameLabel = LabelFactory.getClassicLabel(todoJob.getName());
-        this.nameLabel.prefWidthProperty().bind(this.widthProperty().multiply(WRAP_RATIO).subtract(15));
+        this.nameText = TextFactory.getClassicText(todoJob.getName());
+        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.6f));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, nameLabel, expandingBox(),
-                LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), TextFactory.wrapWithPadding(nameText
+                , padding()), MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
@@ -91,11 +90,6 @@ public class TodoJobView extends HBox {
         return doneCb;
     }
 
-    private HBox expandingBox() {
-        HBox box = new HBox();
-        HBox.setHgrow(box, Priority.SOMETIMES);
-        return box;
-    }
 
     /**
      * <p>
@@ -115,5 +109,9 @@ public class TodoJobView extends HBox {
         this.todoJob.setDone(doneCb.isSelected());
         if (doneCbRegisteredHandler != null)
             doneCbRegisteredHandler.react();
+    }
+
+    private Insets padding() {
+        return new Insets(3, 2, 3, 2);
     }
 }
