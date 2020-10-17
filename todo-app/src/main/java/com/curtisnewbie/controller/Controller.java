@@ -23,6 +23,8 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -60,6 +62,12 @@ public class Controller implements Initializable {
     private ListView<TodoJobView> listView;
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
+
+    /**
+     * Single thread executor that is responsible for handling listView related operation
+     */
+    private ExecutorService listViewExecutor = Executors.newSingleThreadExecutor();
+
     /**
      * record whether user has content that is not saved
      */
@@ -100,13 +108,36 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Add {@code TodoJobView} into the {@code ListView}
+     * <p>
+     * Add {@code TodoJobView} into the {@code ListView}.
+     * </p>
+     * <p>
+     * This method is always executed in Javafx's thread
+     * </p>
      *
      * @param jobView
      */
     public void addTodoJobView(TodoJobView jobView) {
-        jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-        listView.getItems().add(jobView);
+        Platform.runLater(() -> {
+            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
+            listView.getItems().add(jobView);
+        });
+    }
+
+    /**
+     * <p>
+     * Remove {@code TodoJobView} from the {@code ListView}.
+     * </p>
+     * <p>
+     * This method is always executed in Javafx's thread
+     * </p>
+     *
+     * @param i index
+     */
+    public void removeTodoJobView(int i) {
+        Platform.runLater(() -> {
+            listView.getItems().remove(i);
+        });
     }
 
     /**
@@ -264,7 +295,7 @@ public class Controller implements Initializable {
     private void onDeleteHandler(ActionEvent e) {
         int selected = listView.getSelectionModel().getSelectedIndex();
         if (selected >= 0) {
-            listView.getItems().remove(selected);
+            removeTodoJobView(selected);
             saved.set(false);
         }
     }
