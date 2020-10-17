@@ -110,7 +110,7 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Add new {@code TodoJobView} into the {@code ListView}
+     * Add new {@code TodoJobView} into the {@code ListView}.
      *
      * @param jobName
      */
@@ -150,7 +150,6 @@ public class Controller implements Initializable {
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
         registerCtrlSHandler(listView);
-        sortListView();
     }
 
     /**
