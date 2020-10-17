@@ -1,8 +1,8 @@
-package com.curtisnewbie.util;
+package com.curtisnewbie.callback;
 
 /**
  * <p>
- * Class that allows registering callbacks
+ * Class that allows registering callbacks to react to application closure
  * </p>
  *
  * @author yongjie.zhuang

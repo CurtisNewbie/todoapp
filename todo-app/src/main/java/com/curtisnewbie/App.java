@@ -1,6 +1,6 @@
 package com.curtisnewbie;
 
-import com.curtisnewbie.util.OnClose;
+import com.curtisnewbie.callback.OnClose;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

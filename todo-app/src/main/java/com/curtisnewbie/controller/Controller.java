@@ -60,7 +60,9 @@ public class Controller implements Initializable {
     private ListView<TodoJobView> listView;
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
-    /** record whether user has content that is not saved */
+    /**
+     * record whether user has content that is not saved
+     */
     private final AtomicBoolean saved = new AtomicBoolean(true);
 
     public Controller() {
@@ -113,7 +115,11 @@ public class Controller implements Initializable {
      * @param jobName
      */
     public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(jobName, this);
+        TodoJobView jobView = new TodoJobView(jobName);
+        jobView.regDoneCbEventHandler(() -> {
+            saved.set(false);
+            sortListView();
+        });
         addTodoJobView(jobView);
     }
 
@@ -123,7 +129,7 @@ public class Controller implements Initializable {
         try {
             var list = ioHandler.loadTodoJob(config.getSavePath());
             for (TodoJob j : list) {
-                addTodoJobView(new TodoJobView(j, this));
+                addTodoJobView(new TodoJobView(j));
             }
         } catch (FailureToLoadException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
@@ -162,10 +168,7 @@ public class Controller implements Initializable {
 
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-                .addMenuItem(COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler)
-                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
-                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler).addMenuItem(COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -233,9 +236,8 @@ public class Controller implements Initializable {
     }
 
     private void toastPaths() {
-        toastInfo(String.format("%s '%s'\n", CONFIG_PATH_TITLE, ioHandler.getConfPath()) +
-                  String.format("%s '%s'\n", SAVE_PATH_TITLE, config.getSavePath()) +
-                  "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
+        toastInfo(String.format("%s '%s'\n", CONFIG_PATH_TITLE, ioHandler.getConfPath()) + String.format("%s '%s'\n",
+                SAVE_PATH_TITLE, config.getSavePath()) + "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
     }
 
     private FileChooser.ExtensionFilter getExportExtFilter() {
@@ -283,8 +285,7 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
-                                        nFile.getAbsolutePath());
+            ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile.getAbsolutePath());
         });
     }
 
@@ -295,8 +296,7 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler
-                    .exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile, language);
+            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile, language);
         });
     }
 
