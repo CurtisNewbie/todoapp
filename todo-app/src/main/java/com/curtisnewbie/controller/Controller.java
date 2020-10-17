@@ -64,11 +64,6 @@ public class Controller implements Initializable {
     private final IOHandler ioHandler = new IOHandlerImpl();
 
     /**
-     * Single thread executor that is responsible for handling listView related operation
-     */
-    private ExecutorService listViewExecutor = Executors.newSingleThreadExecutor();
-
-    /**
      * record whether user has content that is not saved
      */
     private final AtomicBoolean saved = new AtomicBoolean(true);
