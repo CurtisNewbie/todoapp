@@ -248,7 +248,7 @@ public class Controller implements Initializable {
 
     private void onAddHandler(ActionEvent e) {
         Platform.runLater(() -> {
-            TextInputDialog dialog = new TextInputDialog(NEW_TODO_TITLE);
+            TxtAreaDialog dialog = new TxtAreaDialog(NEW_TODO_TITLE);
             dialog.setTitle(ADD_NEW_TODO_TITLE);
             dialog.setContentText(NEW_TODO_NAME_TITLE);
             Optional<String> result = dialog.showAndWait();
