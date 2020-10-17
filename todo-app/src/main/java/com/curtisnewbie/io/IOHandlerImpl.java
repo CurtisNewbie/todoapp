@@ -7,6 +7,7 @@ import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.DateUtil;
+import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -36,7 +37,15 @@ public class IOHandlerImpl implements IOHandler {
                 return new ArrayList<>();
             } else {
                 try (BufferedReader br = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
-                    return Arrays.asList(objectMapper.readValue(br, TodoJob[].class));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    String json = sb.toString();
+                    if (StrUtil.isEmpty(json) || json.matches("^\\[\\s\\]$"))
+                        return new ArrayList<>();
+                    return Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                 }
             }
         } catch (IOException e) {
@@ -119,11 +128,12 @@ public class IOHandlerImpl implements IOHandler {
                 else
                     suffix = Language.ENG.key;
                 String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + suffix);
-                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
+                String inProgress =
+                        PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDateStrSlash(j.getStartDate()),
-                                               j.getName()));
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress,
+                                DateUtil.toDateStrSlash(j.getStartDate()), j.getName()));
                     }
                 }
             } catch (IOException e) {
