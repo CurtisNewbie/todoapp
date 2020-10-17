@@ -337,6 +337,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(CHOOSE_LANGUAGE_TITLE);
+            choiceDialog.setSelectedItem(engChoice);
             choiceDialog.getItems().add(engChoice);
             choiceDialog.getItems().add(chnChoice);
             Optional<String> opt = choiceDialog.showAndWait();
