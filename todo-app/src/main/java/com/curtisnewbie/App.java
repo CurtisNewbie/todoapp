@@ -1,6 +1,7 @@
 package com.curtisnewbie;
 
 import com.curtisnewbie.callback.OnClose;
+import com.curtisnewbie.config.PropertiesLoader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -22,6 +23,8 @@ import java.util.List;
 public class App extends Application {
 
     private static final String TITLE = "TO-DO";
+    private static final PropertiesLoader properties = PropertiesLoader.getInstance();
+    private static final String VERSION = properties.get("app.version");
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
     private final int MIN_WIDTH = 500;
@@ -34,8 +37,7 @@ public class App extends Application {
     @Override
     public void init() throws Exception {
         ClassLoader classLoader = this.getClass().getClassLoader();
-        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);
-        ) {
+        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);) {
             FXMLLoader loader = new FXMLLoader();
             App.parent = loader.load(fxmlIn);
         }
@@ -46,7 +48,7 @@ public class App extends Application {
         App.primaryStage = stage;
         Scene s = new Scene(parent);
         stage.setScene(s);
-        stage.setTitle(TITLE);
+        stage.setTitle(String.format("%s %s", TITLE, VERSION));
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
         stage.show();
@@ -76,7 +78,7 @@ public class App extends Application {
         App.onCloseList.forEach(OnClose::close);
     }
 
-    public static Stage getPrimaryStage(){
+    public static Stage getPrimaryStage() {
         return App.primaryStage;
     }
 
