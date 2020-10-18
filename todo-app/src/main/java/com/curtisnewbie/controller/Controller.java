@@ -102,53 +102,6 @@ public class Controller implements Initializable {
         ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
     }
 
-    /**
-     * <p>
-     * Add {@code TodoJobView} into the {@code ListView}.
-     * </p>
-     * <p>
-     * This method is always executed in Javafx's thread
-     * </p>
-     *
-     * @param jobView
-     */
-    public void addTodoJobView(TodoJobView jobView) {
-        Platform.runLater(() -> {
-            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-            listView.getItems().add(jobView);
-        });
-    }
-
-    /**
-     * <p>
-     * Remove {@code TodoJobView} from the {@code ListView}.
-     * </p>
-     * <p>
-     * This method is always executed in Javafx's thread
-     * </p>
-     *
-     * @param i index
-     */
-    public void removeTodoJobView(int i) {
-        Platform.runLater(() -> {
-            listView.getItems().remove(i);
-        });
-    }
-
-    /**
-     * Add new {@code TodoJobView} into the {@code ListView}.
-     *
-     * @param jobName
-     */
-    public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(jobName);
-        jobView.regDoneCbEventHandler(() -> {
-            saved.set(false);
-            sortListView();
-        });
-        addTodoJobView(jobView);
-    }
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // load previous job list if exists
@@ -179,15 +132,73 @@ public class Controller implements Initializable {
     }
 
     /**
+     * <p>
+     * Add {@code TodoJobView} into the {@code ListView}.
+     * </p>
+     * <p>
+     * The operation of adding the jobView to the ListView is always executed in Javafx's thread
+     * </p>
+     *
+     * @param jobView
+     */
+    public void addTodoJobView(TodoJobView jobView) {
+        jobView.regDoneCbEventHandler(() -> {
+            saved.set(false);
+            sortListView();
+        });
+        Platform.runLater(() -> {
+            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
+            listView.getItems().add(jobView);
+        });
+    }
+
+    /**
+     * <p>
+     * Remove {@code TodoJobView} from the {@code ListView}.
+     * </p>
+     * <p>
+     * This method is always executed in Javafx's thread
+     * </p>
+     *
+     * @param i index
+     */
+    public void removeTodoJobView(int i) {
+        Platform.runLater(() -> {
+            listView.getItems().remove(i);
+        });
+    }
+
+    /**
+     * Add new {@code TodoJobView} into the {@code ListView}.
+     *
+     * <p>
+     * The operation of adding the jobView to the ListView is always executed in Javafx's thread
+     * </p>
+     *
+     * @param jobName
+     */
+    public void addTodoJobView(String jobName) {
+        TodoJobView jobView = new TodoJobView(jobName);
+        addTodoJobView(jobView);
+    }
+
+    /**
+     * <p>
      * Sort the {@code ListView} based on 1) whether they are finished and 2) the date when they are created
+     * </p>
+     * <p>
+     * This method is always executed within Javafx Thread
+     * </p>
      */
     protected void sortListView() {
-        listView.getItems().sort((a, b) -> {
-            int res = Boolean.compare(a.getTodoJob().isDone(), b.getTodoJob().isDone());
-            if (res != 0)
-                return res;
-            else
-                return b.getTodoJob().getStartDate().compareTo(a.getTodoJob().getStartDate());
+        Platform.runLater(() -> {
+            listView.getItems().sort((a, b) -> {
+                int res = Boolean.compare(a.getTodoJob().isDone(), b.getTodoJob().isDone());
+                if (res != 0)
+                    return res;
+                else
+                    return b.getTodoJob().getStartDate().compareTo(a.getTodoJob().getStartDate());
+            });
         });
     }
 

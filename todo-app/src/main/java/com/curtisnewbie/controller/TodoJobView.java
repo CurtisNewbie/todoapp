@@ -52,8 +52,8 @@ public class TodoJobView extends HBox {
     public TodoJobView(String name) {
         this.todoJob = new TodoJob(name);
         this.nameText = TextFactory.getClassicText(name);
-        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.6f));
-        this.startDateLabel = LabelFactory.getRightPaddedLabel(DateUtil.toDateStrSlash(new Date()));
+        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.7f));
+        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(new Date()));
         this.doneCb.setSelected(false);
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), TextFactory.wrapWithPadding(nameText
@@ -69,7 +69,7 @@ public class TodoJobView extends HBox {
     public TodoJobView(TodoJob todoJob) {
         this.todoJob = todoJob;
         this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.6f));
+        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.7f));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
