@@ -12,7 +12,7 @@ import javafx.scene.layout.Border;
  *
  * @author yongjie.zhuang
  */
-public class LabelFactory {
+public final class LabelFactory {
 
     private LabelFactory() {
     }

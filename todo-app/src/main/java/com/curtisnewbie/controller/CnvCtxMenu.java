@@ -7,12 +7,12 @@ import javafx.scene.control.MenuItem;
 
 /**
  * <p>
- * {@code ContextMenu} of {@code TodoJobView}
+ * Convenient extension of {@code ContextMenu}
  * </p>
  *
  * @author yongjie.zhuang
  */
-public class JobCtxMenu extends ContextMenu {
+public class CnvCtxMenu extends ContextMenu {
 
     /**
      * Add new {@code MenuItem} with the given {@code itemName}, and register it with the given {@code EventHandler}
@@ -21,7 +21,7 @@ public class JobCtxMenu extends ContextMenu {
      * @param eh       EventHandler
      * @return current {@code JobCtxMenu}, this is convenient for method chaining
      */
-    public JobCtxMenu addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
+    public CnvCtxMenu addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
         var menuItem = new MenuItem(itemName);
         menuItem.setOnAction(eh);
         this.getItems().add(menuItem);

@@ -4,9 +4,17 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
 /**
+ * <p>
+ * Util class facilitate creation of margin (or something similar)
+ * </p>
+ *
  * @author yongjie.zhuang
  */
-public class MarginFactory {
+public final class MarginFactory {
+
+    private MarginFactory() {
+
+    }
 
     /**
      * HBox acts as an infinit "margin" that expand "sometimes" when it's possible

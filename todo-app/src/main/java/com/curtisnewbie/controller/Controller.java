@@ -10,23 +10,28 @@ import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
 import com.curtisnewbie.util.DateUtil;
+import com.curtisnewbie.util.TextFactory;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static com.curtisnewbie.util.TextFactory.*;
 
 /**
  * <p>
@@ -202,8 +207,8 @@ public class Controller implements Initializable {
         });
     }
 
-    private JobCtxMenu createCtxMenu() {
-        JobCtxMenu ctxMenu = new JobCtxMenu();
+    private CnvCtxMenu createCtxMenu() {
+        CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler).addMenuItem(
                 COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(
                 EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(
@@ -263,20 +268,17 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Copy content to clipboard
+     * Copy content to clipboard (This method is always ran within a Javafx' UI Thread)
      *
      * @param content text
      */
     private void copyToClipBoard(String content) {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        ClipboardContent cc = new ClipboardContent();
-        cc.putString(content);
-        clipboard.setContent(cc);
-    }
-
-    private void toastPaths() {
-        toastInfo(String.format("%s '%s'\n", CONFIG_PATH_TITLE, ioHandler.getConfPath()) + String.format("%s '%s'\n",
-                SAVE_PATH_TITLE, config.getSavePath()) + "Github: 'https://github.com/CurtisNewbie/todoapp'\n");
+        Platform.runLater(() -> {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString(content);
+            clipboard.setContent(cc);
+        });
     }
 
     private FileChooser.ExtensionFilter getExportExtFilter() {
@@ -351,7 +353,14 @@ public class Controller implements Initializable {
 
     private void onAboutHandler(ActionEvent e) {
         Platform.runLater(() -> {
-            toastPaths();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            GridPane gPane = new GridPane();
+            alert.setTitle(ABOUT_TITLE);
+            gPane.add(getClassicText(String.format("%s '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
+            gPane.add(getClassicText(String.format("%s '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
+            gPane.add(getClassicText("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
+            alert.getDialogPane().setContent(gPane);
+            alert.show();
         });
     }
 

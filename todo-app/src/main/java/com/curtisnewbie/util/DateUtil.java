@@ -10,7 +10,7 @@ import java.util.Date;
  *
  * @author yongjie.zhuang
  */
-public class DateUtil {
+public final class DateUtil {
 
     private DateUtil() {
     }

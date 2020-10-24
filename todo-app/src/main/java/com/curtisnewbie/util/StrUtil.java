@@ -9,7 +9,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @author yongjie.zhuang
  */
-public class StrUtil {
+public final class StrUtil {
     private static final String UTF8 = "UTF-8";
     private static final String ISO8859 = "ISO-8859-1";
 

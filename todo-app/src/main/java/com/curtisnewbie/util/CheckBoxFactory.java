@@ -11,7 +11,7 @@ import javafx.scene.control.CheckBox;
  *
  * @author yongjie.zhuang
  */
-public class CheckBoxFactory {
+public final class CheckBoxFactory {
 
     private CheckBoxFactory() {
     }

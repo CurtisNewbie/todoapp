@@ -13,7 +13,10 @@ import javafx.scene.text.TextBoundsType;
  *
  * @author yongjie.zhuang
  */
-public class TextFactory {
+public final class TextFactory {
+
+    private TextFactory() {
+    }
 
     public static Text getClassicText(String txt) {
         Text text = new Text(txt);
