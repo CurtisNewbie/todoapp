@@ -329,7 +329,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(BACKUP_TODO_TITLE);
-            fileChooser.setInitialFileName("backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
+            fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             ioHandler.writeTodoJobAsync(
@@ -342,7 +342,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(EXPORT_TODO_TITLE);
-            fileChooser.setInitialFileName("export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
+            fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             ioHandler.exportTodoJob(
