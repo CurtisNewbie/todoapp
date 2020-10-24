@@ -10,19 +10,18 @@ import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
 import com.curtisnewbie.util.DateUtil;
-import com.curtisnewbie.util.TextFactory;
+import com.curtisnewbie.util.Redo;
+import com.curtisnewbie.util.RedoQueue;
+import com.curtisnewbie.util.RedoType;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -67,6 +66,7 @@ public class Controller implements Initializable {
     private ListView<TodoJobView> listView;
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
+    private final RedoQueue redoQueue = new RedoQueue();
 
     /**
      * record whether user has content that is not saved
@@ -133,7 +133,7 @@ public class Controller implements Initializable {
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
-        registerCtrlSHandler(listView);
+        registerCtrlKeyHandler(listView);
     }
 
     /**
@@ -166,11 +166,14 @@ public class Controller implements Initializable {
      * </p>
      *
      * @param i index
+     * @return TodoJob
      */
-    public void removeTodoJobView(int i) {
+    public TodoJob removeTodoJobView(int i) {
+        TodoJob job = listView.getItems().get(i).getTodoJob();
         Platform.runLater(() -> {
             listView.getItems().remove(i);
         });
+        return job;
     }
 
     /**
@@ -233,18 +236,43 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Register ctrl+s key event handler for ListView, which triggers {@link #saveAsync()}
+     * <p>
+     * Register ctrl+? key event handler for ListView
+     * </p>
+     * <p>
+     * E.g., Ctrl+s, triggers {@link #saveAsync()} for saving To-do list
+     * </p>
+     * <p>
+     * E.g., Ctrl+z, triggers {@link #redo()} for redoing previous action if possible
+     * </p>
      *
      * @param lv
      */
-    private void registerCtrlSHandler(ListView<TodoJobView> lv) {
+    private void registerCtrlKeyHandler(ListView<TodoJobView> lv) {
         lv.setOnKeyPressed(e -> {
-            if (e.getCode().equals(KeyCode.S) && e.isControlDown()) {
+            if (!e.isControlDown())
+                return;
+            if (e.getCode().equals(KeyCode.S)) {
                 saveAsync();
                 saved.set(true);
                 toastInfo(SAVED_TEXT + " - " + new Date().toString());
+            } else if (e.getCode().equals(KeyCode.Z)) {
+                saved.set(false);
+                redo();
             }
         });
+    }
+
+    /**
+     * Redo previous action
+     */
+    private void redo() {
+        Redo redo = redoQueue.get();
+        if (redo == null)
+            return;
+        if (redo.getType().equals(RedoType.DELETE)) {
+            addTodoJobView(new TodoJobView(redo.getTodoJob()));
+        }
     }
 
     private void toastInfo(String msg) {
@@ -296,10 +324,10 @@ public class Controller implements Initializable {
             dialog.setContentText(NEW_TODO_NAME_TITLE);
             Optional<String> result = dialog.showAndWait();
             if (!result.isEmpty() && !result.get().isBlank()) {
+                saved.set(false);
                 addTodoJobView(result.get().trim());
                 sortListView();
             }
-            saved.set(false);
         });
     }
 
@@ -310,8 +338,9 @@ public class Controller implements Initializable {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(DELETE_TITLE);
                 alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
-                    removeTodoJobView(selected);
                     saved.set(false);
+                    TodoJob job = removeTodoJobView(selected);
+                    redoQueue.put(new Redo(RedoType.DELETE, job));
                 });
             });
         }
@@ -358,7 +387,8 @@ public class Controller implements Initializable {
             alert.setTitle(ABOUT_TITLE);
             gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())),
                     0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0,
+                    1);
             gPane.add(getClassicTextWithPadding("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
             alert.getDialogPane().setContent(gPane);
             alert.show();
