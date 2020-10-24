@@ -15,12 +15,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public final class RedoQueue {
 
-    Queue<Redo> redoQueue = new ConcurrentLinkedQueue<>();
+    /**
+     * Desirable maximum size that this queue should respect, however, this may not be restricted followed.
+     */
+    private static final int MAX_SIZE = 50;
+
+    private final ConcurrentLinkedQueue<Redo> redoQueue = new ConcurrentLinkedQueue<>();
 
     /**
-     * Add an redo
+     * Add an redo (and remove last one if it's current size exceeds its desirable size)
      */
     public void put(Redo redo) {
+        if (size() > MAX_SIZE)
+            get();
         redoQueue.offer(redo);
     }
 
