@@ -356,9 +356,10 @@ public class Controller implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             GridPane gPane = new GridPane();
             alert.setTitle(ABOUT_TITLE);
-            gPane.add(getClassicText(String.format("%s '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-            gPane.add(getClassicText(String.format("%s '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
-            gPane.add(getClassicText("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())),
+                    0, 0);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
+            gPane.add(getClassicTextWithPadding("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
             alert.getDialogPane().setContent(gPane);
             alert.show();
         });
