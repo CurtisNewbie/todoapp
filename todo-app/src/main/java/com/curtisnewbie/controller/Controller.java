@@ -204,7 +204,10 @@ public class Controller implements Initializable {
 
     private JobCtxMenu createCtxMenu() {
         JobCtxMenu ctxMenu = new JobCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler).addMenuItem(COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler).addMenuItem(
+                COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(
+                EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(
+                CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -301,8 +304,14 @@ public class Controller implements Initializable {
     private void onDeleteHandler(ActionEvent e) {
         int selected = listView.getSelectionModel().getSelectedIndex();
         if (selected >= 0) {
-            removeTodoJobView(selected);
-            saved.set(false);
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setContentText(DELETE_TITLE);
+                alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
+                    removeTodoJobView(selected);
+                    saved.set(false);
+                });
+            });
         }
     }
 
@@ -321,7 +330,9 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile.getAbsolutePath());
+            ioHandler.writeTodoJobAsync(
+                    listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
+                    nFile.getAbsolutePath());
         });
     }
 
@@ -332,7 +343,9 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile, language);
+            ioHandler.exportTodoJob(
+                    listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile,
+                    language);
         });
     }
 
