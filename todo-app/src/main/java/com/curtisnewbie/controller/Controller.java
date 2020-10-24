@@ -51,9 +51,7 @@ public class Controller implements Initializable {
     private final String TODO_LOADING_FAILURE_TITLE;
     private final String CONFIG_PATH_TITLE;
     private final String SAVE_PATH_TITLE;
-    private final String NEW_TODO_NAME_TITLE;
     private final String ADD_NEW_TODO_TITLE;
-    private final String NEW_TODO_TITLE;
     private final String ADD_TITLE;
     private final String DELETE_TITLE;
     private final String COPY_TITLE;
@@ -96,9 +94,7 @@ public class Controller implements Initializable {
         TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
         SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
         CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);
-        NEW_TODO_NAME_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_NAME_PREFIX + suffix);
         ADD_NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_ADD_NEW_TODO_PREFIX + suffix);
-        NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_NEW_TODO_PREFIX + suffix);
         ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
         DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
         COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
@@ -319,9 +315,8 @@ public class Controller implements Initializable {
 
     private void onAddHandler(ActionEvent e) {
         Platform.runLater(() -> {
-            TxtAreaDialog dialog = new TxtAreaDialog(NEW_TODO_TITLE);
+            TxtAreaDialog dialog = new TxtAreaDialog();
             dialog.setTitle(ADD_NEW_TODO_TITLE);
-            dialog.setContentText(NEW_TODO_NAME_TITLE);
             Optional<String> result = dialog.showAndWait();
             if (!result.isEmpty() && !result.get().isBlank()) {
                 saved.set(false);
