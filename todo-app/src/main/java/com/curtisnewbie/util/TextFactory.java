@@ -31,4 +31,16 @@ public final class TextFactory {
         hbox.setPadding(padding);
         return hbox;
     }
+
+    public static HBox wrapWithCommonPadding(Text txt) {
+        return wrapWithPadding(txt, getCommonInsets());
+    }
+
+    public static HBox getClassicTextWithPadding(String txt) {
+        return wrapWithPadding(getClassicText(txt), getCommonInsets());
+    }
+
+    public static Insets getCommonInsets() {
+        return new Insets(3, 2, 3, 2);
+    }
 }

@@ -5,7 +5,6 @@ import com.curtisnewbie.exception.EventHandlerRegisteredException;
 import com.curtisnewbie.util.*;
 import com.curtisnewbie.callback.OnEvent;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -13,6 +12,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
 import java.util.Date;
+
+import static com.curtisnewbie.util.TextFactory.*;
 
 /**
  * <p>
@@ -56,8 +57,8 @@ public class TodoJobView extends HBox {
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(new Date()));
         this.doneCb.setSelected(false);
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), TextFactory.wrapWithPadding(nameText
-                , padding()), MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
+                MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
@@ -73,23 +74,14 @@ public class TodoJobView extends HBox {
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), TextFactory.wrapWithPadding(nameText
-                , padding()), MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
+                MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
     public TodoJob getTodoJob() {
         return todoJob;
     }
-
-    public Label getStartDateLabel() {
-        return startDateLabel;
-    }
-
-    public CheckBox getDoneCb() {
-        return doneCb;
-    }
-
 
     /**
      * <p>
@@ -109,9 +101,5 @@ public class TodoJobView extends HBox {
         this.todoJob.setDone(doneCb.isSelected());
         if (doneCbRegisteredHandler != null)
             doneCbRegisteredHandler.react();
-    }
-
-    private Insets padding() {
-        return new Insets(3, 2, 3, 2);
     }
 }
