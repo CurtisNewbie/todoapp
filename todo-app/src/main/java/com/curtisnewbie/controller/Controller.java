@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.TextFactory.*;
 
 /**
@@ -86,21 +87,21 @@ public class Controller implements Initializable {
             language = Language.ENG;
             suffix = Language.ENG.key;
         }
-        SAVED_TEXT = props.get(PropertyConstants.TEXT_SAVED_PREFIX + suffix);
-        SAVE_ON_CLOSE_TEXT = props.get(PropertyConstants.TEXT_SAVE_ON_CLOSE_PREFIX + suffix);
-        CHOOSE_LANGUAGE_TITLE = props.get(PropertyConstants.TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
-        EXPORT_TODO_TITLE = props.get(PropertyConstants.TITLE_EXPORT_TODO_PREFIX + suffix);
-        BACKUP_TODO_TITLE = props.get(PropertyConstants.TITLE_BACKUP_TODO_PREFIX + suffix);
-        TODO_LOADING_FAILURE_TITLE = props.get(PropertyConstants.TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
-        SAVE_PATH_TITLE = props.get(PropertyConstants.TITLE_SAVE_PATH_PREFIX + suffix);
-        CONFIG_PATH_TITLE = props.get(PropertyConstants.TITLE_CONFIG_PATH_PREFIX + suffix);
-        ADD_NEW_TODO_TITLE = props.get(PropertyConstants.TITLE_ADD_NEW_TODO_PREFIX + suffix);
-        ADD_TITLE = props.get(PropertyConstants.TITLE_ADD_PREFIX + suffix);
-        DELETE_TITLE = props.get(PropertyConstants.TITLE_DELETE_PREFIX + suffix);
-        COPY_TITLE = props.get(PropertyConstants.TITLE_COPY_PREFIX + suffix);
-        BACKUP_TITLE = props.get(PropertyConstants.TITLE_BACKUP_PREFIX + suffix);
-        EXPORT_TITLE = props.get(PropertyConstants.TITLE_EXPORT_PREFIX + suffix);
-        ABOUT_TITLE = props.get(PropertyConstants.TITLE_ABOUT_PREFIX + suffix);
+        SAVED_TEXT = props.get(TEXT_SAVED_PREFIX + suffix);
+        SAVE_ON_CLOSE_TEXT = props.get(TEXT_SAVE_ON_CLOSE_PREFIX + suffix);
+        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
+        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX + suffix);
+        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX + suffix);
+        TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
+        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX + suffix);
+        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX + suffix);
+        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX + suffix);
+        ADD_TITLE = props.get(TITLE_ADD_PREFIX + suffix);
+        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX + suffix);
+        COPY_TITLE = props.get(TITLE_COPY_PREFIX + suffix);
+        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX + suffix);
+        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX + suffix);
+        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX + suffix);
     }
 
     @Override

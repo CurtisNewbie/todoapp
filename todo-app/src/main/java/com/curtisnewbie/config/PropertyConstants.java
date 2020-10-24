@@ -21,7 +21,6 @@ public interface PropertyConstants {
     String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
     String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
     String TITLE_CONFIG_PATH_PREFIX = "title.config.path.";
-    String TITLE_NEW_TODO_NAME_PREFIX = "title.new.todo.name.";
     String TITLE_ADD_NEW_TODO_PREFIX = "title.add.new.todo.";
     String TITLE_ADD_PREFIX = "title.add.";
     String TITLE_DELETE_PREFIX = "title.delete.";
