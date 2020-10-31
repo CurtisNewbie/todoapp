@@ -43,7 +43,7 @@ public class IOHandlerImpl implements IOHandler {
                         sb.append(line);
                     }
                     String json = sb.toString();
-                    if (StrUtil.isEmpty(json) || json.matches("^\\[\\s\\]$"))
+                    if (StrUtil.isEmpty(json) || json.matches("^\\[\\s+\\]$"))
                         return new ArrayList<>();
                     return Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                 }
@@ -118,6 +118,8 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void exportTodoJob(List<TodoJob> jobs, File file, Language lang) {
+        if (file == null)
+            return;
         singleThreadExecutor.execute(() -> {
             try {
                 if (!file.exists())
@@ -128,12 +130,11 @@ public class IOHandlerImpl implements IOHandler {
                 else
                     suffix = Language.ENG.key;
                 String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + suffix);
-                String inProgress =
-                        PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
+                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress,
-                                DateUtil.toDateStrSlash(j.getStartDate()), j.getName()));
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDateStrSlash(j.getStartDate()),
+                                               j.getName()));
                     }
                 }
             } catch (IOException e) {
