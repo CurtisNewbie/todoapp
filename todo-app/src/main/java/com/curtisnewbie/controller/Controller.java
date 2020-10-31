@@ -4,7 +4,6 @@ import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
-import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
@@ -168,7 +167,7 @@ public class Controller implements Initializable {
      * @return TodoJob
      */
     public TodoJob removeTodoJobView(int i) {
-        TodoJob job = listView.getItems().get(i).getTodoJob();
+        TodoJob job = listView.getItems().get(i).createTodoJobCopy();
         Platform.runLater(() -> {
             listView.getItems().remove(i);
         });
@@ -185,7 +184,7 @@ public class Controller implements Initializable {
      * @param jobName
      */
     public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(jobName);
+        TodoJobView jobView = new TodoJobView(new TodoJob(jobName));
         addTodoJobView(jobView);
     }
 
@@ -200,11 +199,11 @@ public class Controller implements Initializable {
     protected void sortListView() {
         Platform.runLater(() -> {
             listView.getItems().sort((a, b) -> {
-                int res = Boolean.compare(a.getTodoJob().isDone(), b.getTodoJob().isDone());
+                int res = Boolean.compare(a.createTodoJobCopy().isDone(), b.createTodoJobCopy().isDone());
                 if (res != 0)
                     return res;
                 else
-                    return b.getTodoJob().getStartDate().compareTo(a.getTodoJob().getStartDate());
+                    return b.createTodoJobCopy().getStartDate().compareTo(a.createTodoJobCopy().getStartDate());
             });
         });
     }
@@ -222,7 +221,7 @@ public class Controller implements Initializable {
      * Save the to-do list based on config in a synchronous way
      */
     private void saveSync() {
-        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
+        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
         ioHandler.writeTodoJobSync(list, config.getSavePath());
     }
 
@@ -230,7 +229,7 @@ public class Controller implements Initializable {
      * Save the to-do list based on config in a asynchronous way
      */
     private void saveAsync() {
-        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList());
+        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
         ioHandler.writeTodoJobAsync(list, config.getSavePath());
     }
 
@@ -348,7 +347,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0)
-                copyToClipBoard(listView.getItems().get(selected).getTodoJob().getName());
+                copyToClipBoard(listView.getItems().get(selected).createTodoJobCopy().getName());
         });
     }
 
@@ -360,7 +359,7 @@ public class Controller implements Initializable {
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             ioHandler.writeTodoJobAsync(
-                    listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()),
+                    listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
                     nFile.getAbsolutePath());
         });
     }
@@ -373,7 +372,7 @@ public class Controller implements Initializable {
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             ioHandler.exportTodoJob(
-                    listView.getItems().stream().map(TodoJobView::getTodoJob).collect(Collectors.toList()), nFile,
+                    listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile,
                     language);
         });
     }

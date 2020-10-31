@@ -27,13 +27,17 @@ public class TodoJobView extends HBox {
     private static final String CHECKBOX_NAME = "DONE:";
 
     /**
-     * {@code TodoJob} that this view represents
-     */
-    private final TodoJob todoJob;
-    /**
      * The name of this {@code TodoJob}
      */
     private final Text nameText;
+    /**
+     * Start Date in milliseconds since EPOCH
+     */
+    private final long startDate;
+    /**
+     * End Date in milliseconds since EPOCH
+     */
+    private final long endDate;
     /**
      * The date when this {@code TodoJob} is created
      */
@@ -46,32 +50,16 @@ public class TodoJobView extends HBox {
     private OnEvent doneCbRegisteredHandler;
 
     /**
-     * Create a TodoJobView with the given {@code name}
-     *
-     * @param name
-     */
-    public TodoJobView(String name) {
-        this.todoJob = new TodoJob(name);
-        this.nameText = TextFactory.getClassicText(name);
-        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.7f));
-        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(new Date()));
-        this.doneCb.setSelected(false);
-        this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
-                MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
-        HBox.setHgrow(this, Priority.SOMETIMES);
-    }
-
-    /**
      * Create a TodoJobView with the given {@code todoJob}
      *
      * @param todoJob
      */
     public TodoJobView(TodoJob todoJob) {
-        this.todoJob = todoJob;
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.7f));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
+        this.startDate = todoJob.getStartDate().getTime();
+        this.endDate = todoJob.getEndDate().getTime();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
@@ -79,8 +67,22 @@ public class TodoJobView extends HBox {
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
-    public TodoJob getTodoJob() {
-        return todoJob;
+    public void setName(String txt) {
+        this.nameText.setText(txt);
+    }
+
+    /**
+     * Retrieves information of current {@code TodoJobView} and put them in a new {@code TodoJob}
+     *
+     * @return todoJob
+     */
+    public TodoJob createTodoJobCopy() {
+        TodoJob copy = new TodoJob();
+        copy.setName(nameText.getText());
+        copy.setDone(doneCb.isSelected());
+        copy.setStartDate(new Date(startDate));
+        copy.setEndDate(new Date(endDate));
+        return copy;
     }
 
     /**
@@ -98,7 +100,6 @@ public class TodoJobView extends HBox {
     }
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
-        this.todoJob.setDone(doneCb.isSelected());
         if (doneCbRegisteredHandler != null)
             doneCbRegisteredHandler.react();
     }
