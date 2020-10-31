@@ -22,8 +22,10 @@ public interface PropertyConstants {
     String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
     String TITLE_CONFIG_PATH_PREFIX = "title.config.path.";
     String TITLE_ADD_NEW_TODO_PREFIX = "title.add.new.todo.";
+    String TITLE_UPDATE_TODO_NAME_PREFIX = "title.update.todo.name.";
     String TITLE_ADD_PREFIX = "title.add.";
     String TITLE_DELETE_PREFIX = "title.delete.";
+    String TITLE_UPDATE_PREFIX = "title.update.";
     String TITLE_COPY_PREFIX = "title.copy.";
     String TITLE_BACKUP_PREFIX = "title.backup.";
     String TITLE_EXPORT_PREFIX = "title.export.";

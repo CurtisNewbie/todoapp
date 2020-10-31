@@ -52,8 +52,10 @@ public class Controller implements Initializable {
     private final String CONFIG_PATH_TITLE;
     private final String SAVE_PATH_TITLE;
     private final String ADD_NEW_TODO_TITLE;
+    private final String UPDATE_TODO_NAME_TITLE;
     private final String ADD_TITLE;
     private final String DELETE_TITLE;
+    private final String UPDATE_TITLE;
     private final String COPY_TITLE;
     private final String BACKUP_TITLE;
     private final String EXPORT_TITLE;
@@ -95,8 +97,10 @@ public class Controller implements Initializable {
         SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX + suffix);
         CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX + suffix);
         ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX + suffix);
+        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX + suffix);
         ADD_TITLE = props.get(TITLE_ADD_PREFIX + suffix);
         DELETE_TITLE = props.get(TITLE_DELETE_PREFIX + suffix);
+        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX + suffix);
         COPY_TITLE = props.get(TITLE_COPY_PREFIX + suffix);
         BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX + suffix);
         EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX + suffix);
@@ -208,12 +212,30 @@ public class Controller implements Initializable {
         });
     }
 
+    /**
+     * Update the name of the {@code TodoJobView}
+     * <p>
+     * This method is always ran in JavaFx's UI Thread
+     *
+     * @param jobView
+     * @param name
+     */
+    private void updateTodoJobViewName(TodoJobView jobView, String name) {
+        Platform.runLater(() -> {
+            jobView.setName(name);
+        });
+    }
+
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler).addMenuItem(
-                COPY_TITLE, this::onCopyHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(
-                EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(
-                CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler)
+               .addMenuItem(DELETE_TITLE, this::onDeleteHandler)
+               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler)
+               .addMenuItem(COPY_TITLE, this::onCopyHandler)
+               .addMenuItem(BACKUP_TITLE, this::onBackupHandler)
+               .addMenuItem(EXPORT_TITLE, this::onExportHandler)
+               .addMenuItem(ABOUT_TITLE, this::onAboutHandler)
+               .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -328,6 +350,22 @@ public class Controller implements Initializable {
         });
     }
 
+    private void onUpdateHandler(ActionEvent e) {
+        Platform.runLater(() -> {
+            final int selected = listView.getSelectionModel().getSelectedIndex();
+            if (selected >= 0) {
+                TodoJobView jobView = listView.getItems().get(selected);
+                TxtAreaDialog dialog = new TxtAreaDialog(jobView.getName());
+                dialog.setTitle(UPDATE_TODO_NAME_TITLE);
+                Optional<String> result = dialog.showAndWait();
+                if (!result.isEmpty() && !result.get().isBlank()) {
+                    saved.set(false);
+                    updateTodoJobViewName(jobView, result.get().trim());
+                }
+            }
+        });
+    }
+
     private void onDeleteHandler(ActionEvent e) {
         int selected = listView.getSelectionModel().getSelectedIndex();
         if (selected >= 0) {
@@ -358,9 +396,8 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.writeTodoJobAsync(
-                    listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
-                    nFile.getAbsolutePath());
+            ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
+                                        nFile.getAbsolutePath());
         });
     }
 
@@ -371,9 +408,8 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.exportTodoJob(
-                    listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile,
-                    language);
+            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile,
+                                    language);
         });
     }
 
@@ -382,10 +418,8 @@ public class Controller implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             GridPane gPane = new GridPane();
             alert.setTitle(ABOUT_TITLE);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())),
-                    0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0,
-                    1);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
             gPane.add(getClassicTextWithPadding("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
             alert.getDialogPane().setContent(gPane);
             alert.show();

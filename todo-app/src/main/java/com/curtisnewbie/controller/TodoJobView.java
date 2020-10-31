@@ -62,13 +62,18 @@ public class TodoJobView extends HBox {
         this.endDate = todoJob.getEndDate().getTime();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
-                MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren()
+            .addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
+                    LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
     }
 
     public void setName(String txt) {
         this.nameText.setText(txt);
+    }
+
+    public String getName() {
+        return this.nameText.getText();
     }
 
     /**
