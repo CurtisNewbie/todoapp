@@ -13,6 +13,7 @@ import com.curtisnewbie.util.Redo;
 import com.curtisnewbie.util.RedoQueue;
 import com.curtisnewbie.util.RedoType;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -153,6 +154,7 @@ public class Controller implements Initializable {
         });
         Platform.runLater(() -> {
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
+            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
             listView.getItems().add(jobView);
             jobView.requestFocus();
             jobView.requestLayout();

@@ -4,6 +4,8 @@ import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerRegisteredException;
 import com.curtisnewbie.util.*;
 import com.curtisnewbie.callback.OnEvent;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -25,6 +27,7 @@ import static com.curtisnewbie.util.TextFactory.*;
 public class TodoJobView extends HBox {
 
     private static final String CHECKBOX_NAME = "DONE:";
+    public static final int WIDTH_FOR_LABELS = 170;
 
     /**
      * The name of this {@code TodoJob}
@@ -56,7 +59,6 @@ public class TodoJobView extends HBox {
      */
     public TodoJobView(TodoJob todoJob) {
         this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.nameText.wrappingWidthProperty().bind(this.widthProperty().multiply(0.7f));
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.startDate = todoJob.getStartDate().getTime();
         this.endDate = todoJob.getEndDate().getTime();
@@ -66,6 +68,13 @@ public class TodoJobView extends HBox {
             .addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
                     LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
+    }
+
+    /**
+     * Bind the wrapping width of text
+     */
+    public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
+        nameText.wrappingWidthProperty().bind(binding);
     }
 
     public void setName(String txt) {
