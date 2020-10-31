@@ -151,6 +151,8 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             listView.getItems().add(jobView);
+            jobView.requestFocus();
+            jobView.requestLayout();
         });
     }
 
