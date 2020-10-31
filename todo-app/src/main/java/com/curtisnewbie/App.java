@@ -27,6 +27,8 @@ public class App extends Application {
     private static final String VERSION = properties.get("app.version");
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
+    private final int DEF_WIDTH = 650;
+    private final int DEF_HEIGHT = 500;
     private final int MIN_WIDTH = 500;
     private final int MIN_HEIGHT = 350;
 
@@ -51,6 +53,8 @@ public class App extends Application {
         stage.setTitle(String.format("%s %s", TITLE, VERSION));
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
+        stage.setWidth(DEF_WIDTH);
+        stage.setHeight(DEF_HEIGHT);
         stage.show();
         stage.setOnCloseRequest(e -> {
             // activate all registered callbacks
