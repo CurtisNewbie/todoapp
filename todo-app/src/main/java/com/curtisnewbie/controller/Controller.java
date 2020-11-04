@@ -215,29 +215,28 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Update the name of the {@code TodoJobView}
+     * Update {@code TodoJobView}
      * <p>
      * This method is always ran in JavaFx's UI Thread
      *
      * @param jobView
-     * @param name
+     * @param todoJob
      */
-    private void updateTodoJobViewName(TodoJobView jobView, String name) {
+    private void updateTodoJobView(TodoJobView jobView, TodoJob todoJob) {
         Platform.runLater(() -> {
-            jobView.setName(name);
+            jobView.setName(todoJob.getName());
+            if (todoJob.getStartDate() != null) {
+                jobView.updateDate(todoJob.getStartDate());
+            }
         });
     }
 
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler)
-               .addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler)
-               .addMenuItem(COPY_TITLE, this::onCopyHandler)
-               .addMenuItem(BACKUP_TITLE, this::onBackupHandler)
-               .addMenuItem(EXPORT_TITLE, this::onExportHandler)
-               .addMenuItem(ABOUT_TITLE, this::onAboutHandler)
-               .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
+               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
+               .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
+               .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -357,12 +356,12 @@ public class Controller implements Initializable {
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView jobView = listView.getItems().get(selected);
-                TxtAreaDialog dialog = new TxtAreaDialog(jobView.getName());
+                TodoJobDialog dialog = new TodoJobDialog(jobView.getName(), jobView.getStartDate());
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
-                Optional<String> result = dialog.showAndWait();
-                if (!result.isEmpty() && !result.get().isBlank()) {
+                Optional<TodoJob> result = dialog.showAndWait();
+                if (result.isPresent()) {
                     saved.set(false);
-                    updateTodoJobViewName(jobView, result.get().trim());
+                    updateTodoJobView(jobView, result.get());
                 }
             }
         });
@@ -410,8 +409,7 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getExportExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile,
-                                    language);
+            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile, language);
         });
     }
 

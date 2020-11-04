@@ -15,6 +15,7 @@ import javafx.scene.text.Text;
 
 import java.util.Date;
 
+import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
 import static com.curtisnewbie.util.TextFactory.*;
 
 /**
@@ -36,11 +37,11 @@ public class TodoJobView extends HBox {
     /**
      * Start Date in milliseconds since EPOCH
      */
-    private final long startDate;
+    private long startDate;
     /**
      * End Date in milliseconds since EPOCH
      */
-    private final long endDate;
+    private long endDate;
     /**
      * The date when this {@code TodoJob} is created
      */
@@ -64,10 +65,15 @@ public class TodoJobView extends HBox {
         this.endDate = todoJob.getEndDate().getTime();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren()
-            .addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
-                    LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
+                                  LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
+    }
+
+    public void updateDate(Date date) {
+        this.startDate = date.getTime();
+        this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
+        this.endDate = date.getTime();
     }
 
     /**
@@ -83,6 +89,10 @@ public class TodoJobView extends HBox {
 
     public String getName() {
         return this.nameText.getText();
+    }
+
+    public long getStartDate(){
+        return this.startDate;
     }
 
     /**

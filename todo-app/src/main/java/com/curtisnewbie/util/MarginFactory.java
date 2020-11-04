@@ -1,5 +1,7 @@
 package com.curtisnewbie.util;
 
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
@@ -33,5 +35,20 @@ public final class MarginFactory {
         box.setMinWidth(width);
         HBox.setHgrow(box, Priority.NEVER);
         return box;
+    }
+
+    public static HBox wrapWithPadding(Node node, Insets padding) {
+        HBox hbox = new HBox();
+        hbox.getChildren().add(node);
+        hbox.setPadding(padding);
+        return hbox;
+    }
+
+    public static HBox wrapWithCommonPadding(Node node) {
+        return wrapWithPadding(node, getCommonInsets());
+    }
+
+    public static Insets getCommonInsets() {
+        return new Insets(3, 2, 3, 2);
     }
 }
