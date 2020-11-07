@@ -59,13 +59,13 @@ public interface IOHandler {
     void writeTodoJobAsync(List<TodoJob> jobs, String savePath);
 
     /**
-     * Export job list (in a human-readable form) to file
+     * Export job list (in a human-readable form) to file asynchronously
      *
      * @param jobs job-list
      * @param file file that the jobs exported to
      * @param lang the language to use
      */
-    void exportTodoJob(List<TodoJob> jobs, File file, Language lang);
+    void exportTodoJobAsync(List<TodoJob> jobs, File file, Language lang);
 
     /**
      * Get Conf file path

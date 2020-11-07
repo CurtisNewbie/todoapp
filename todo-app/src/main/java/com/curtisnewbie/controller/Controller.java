@@ -10,7 +10,6 @@ import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
 import com.curtisnewbie.util.*;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -231,9 +230,9 @@ public class Controller implements Initializable {
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-               .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
-               .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+                .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
+                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
+                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -395,6 +394,8 @@ public class Controller implements Initializable {
             fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
             fileChooser.getExtensionFilters().add(getBackupExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+            if (nFile == null)
+                return;
             ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
                                         nFile.getAbsolutePath());
         });
@@ -402,12 +403,33 @@ public class Controller implements Initializable {
 
     private void onExportHandler(ActionEvent e) {
         Platform.runLater(() -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(EXPORT_TODO_TITLE);
-            fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
-            fileChooser.getExtensionFilters().add(getExportExtFilter());
-            File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            ioHandler.exportTodoJob(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()), nFile, language);
+            if (listView.getItems().isEmpty())
+                return;
+
+            // 1. pick date range
+            long min = listView.getItems().stream().mapToLong(TodoJobView::getStartDate).min().getAsLong();
+            DateRangeDialog dateRangeDialog = new DateRangeDialog(min, new Date().getTime());
+            var opt = dateRangeDialog.showAndWait();
+            if (opt.isPresent()) {
+                DateRange dr = opt.get();
+
+                // 2. choose where to export
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle(EXPORT_TODO_TITLE);
+                fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
+                fileChooser.getExtensionFilters().add(getExportExtFilter());
+                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                if (nFile == null)
+                    return;
+                // 3. filter based on date range, and create a todoJob copy of each "view"
+                var todoJobs = new ArrayList<TodoJob>();
+                for (var v : listView.getItems()) {
+                    if (v.getStartDate() >= dr.getStart() && v.getStartDate() <= dr.getEnd()) {
+                        todoJobs.add(v.createTodoJobCopy());
+                    }
+                }
+                ioHandler.exportTodoJobAsync(todoJobs, nFile, language);
+            }
         });
     }
 

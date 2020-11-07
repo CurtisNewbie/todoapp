@@ -117,7 +117,7 @@ public class IOHandlerImpl implements IOHandler {
     }
 
     @Override
-    public void exportTodoJob(List<TodoJob> jobs, File file, Language lang) {
+    public void exportTodoJobAsync(List<TodoJob> jobs, File file, Language lang) {
         if (file == null)
             return;
         singleThreadExecutor.execute(() -> {
