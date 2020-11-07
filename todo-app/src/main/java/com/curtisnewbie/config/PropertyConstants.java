@@ -7,27 +7,31 @@ package com.curtisnewbie.config;
  *
  * @author yongjie.zhuang
  */
-public interface PropertyConstants {
+public final class PropertyConstants {
+
+    private PropertyConstants(){
+    }
+
     // ------------------ text ------------------
-    String TEXT_DONE_PREFIX = "text.done.";
-    String TEXT_IN_PROGRESS_PREFIX = "text.in.progress.";
-    String TEXT_SAVE_ON_CLOSE_PREFIX = "text.save.choice.";
-    String TEXT_SAVED_PREFIX = "text.saved.";
+    public static final String TEXT_DONE_PREFIX = "text.done.";
+    public static final String TEXT_IN_PROGRESS_PREFIX = "text.in.progress.";
+    public static final String TEXT_SAVE_ON_CLOSE_PREFIX = "text.save.choice.";
+    public static final String TEXT_SAVED_PREFIX = "text.saved.";
 
     // ------------------ titles ----------------
-    String TITLE_CHOOSE_LANGUAGE_PREFIX = "title.lang.choice.";
-    String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
-    String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
-    String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
-    String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
-    String TITLE_CONFIG_PATH_PREFIX = "title.config.path.";
-    String TITLE_ADD_NEW_TODO_PREFIX = "title.add.new.todo.";
-    String TITLE_UPDATE_TODO_NAME_PREFIX = "title.update.todo.name.";
-    String TITLE_ADD_PREFIX = "title.add.";
-    String TITLE_DELETE_PREFIX = "title.delete.";
-    String TITLE_UPDATE_PREFIX = "title.update.";
-    String TITLE_COPY_PREFIX = "title.copy.";
-    String TITLE_BACKUP_PREFIX = "title.backup.";
-    String TITLE_EXPORT_PREFIX = "title.export.";
-    String TITLE_ABOUT_PREFIX = "title.about.";
+    public static final String TITLE_CHOOSE_LANGUAGE_PREFIX = "title.lang.choice.";
+    public static final String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
+    public static final String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
+    public static final String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
+    public static final String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
+    public static final String TITLE_CONFIG_PATH_PREFIX = "title.config.path.";
+    public static final String TITLE_ADD_NEW_TODO_PREFIX = "title.add.new.todo.";
+    public static final String TITLE_UPDATE_TODO_NAME_PREFIX = "title.update.todo.name.";
+    public static final String TITLE_ADD_PREFIX = "title.add.";
+    public static final String TITLE_DELETE_PREFIX = "title.delete.";
+    public static final String TITLE_UPDATE_PREFIX = "title.update.";
+    public static final String TITLE_COPY_PREFIX = "title.copy.";
+    public static final String TITLE_BACKUP_PREFIX = "title.backup.";
+    public static final String TITLE_EXPORT_PREFIX = "title.export.";
+    public static final String TITLE_ABOUT_PREFIX = "title.about.";
 }
