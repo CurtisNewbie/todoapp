@@ -40,7 +40,8 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     }
 
     /**
-     * Create TodoJobDialog with {@code defValue} as default value
+     * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate
+     * of the {@code TodoJob}
      */
     public TodoJobDialog(String defValue, long date) {
         final DialogPane dialogPane = getDialogPane();
