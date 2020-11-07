@@ -8,10 +8,7 @@ import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerImpl;
-import com.curtisnewbie.util.DateUtil;
-import com.curtisnewbie.util.Redo;
-import com.curtisnewbie.util.RedoQueue;
-import com.curtisnewbie.util.RedoType;
+import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
@@ -340,12 +337,12 @@ public class Controller implements Initializable {
 
     private void onAddHandler(ActionEvent e) {
         Platform.runLater(() -> {
-            TxtAreaDialog dialog = new TxtAreaDialog();
-            dialog.setTitle(ADD_NEW_TODO_TITLE);
-            Optional<String> result = dialog.showAndWait();
-            if (!result.isEmpty() && !result.get().isBlank()) {
+            TodoJobDialog dialog = new TodoJobDialog();
+            dialog.setTitle(UPDATE_TODO_NAME_TITLE);
+            Optional<TodoJob> result = dialog.showAndWait();
+            if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 saved.set(false);
-                addTodoJobView(result.get().trim());
+                addTodoJobView(new TodoJobView(result.get()));
                 sortListView();
             }
         });

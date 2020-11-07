@@ -33,7 +33,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private LocalDate localDate;
 
     /**
-     * Create TodoJobDialog with "" as default value
+     * Create TodoJobDialog with "" as default text and current date as {@code TodoJob}'s createDate
      */
     public TodoJobDialog() {
         this("", new Date().getTime());
@@ -85,7 +85,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         setResultConverter((dialogButton) -> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
-                var todoJob = new TodoJob(textArea.getText());
+                var todoJob = new TodoJob(textArea.getText().trim());
                 if (localDate == null) {
                     todoJob.setStartDate(null);
                     todoJob.setEndDate(null);
