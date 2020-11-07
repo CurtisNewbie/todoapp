@@ -89,11 +89,9 @@ public class TodoJobDialog extends Dialog<TodoJob> {
                 var todoJob = new TodoJob(textArea.getText().trim());
                 if (localDate == null) {
                     todoJob.setStartDate(null);
-                    todoJob.setEndDate(null);
                 } else {
                     Date d = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
                     todoJob.setStartDate(d);
-                    todoJob.setEndDate(d);
                 }
                 return todoJob;
             } else {

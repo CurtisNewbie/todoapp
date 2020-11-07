@@ -1,5 +1,7 @@
 package com.curtisnewbie.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.Date;
 
 /**
@@ -9,6 +11,7 @@ import java.util.Date;
  *
  * @author yongjie.zhuang
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TodoJob {
 
     /**
@@ -26,11 +29,6 @@ public class TodoJob {
      */
     private Date startDate;
 
-    /**
-     * End date of this job
-     */
-    private Date endDate;
-
     public TodoJob() {
     }
 
@@ -38,7 +36,6 @@ public class TodoJob {
         this.name = name;
         this.done = false;
         this.startDate = new Date();
-        this.endDate = new Date();
     }
 
     public String getName() {
@@ -63,18 +60,5 @@ public class TodoJob {
 
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
-
-    @Override
-    public String toString() {
-        return "TodoJob{" + "name='" + name + '\'' + ", done=" + done + ", startDate=" + startDate + ", endDate=" + endDate + '}';
     }
 }

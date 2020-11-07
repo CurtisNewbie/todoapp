@@ -16,7 +16,6 @@ import javafx.scene.text.Text;
 import java.util.Date;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
-import static com.curtisnewbie.util.TextFactory.*;
 
 /**
  * <p>
@@ -39,10 +38,6 @@ public class TodoJobView extends HBox {
      */
     private long startDate;
     /**
-     * End Date in milliseconds since EPOCH
-     */
-    private long endDate;
-    /**
      * The date when this {@code TodoJob} is created
      */
     private final Label startDateLabel;
@@ -62,7 +57,6 @@ public class TodoJobView extends HBox {
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.startDate = todoJob.getStartDate().getTime();
-        this.endDate = todoJob.getEndDate().getTime();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
@@ -73,7 +67,6 @@ public class TodoJobView extends HBox {
     public void updateDate(Date date) {
         this.startDate = date.getTime();
         this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
-        this.endDate = date.getTime();
     }
 
     /**
@@ -105,7 +98,6 @@ public class TodoJobView extends HBox {
         copy.setName(nameText.getText());
         copy.setDone(doneCb.isSelected());
         copy.setStartDate(new Date(startDate));
-        copy.setEndDate(new Date(endDate));
         return copy;
     }
 
