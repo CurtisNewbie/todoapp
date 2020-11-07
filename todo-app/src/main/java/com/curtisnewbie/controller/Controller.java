@@ -359,6 +359,7 @@ public class Controller implements Initializable {
                 if (result.isPresent()) {
                     saved.set(false);
                     updateTodoJobView(jobView, result.get());
+                    sortListView();
                 }
             }
         });
