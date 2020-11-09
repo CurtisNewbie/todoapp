@@ -87,8 +87,8 @@ public class TodoJobDialog extends Dialog<TodoJob> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
                 var todoJob = new TodoJob(textArea.getText().trim());
-                if (localDate == null) {
-                    todoJob.setStartDate(null);
+                if (localDate == null || LocalDate.now().isEqual(localDate)) {
+                    todoJob.setStartDate(new Date());
                 } else {
                     Date d = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
                     todoJob.setStartDate(d);
