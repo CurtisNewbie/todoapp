@@ -1,8 +1,6 @@
 package com.curtisnewbie.controller;
 
-import com.curtisnewbie.entity.TodoJob;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -68,12 +66,12 @@ public class DateRangeDialog extends Dialog<DateRange> {
         setResultConverter((dialogButton) -> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
-                var sl = Date.from(startDatePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime();
-                var el = Date.from(endDatePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime();
-                if (el < sl)
-                    return new DateRange(el, sl);
+                LocalDate sDate = startDatePicker.getValue();
+                LocalDate eDate = endDatePicker.getValue();
+                if (sDate.compareTo(eDate) > 0)
+                    return new DateRange(startTimeOf(eDate), startTimeOf(sDate.plusDays(1)));
                 else
-                    return new DateRange(sl, el);
+                    return new DateRange(startTimeOf(sDate), startTimeOf(eDate.plusDays(1)));
             } else {
                 return null;
             }
@@ -88,5 +86,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
         label.setWrapText(true);
         label.setPrefWidth(360);
         return label;
+    }
+
+    private static long startTimeOf(LocalDate ld) {
+        return Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime();
     }
 }
