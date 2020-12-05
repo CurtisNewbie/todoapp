@@ -27,5 +27,8 @@ target/
 *.iml
 *.json
 *.conf
+.classpath
+.settings
+.project
 
 dependency-reduced-pom.xml
