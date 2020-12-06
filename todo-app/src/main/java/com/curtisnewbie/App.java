@@ -2,6 +2,7 @@ package com.curtisnewbie;
 
 import com.curtisnewbie.callback.OnClose;
 import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.util.ImageUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -62,7 +63,7 @@ public class App extends Application {
             // exit application
             System.exit(0);
         });
-        stage.getIcons().add(new Image(App.class.getClassLoader().getResourceAsStream(ICON_FILE)));
+        stage.getIcons().add(ImageUtil.TITLE_ICON);
         System.out.println("-------------- JavaFX TODO-APP Application Up And Running ------------- ");
     }
 

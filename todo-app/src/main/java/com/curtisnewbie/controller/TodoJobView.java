@@ -4,8 +4,8 @@ import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerRegisteredException;
 import com.curtisnewbie.util.*;
 import com.curtisnewbie.callback.OnEvent;
+import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -29,6 +29,7 @@ public class TodoJobView extends HBox {
     private static final String CHECKBOX_NAME = "DONE:";
     public static final int WIDTH_FOR_LABELS = 170;
 
+    private final Label doneLabel;
     /**
      * The name of this {@code TodoJob}
      */
@@ -46,7 +47,7 @@ public class TodoJobView extends HBox {
      */
     private final CheckBox doneCb = CheckBoxFactory.getClassicCheckBox();
 
-    private OnEvent doneCbRegisteredHandler;
+    private volatile OnEvent doneCbRegisteredHandler;
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -54,14 +55,18 @@ public class TodoJobView extends HBox {
      * @param todoJob
      */
     public TodoJobView(TodoJob todoJob) {
+        this.doneLabel = new Label();
+        updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
         this.startDate = todoJob.getStartDate().getTime();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
-        this.getChildren().addAll(startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText), MarginFactory.expandingMargin(),
-                                  LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+        this.getChildren()
+                .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
+                        MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
+        this.requestFocus();
     }
 
     public void updateDate(Date date) {
@@ -84,7 +89,7 @@ public class TodoJobView extends HBox {
         return this.nameText.getText();
     }
 
-    public long getStartDate(){
+    public long getStartDate() {
         return this.startDate;
     }
 
@@ -112,11 +117,20 @@ public class TodoJobView extends HBox {
     public void regDoneCbEventHandler(OnEvent onEvent) {
         if (this.doneCbRegisteredHandler != null)
             throw new EventHandlerRegisteredException();
-        this.doneCbRegisteredHandler = onEvent;
+        synchronized (this) {
+            this.doneCbRegisteredHandler = onEvent;
+        }
     }
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
+        updateDoneLabelGraphic(doneCb.isSelected());
         if (doneCbRegisteredHandler != null)
             doneCbRegisteredHandler.react();
+    }
+
+    private void updateDoneLabelGraphic(boolean isDone) {
+        Platform.runLater(() -> {
+            this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
+        });
     }
 }

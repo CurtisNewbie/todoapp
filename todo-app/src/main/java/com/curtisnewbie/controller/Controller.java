@@ -14,6 +14,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -38,7 +40,7 @@ import static com.curtisnewbie.util.TextFactory.*;
  */
 public class Controller implements Initializable {
 
-    private static final int PADDING = 35;
+    private static final int PADDING = 55;
 
     private final String SAVED_TEXT;
     private final String SAVE_ON_CLOSE_TEXT;
