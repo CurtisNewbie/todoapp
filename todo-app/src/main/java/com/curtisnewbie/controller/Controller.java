@@ -32,7 +32,11 @@ import static com.curtisnewbie.util.TextFactory.*;
 
 /**
  * <p>
- * Controller for UI (fxml)
+ * Controller for UI
+ * </p>
+ * <p>
+ * Note that {@code ListView} isn't thread-safe, to make sure everything works fine, the read/write operations on {@code
+ * ListView} must always be done in the same thread (JavaFx's UI Thread).
  * </p>
  *
  * @author yongjie.zhuang
@@ -156,25 +160,6 @@ public class Controller implements Initializable {
             jobView.requestFocus();
             jobView.requestLayout();
         });
-    }
-
-    /**
-     * <p>
-     * Remove {@code TodoJobView} from the {@code ListView}.
-     * </p>
-     * <p>
-     * This method is always executed in Javafx's thread
-     * </p>
-     *
-     * @param i index
-     * @return TodoJob
-     */
-    public TodoJob removeTodoJobView(int i) {
-        TodoJob job = listView.getItems().get(i).createTodoJobCopy();
-        Platform.runLater(() -> {
-            listView.getItems().remove(i);
-        });
-        return job;
     }
 
     /**
@@ -371,8 +356,8 @@ public class Controller implements Initializable {
                 alert.setContentText(DELETE_TITLE);
                 alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
                     saved.set(false);
-                    TodoJob job = removeTodoJobView(selected);
-                    redoQueue.put(new Redo(RedoType.DELETE, job));
+                    TodoJobView jobView = listView.getItems().remove(selected);
+                    redoQueue.put(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
                 });
             });
         }
