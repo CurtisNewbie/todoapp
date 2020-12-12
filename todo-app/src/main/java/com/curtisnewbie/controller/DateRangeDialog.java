@@ -27,16 +27,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
     private final DatePicker endDatePicker;
 
     /**
-     * Create TodoJobDialog with current date start date and end date
-     */
-    public DateRangeDialog() {
-        this(new Date().getTime(), new Date().getTime());
-    }
-
-    /**
      * Create TodoJobDialog with {@code start} (in milliseconds) and {@code end} (in milliseconds) as the default value of dateRange
      */
-    public DateRangeDialog(long start, long end) {
+    public DateRangeDialog(LocalDate start, LocalDate end) {
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();
         this.endDatePicker = new DatePicker();
@@ -46,8 +39,8 @@ public class DateRangeDialog extends Dialog<DateRange> {
         label.setPrefWidth(Region.USE_COMPUTED_SIZE);
         label.textProperty().bind(dialogPane.contentTextProperty());
 
-        this.startDatePicker.setValue(Instant.ofEpochMilli(start).atZone(ZoneId.systemDefault()).toLocalDate());
-        this.endDatePicker.setValue(Instant.ofEpochMilli(end).atZone(ZoneId.systemDefault()).toLocalDate());
+        this.startDatePicker.setValue(start);
+        this.endDatePicker.setValue(end);
 
         this.grid = new GridPane();
         this.grid.setHgap(10);
@@ -69,9 +62,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
                 LocalDate sDate = startDatePicker.getValue();
                 LocalDate eDate = endDatePicker.getValue();
                 if (sDate.compareTo(eDate) > 0)
-                    return new DateRange(startTimeOf(eDate), startTimeOf(sDate.plusDays(1)));
+                    return new DateRange(eDate, sDate);
                 else
-                    return new DateRange(startTimeOf(sDate), startTimeOf(eDate.plusDays(1)));
+                    return new DateRange(sDate, eDate);
             } else {
                 return null;
             }
@@ -88,7 +81,5 @@ public class DateRangeDialog extends Dialog<DateRange> {
         return label;
     }
 
-    private static long startTimeOf(LocalDate ld) {
-        return Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime();
-    }
+
 }

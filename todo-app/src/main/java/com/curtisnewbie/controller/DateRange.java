@@ -9,19 +9,19 @@ import java.time.LocalDate;
  */
 public class DateRange {
 
-    private final long start;
-    private final long end;
+    private final LocalDate start;
+    private final LocalDate end;
 
-    public DateRange(long start, long end) {
+    public DateRange(LocalDate start, LocalDate end) {
         this.start = start;
         this.end = end;
     }
 
-    public long getStart() {
+    public LocalDate getStart() {
         return start;
     }
 
-    public long getEnd() {
+    public LocalDate getEnd() {
         return end;
     }
 }

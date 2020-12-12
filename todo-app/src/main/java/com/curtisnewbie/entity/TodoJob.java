@@ -1,7 +1,10 @@
 package com.curtisnewbie.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.curtisnewbie.util.DateUtil;
+import com.fasterxml.jackson.annotation.*;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -27,7 +30,7 @@ public class TodoJob {
     /**
      * Create date of this job
      */
-    private Date startDate;
+    private LocalDate startDate;
 
     public TodoJob() {
     }
@@ -35,7 +38,7 @@ public class TodoJob {
     public TodoJob(String name) {
         this.name = name;
         this.done = false;
-        this.startDate = new Date();
+        this.startDate = LocalDate.now();
     }
 
     public String getName() {
@@ -54,11 +57,21 @@ public class TodoJob {
         this.done = done;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
+    public void setStartDate(LocalDate date) {
+        this.startDate = date;
+    }
+
+    @JsonSetter("startDate")
+    public void startDateSerializer(long startDate) {
+        this.startDate = LocalDate.ofInstant(new Date().toInstant(), ZoneId.systemDefault());
+    }
+
+    @JsonGetter("startDate")
+    public long startDateDeserializer() {
+        return DateUtil.startTimeOf(startDate);
     }
 }

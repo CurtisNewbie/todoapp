@@ -10,10 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 
@@ -36,14 +33,14 @@ public class TodoJobDialog extends Dialog<TodoJob> {
      * Create TodoJobDialog with "" as default text and current date as {@code TodoJob}'s createDate
      */
     public TodoJobDialog() {
-        this("", new Date().getTime());
+        this("", LocalDate.now());
     }
 
     /**
      * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate
      * of the {@code TodoJob}
      */
-    public TodoJobDialog(String defValue, long date) {
+    public TodoJobDialog(String defValue, LocalDate date) {
         final DialogPane dialogPane = getDialogPane();
         this.datePicker = new DatePicker();
         this.textArea = new TextArea(defValue);
@@ -58,7 +55,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         label.textProperty().bind(dialogPane.contentTextProperty());
 
         this.defaultValue = defValue;
-        this.localDate = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDate();
+        this.localDate = date;
         this.datePicker.setValue(localDate);
 
         this.grid = new GridPane();
@@ -88,10 +85,9 @@ public class TodoJobDialog extends Dialog<TodoJob> {
             if (data == ButtonBar.ButtonData.OK_DONE) {
                 var todoJob = new TodoJob(textArea.getText().trim());
                 if (localDate == null || LocalDate.now().isEqual(localDate)) {
-                    todoJob.setStartDate(new Date());
+                    todoJob.setStartDate(LocalDate.now());
                 } else {
-                    Date d = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    todoJob.setStartDate(d);
+                    todoJob.setStartDate(localDate);
                 }
                 return todoJob;
             } else {

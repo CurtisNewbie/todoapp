@@ -13,7 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
 
@@ -28,6 +28,7 @@ public class TodoJobView extends HBox {
 
     private static final String CHECKBOX_NAME = "DONE:";
     public static final int WIDTH_FOR_LABELS = 170;
+    private Object dateLock = new Object();
 
     private final Label doneLabel;
     /**
@@ -37,7 +38,7 @@ public class TodoJobView extends HBox {
     /**
      * Start Date in milliseconds since EPOCH
      */
-    private long startDate;
+    private LocalDate startDate;
     /**
      * The date when this {@code TodoJob} is created
      */
@@ -59,7 +60,7 @@ public class TodoJobView extends HBox {
         updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
-        this.startDate = todoJob.getStartDate().getTime();
+        this.startDate = todoJob.getStartDate();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren()
@@ -69,28 +70,42 @@ public class TodoJobView extends HBox {
         this.requestFocus();
     }
 
-    public void updateDate(Date date) {
-        this.startDate = date.getTime();
-        this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
+    public void setStartDate(LocalDate date) {
+        synchronized (dateLock) {
+            this.startDate = date;
+            this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
+        }
+    }
+
+    public LocalDate getStartDate() {
+        synchronized (dateLock) {
+            return this.startDate;
+        }
     }
 
     /**
      * Bind the wrapping width of text
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
-        nameText.wrappingWidthProperty().bind(binding);
+        synchronized (this) {
+            nameText.wrappingWidthProperty().bind(binding);
+        }
     }
 
     public void setName(String txt) {
-        this.nameText.setText(txt);
+        synchronized (nameText) {
+            nameText.setText(txt);
+        }
     }
 
     public String getName() {
-        return this.nameText.getText();
+        synchronized (nameText) {
+            return nameText.getText();
+        }
     }
 
-    public long getStartDate() {
-        return this.startDate;
+    public boolean isSelected() {
+        return doneCb.isSelected();
     }
 
     /**
@@ -100,9 +115,9 @@ public class TodoJobView extends HBox {
      */
     public TodoJob createTodoJobCopy() {
         TodoJob copy = new TodoJob();
-        copy.setName(nameText.getText());
-        copy.setDone(doneCb.isSelected());
-        copy.setStartDate(new Date(startDate));
+        copy.setName(getName());
+        copy.setDone(isSelected());
+        copy.setStartDate(getStartDate());
         return copy;
     }
 

@@ -14,8 +14,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -24,6 +22,7 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -203,11 +202,11 @@ public class Controller implements Initializable {
     protected void sortListView() {
         Platform.runLater(() -> {
             listView.getItems().sort((a, b) -> {
-                int res = Boolean.compare(a.createTodoJobCopy().isDone(), b.createTodoJobCopy().isDone());
+                int res = Boolean.compare(a.isSelected(), b.isSelected());
                 if (res != 0)
                     return res;
                 else
-                    return b.createTodoJobCopy().getStartDate().compareTo(a.createTodoJobCopy().getStartDate());
+                    return b.getStartDate().compareTo(a.getStartDate());
             });
         });
     }
@@ -221,12 +220,10 @@ public class Controller implements Initializable {
      * @param todoJob
      */
     private void updateTodoJobView(TodoJobView jobView, TodoJob todoJob) {
-        Platform.runLater(() -> {
-            jobView.setName(todoJob.getName());
-            if (todoJob.getStartDate() != null) {
-                jobView.updateDate(todoJob.getStartDate());
-            }
-        });
+        jobView.setName(todoJob.getName());
+        if (todoJob.getStartDate() != null) {
+            jobView.setStartDate(todoJob.getStartDate());
+        }
     }
 
     private CnvCtxMenu createCtxMenu() {
@@ -399,7 +396,7 @@ public class Controller implements Initializable {
             if (nFile == null)
                 return;
             ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
-                                        nFile.getAbsolutePath());
+                    nFile.getAbsolutePath());
         });
     }
 
@@ -409,12 +406,11 @@ public class Controller implements Initializable {
                 return;
 
             // 1. pick date range
-            long min = listView.getItems().stream().mapToLong(TodoJobView::getStartDate).min().getAsLong();
-            DateRangeDialog dateRangeDialog = new DateRangeDialog(min, new Date().getTime());
+            LocalDate now = LocalDate.now();
+            DateRangeDialog dateRangeDialog = new DateRangeDialog(now, now);
             var opt = dateRangeDialog.showAndWait();
             if (opt.isPresent()) {
                 DateRange dr = opt.get();
-
                 // 2. choose where to export
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle(EXPORT_TODO_TITLE);
@@ -423,10 +419,11 @@ public class Controller implements Initializable {
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 if (nFile == null)
                     return;
+
                 // 3. filter based on date range, and create a todoJob copy of each "view"
                 var todoJobs = new ArrayList<TodoJob>();
                 for (var v : listView.getItems()) {
-                    if (v.getStartDate() >= dr.getStart() && v.getStartDate() <= dr.getEnd()) {
+                    if (v.getStartDate().compareTo(dr.getStart()) >= 0 && v.getStartDate().compareTo(dr.getEnd()) <= 0) {
                         todoJobs.add(v.createTodoJobCopy());
                     }
                 }
