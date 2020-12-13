@@ -62,6 +62,7 @@ public class Controller implements Initializable {
     private final String BACKUP_TITLE;
     private final String EXPORT_TITLE;
     private final String ABOUT_TITLE;
+
     private final Language language;
 
     @FXML
@@ -115,7 +116,7 @@ public class Controller implements Initializable {
         try {
             var list = ioHandler.loadTodoJob(config.getSavePath());
             for (TodoJob j : list) {
-                addTodoJobView(new TodoJobView(j));
+                addTodoJobView(new TodoJobView(j, language));
             }
         } catch (FailureToLoadException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
@@ -172,7 +173,7 @@ public class Controller implements Initializable {
      * @param jobName
      */
     public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(new TodoJob(jobName));
+        TodoJobView jobView = new TodoJobView(new TodoJob(jobName), language);
         addTodoJobView(jobView);
     }
 
@@ -257,7 +258,7 @@ public class Controller implements Initializable {
         if (redo == null)
             return;
         if (redo.getType().equals(RedoType.DELETE)) {
-            addTodoJobView(new TodoJobView(redo.getTodoJob()));
+            addTodoJobView(new TodoJobView(redo.getTodoJob(), language));
         }
     }
 
@@ -310,7 +311,7 @@ public class Controller implements Initializable {
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 saved.set(false);
-                addTodoJobView(new TodoJobView(result.get()));
+                addTodoJobView(new TodoJobView(result.get(), language));
                 sortListView();
             }
         });
@@ -435,6 +436,10 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
+    }
+
+    public Language getLang() {
+        return language;
     }
 }
 

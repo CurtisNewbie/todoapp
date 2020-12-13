@@ -1,5 +1,8 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.config.Language;
+import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerRegisteredException;
 import com.curtisnewbie.util.*;
@@ -26,10 +29,10 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
  */
 public class TodoJobView extends HBox {
 
-    private static final String CHECKBOX_NAME = "DONE:";
     public static final int WIDTH_FOR_LABELS = 170;
     private Object dateLock = new Object();
 
+    private final String checkboxName;
     private final Label doneLabel;
     /**
      * The name of this {@code TodoJob}
@@ -55,7 +58,8 @@ public class TodoJobView extends HBox {
      *
      * @param todoJob
      */
-    public TodoJobView(TodoJob todoJob) {
+    public TodoJobView(TodoJob todoJob, Language lang) {
+        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + lang.key);
         this.doneLabel = new Label();
         updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
@@ -64,8 +68,8 @@ public class TodoJobView extends HBox {
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren()
-                .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
-                        MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(CHECKBOX_NAME), doneCb);
+            .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
+                    MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(checkboxName), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
         this.requestFocus();
     }
