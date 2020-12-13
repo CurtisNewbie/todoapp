@@ -37,8 +37,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     }
 
     /**
-     * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate
-     * of the {@code TodoJob}
+     * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate of the {@code TodoJob}
      */
     public TodoJobDialog(String defValue, LocalDate date) {
         final DialogPane dialogPane = getDialogPane();
@@ -84,10 +83,10 @@ public class TodoJobDialog extends Dialog<TodoJob> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
                 var todoJob = new TodoJob(textArea.getText().trim());
-                if (localDate == null || LocalDate.now().isEqual(localDate)) {
-                    todoJob.setStartDate(LocalDate.now());
-                } else {
+                if (localDate != null) {
                     todoJob.setStartDate(localDate);
+                } else {
+                    todoJob.setStartDate(LocalDate.now());
                 }
                 return todoJob;
             } else {

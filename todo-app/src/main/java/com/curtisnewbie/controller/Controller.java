@@ -35,8 +35,8 @@ import static com.curtisnewbie.util.TextFactory.*;
  * Controller for UI
  * </p>
  * <p>
- * Note that {@code ListView} isn't thread-safe, to make sure everything works fine, the read/write operations on {@code
- * ListView} must always be done in the same thread (JavaFx's UI Thread).
+ * Note that {@code ListView} isn't thread-safe, to make sure everything works fine, the read/write operations on {@code ListView} must always be done
+ * in the same thread (JavaFx's UI Thread).
  * </p>
  *
  * @author yongjie.zhuang
@@ -196,27 +196,12 @@ public class Controller implements Initializable {
         });
     }
 
-    /**
-     * Update {@code TodoJobView}
-     * <p>
-     * This method is always ran in JavaFx's UI Thread
-     *
-     * @param jobView
-     * @param todoJob
-     */
-    private void updateTodoJobView(TodoJobView jobView, TodoJob todoJob) {
-        jobView.setName(todoJob.getName());
-        if (todoJob.getStartDate() != null) {
-            jobView.setStartDate(todoJob.getStartDate());
-        }
-    }
-
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-                .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
-                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
+               .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
+               .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -341,7 +326,8 @@ public class Controller implements Initializable {
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
                     saved.set(false);
-                    updateTodoJobView(jobView, result.get());
+                    jobView.setName(result.get().getName());
+                    jobView.setStartDate(result.get().getStartDate());
                     sortListView();
                 }
             }
@@ -381,7 +367,7 @@ public class Controller implements Initializable {
             if (nFile == null)
                 return;
             ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
-                    nFile.getAbsolutePath());
+                                        nFile.getAbsolutePath());
         });
     }
 
