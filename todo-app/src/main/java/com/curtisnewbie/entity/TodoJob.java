@@ -67,7 +67,7 @@ public class TodoJob {
 
     @JsonSetter("startDate")
     public void startDateSerializer(long startDate) {
-        this.startDate = LocalDate.ofInstant(new Date().toInstant(), ZoneId.systemDefault());
+        this.startDate = LocalDate.ofInstant(new Date(startDate).toInstant(), ZoneId.systemDefault());
     }
 
     @JsonGetter("startDate")
