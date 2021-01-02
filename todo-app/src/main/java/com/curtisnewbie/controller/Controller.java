@@ -35,8 +35,8 @@ import static com.curtisnewbie.util.TextFactory.*;
  * Controller for UI
  * </p>
  * <p>
- * Note that {@code ListView} isn't thread-safe, to make sure everything works fine, the read/write operations on {@code ListView} must always be done
- * in the same thread (JavaFx's UI Thread).
+ * Note that {@code ListView} isn't thread-safe, to make sure everything works fine, the read/write operations on {@code
+ * ListView} must always be done in the same thread (JavaFx's UI Thread).
  * </p>
  *
  * @author yongjie.zhuang
@@ -63,7 +63,7 @@ public class Controller implements Initializable {
     private final String EXPORT_TITLE;
     private final String ABOUT_TITLE;
 
-    private final Language language;
+    private final Language lang;
 
     @FXML
     private ListView<TodoJobView> listView;
@@ -79,35 +79,32 @@ public class Controller implements Initializable {
     public Controller() {
         config = ioHandler.readConfig();
         PropertiesLoader props = PropertiesLoader.getInstance();
-        String lang = config.getLanguage();
-        if (lang == null)
-            lang = Language.DEFAULT.key;
-        boolean isChn = lang.equals(Language.CHN.key);
-        String suffix;
+        String langStr = config.getLanguage();
+        if (langStr == null)
+            langStr = Language.DEFAULT.key;
+        boolean isChn = langStr.equals(Language.CHN.key);
         if (isChn) {
-            language = Language.CHN;
-            suffix = Language.CHN.key;
+            lang = Language.CHN;
         } else {
-            language = Language.ENG;
-            suffix = Language.ENG.key;
+            lang = Language.ENG;
         }
-        SAVED_TEXT = props.get(TEXT_SAVED_PREFIX + suffix);
-        SAVE_ON_CLOSE_TEXT = props.get(TEXT_SAVE_ON_CLOSE_PREFIX + suffix);
-        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX + suffix);
-        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX + suffix);
-        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX + suffix);
-        TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX + suffix);
-        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX + suffix);
-        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX + suffix);
-        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX + suffix);
-        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX + suffix);
-        ADD_TITLE = props.get(TITLE_ADD_PREFIX + suffix);
-        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX + suffix);
-        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX + suffix);
-        COPY_TITLE = props.get(TITLE_COPY_PREFIX + suffix);
-        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX + suffix);
-        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX + suffix);
-        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX + suffix);
+        SAVED_TEXT = props.get(TEXT_SAVED_PREFIX, lang);
+        SAVE_ON_CLOSE_TEXT = props.get(TEXT_SAVE_ON_CLOSE_PREFIX, lang);
+        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, lang);
+        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
+        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
+        TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX, lang);
+        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
+        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
+        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, lang);
+        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX, lang);
+        ADD_TITLE = props.get(TITLE_ADD_PREFIX, lang);
+        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX, lang);
+        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX, lang);
+        COPY_TITLE = props.get(TITLE_COPY_PREFIX, lang);
+        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, lang);
+        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, lang);
+        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, lang);
     }
 
     @Override
@@ -116,7 +113,7 @@ public class Controller implements Initializable {
         try {
             var list = ioHandler.loadTodoJob(config.getSavePath());
             for (TodoJob j : list) {
-                addTodoJobView(new TodoJobView(j, language));
+                addTodoJobView(new TodoJobView(j, lang));
             }
         } catch (FailureToLoadException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
@@ -173,7 +170,7 @@ public class Controller implements Initializable {
      * @param jobName
      */
     public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(new TodoJob(jobName), language);
+        TodoJobView jobView = new TodoJobView(new TodoJob(jobName), lang);
         addTodoJobView(jobView);
     }
 
@@ -200,9 +197,9 @@ public class Controller implements Initializable {
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-               .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-               .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
-               .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+                .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
+                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
+                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -258,7 +255,7 @@ public class Controller implements Initializable {
         if (redo == null)
             return;
         if (redo.getType().equals(RedoType.DELETE)) {
-            addTodoJobView(new TodoJobView(redo.getTodoJob(), language));
+            addTodoJobView(new TodoJobView(redo.getTodoJob(), lang));
         }
     }
 
@@ -311,7 +308,7 @@ public class Controller implements Initializable {
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 saved.set(false);
-                addTodoJobView(new TodoJobView(result.get(), language));
+                addTodoJobView(new TodoJobView(result.get(), lang));
                 sortListView();
             }
         });
@@ -368,7 +365,7 @@ public class Controller implements Initializable {
             if (nFile == null)
                 return;
             ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
-                                        nFile.getAbsolutePath());
+                    nFile.getAbsolutePath());
         });
     }
 
@@ -399,7 +396,7 @@ public class Controller implements Initializable {
                         todoJobs.add(v.createTodoJobCopy());
                     }
                 }
-                ioHandler.exportTodoJobAsync(todoJobs, nFile, language);
+                ioHandler.exportTodoJobAsync(todoJobs, nFile, lang);
             }
         });
     }
@@ -428,7 +425,7 @@ public class Controller implements Initializable {
             choiceDialog.getItems().add(chnChoice);
             Optional<String> opt = choiceDialog.showAndWait();
             if (opt.isPresent()) {
-                if (opt.get().equals(engChoice) && !language.equals(Language.ENG)) {
+                if (opt.get().equals(engChoice) && !lang.equals(Language.ENG)) {
                     config.setLanguage(Language.ENG.key);
                 } else {
                     config.setLanguage(Language.CHN.key);
@@ -439,7 +436,7 @@ public class Controller implements Initializable {
     }
 
     public Language getLang() {
-        return language;
+        return lang;
     }
 }
 

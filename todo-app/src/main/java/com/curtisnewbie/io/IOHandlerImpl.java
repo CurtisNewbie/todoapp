@@ -124,17 +124,12 @@ public class IOHandlerImpl implements IOHandler {
             try {
                 if (!file.exists())
                     file.createNewFile();
-                String suffix;
-                if (lang.equals(Language.CHN))
-                    suffix = Language.CHN.key;
-                else
-                    suffix = Language.ENG.key;
-                String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + suffix);
-                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX + suffix);
+                String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
+                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, lang);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
                         bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDateStrSlash(j.getStartDate()),
-                                               j.getName()));
+                                j.getName()));
                     }
                 }
             } catch (IOException e) {

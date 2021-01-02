@@ -59,7 +59,7 @@ public class TodoJobView extends HBox {
      * @param todoJob
      */
     public TodoJobView(TodoJob todoJob, Language lang) {
-        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX + lang.key);
+        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
         this.doneLabel = new Label();
         updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
@@ -68,8 +68,8 @@ public class TodoJobView extends HBox {
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren()
-            .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
-                    MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(checkboxName), doneCb);
+                .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
+                        MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(checkboxName), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
         this.requestFocus();
     }

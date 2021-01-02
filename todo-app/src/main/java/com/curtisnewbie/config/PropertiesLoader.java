@@ -2,6 +2,7 @@ package com.curtisnewbie.config;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -36,6 +37,31 @@ public class PropertiesLoader {
      */
     public String get(String key) {
         return properties.getProperty(key);
+    }
+
+    /**
+     * Get property
+     *
+     * @param keySeg array of strings that will be concatenated as a single key
+     * @return value (which may be null)
+     */
+    public String get(String... keySeg) {
+        if (keySeg.length == 0)
+            return null;
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(keySeg).forEach(e -> sb.append(e));
+        return properties.getProperty(sb.toString());
+    }
+
+    /**
+     * Get property
+     *
+     * @param key  key for language-related properties
+     * @param lang language
+     * @return value (which may be null)
+     */
+    public String get(String key, Language lang) {
+        return get(key, lang.key);
     }
 
     /**
