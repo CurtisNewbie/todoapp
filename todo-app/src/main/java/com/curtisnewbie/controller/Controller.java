@@ -251,7 +251,7 @@ public class Controller implements Initializable {
      * Redo previous action
      */
     private void redo() {
-        Redo redo = redoQueue.get();
+        Redo redo = redoQueue.poll();
         if (redo == null)
             return;
         if (redo.getType().equals(RedoType.DELETE)) {
@@ -341,7 +341,7 @@ public class Controller implements Initializable {
                 alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
                     saved.set(false);
                     TodoJobView jobView = listView.getItems().remove(selected);
-                    redoQueue.put(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                    redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
                 });
             });
         }

@@ -1,7 +1,7 @@
 package com.curtisnewbie.util;
 
+import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * <p>
@@ -16,19 +16,18 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public final class RedoQueue {
 
     /**
-     * Desirable maximum size that this queue should respect, however, this may not be restricted followed.
+     * Desirable maximum size that this queue should respect, this is strictly followed.
      */
     private static final int MAX_SIZE = 50;
 
-    private final ConcurrentLinkedQueue<Redo> redoQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<Redo> redoQueue = new LinkedList<>();
 
     /**
      * Add an redo (and remove last one if it's current size exceeds its desirable size)
      */
-    public void put(Redo redo) {
-        // todo fix this
-        if (size() > MAX_SIZE)
-            get();
+    public synchronized void offer(Redo redo) {
+        if (redoQueue.size() > MAX_SIZE)
+            poll();
         redoQueue.offer(redo);
     }
 
@@ -43,12 +42,12 @@ public final class RedoQueue {
      *
      * @return Redo action
      */
-    public Redo get() {
+    public synchronized Redo poll() {
         return redoQueue.poll();
     }
 
     /**
-     * Return size
+     * Return size (this is not synchronized, i.e., it's not reliable)
      *
      * @return size
      */
