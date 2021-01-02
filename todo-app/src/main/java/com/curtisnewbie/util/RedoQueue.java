@@ -26,6 +26,7 @@ public final class RedoQueue {
      * Add an redo (and remove last one if it's current size exceeds its desirable size)
      */
     public void put(Redo redo) {
+        // todo fix this
         if (size() > MAX_SIZE)
             get();
         redoQueue.offer(redo);
