@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,9 +33,17 @@ public class IOHandlerImpl implements IOHandler {
     @Override
     public List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException {
         File saveFile = new File(savePath);
+        if (!saveFile.exists())
+            return Collections.EMPTY_LIST;
+        else
+            return loadTodoJob(saveFile);
+    }
+
+    @Override
+    public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
         try {
             if (!saveFile.exists()) {
-                return new ArrayList<>();
+                return Collections.EMPTY_LIST;
             } else {
                 try (BufferedReader br = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
                     StringBuilder sb = new StringBuilder();
@@ -44,7 +53,7 @@ public class IOHandlerImpl implements IOHandler {
                     }
                     String json = sb.toString();
                     if (StrUtil.isEmpty(json) || json.matches("^\\[\\s+\\]$"))
-                        return new ArrayList<>();
+                        return Collections.EMPTY_LIST;
                     return Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                 }
             }

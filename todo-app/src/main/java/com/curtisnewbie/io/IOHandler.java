@@ -26,6 +26,14 @@ public interface IOHandler {
     List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException;
 
     /**
+     * Load a list of {@code TodoJob} from disk
+     *
+     * @param file where the job-list is saved
+     * @return a list of {@code TodoJob}
+     */
+    List<TodoJob> loadTodoJob(File file) throws FailureToLoadException;
+
+    /**
      * Generate the configuration file if not exists
      */
     void generateConfIfNotExists();

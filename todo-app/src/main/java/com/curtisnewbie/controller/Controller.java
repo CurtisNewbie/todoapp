@@ -49,6 +49,7 @@ public class Controller implements Initializable {
     private final String SAVE_ON_CLOSE_TEXT;
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
+    private final String APPEND_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
     private final String TODO_LOADING_FAILURE_TITLE;
     private final String CONFIG_PATH_TITLE;
@@ -61,7 +62,10 @@ public class Controller implements Initializable {
     private final String COPY_TITLE;
     private final String BACKUP_TITLE;
     private final String EXPORT_TITLE;
+    private final String APPEND_TITLE;
     private final String ABOUT_TITLE;
+    private final String GITHUB_ABOUT;
+    private final String AUTHOR_ABOUT;
 
     private final Language lang;
 
@@ -88,11 +92,14 @@ public class Controller implements Initializable {
         } else {
             lang = Language.ENG;
         }
+        GITHUB_ABOUT = props.get(APP_GITHUB);
+        AUTHOR_ABOUT = props.get(APP_AUTHOR);
         SAVED_TEXT = props.get(TEXT_SAVED_PREFIX, lang);
         SAVE_ON_CLOSE_TEXT = props.get(TEXT_SAVE_ON_CLOSE_PREFIX, lang);
         CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, lang);
         EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
         BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
+        APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, lang);
         TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX, lang);
         SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
         CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
@@ -104,6 +111,7 @@ public class Controller implements Initializable {
         COPY_TITLE = props.get(TITLE_COPY_PREFIX, lang);
         BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, lang);
         EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, lang);
+        APPEND_TITLE = props.get(TITLE_APPEND_PREFIX, lang);
         ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, lang);
     }
 
@@ -198,8 +206,9 @@ public class Controller implements Initializable {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
                 .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
-                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler)
+                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
+                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -293,11 +302,11 @@ public class Controller implements Initializable {
         });
     }
 
-    private FileChooser.ExtensionFilter getExportExtFilter() {
+    private FileChooser.ExtensionFilter getTxtExtFilter() {
         return new FileChooser.ExtensionFilter("txt", Arrays.asList("*.txt"));
     }
 
-    private FileChooser.ExtensionFilter getBackupExtFilter() {
+    private FileChooser.ExtensionFilter getJsonExtFilter() {
         return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
     }
 
@@ -360,7 +369,7 @@ public class Controller implements Initializable {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(BACKUP_TODO_TITLE);
             fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
-            fileChooser.getExtensionFilters().add(getBackupExtFilter());
+            fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             if (nFile == null)
                 return;
@@ -384,7 +393,7 @@ public class Controller implements Initializable {
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle(EXPORT_TODO_TITLE);
                 fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
-                fileChooser.getExtensionFilters().add(getExportExtFilter());
+                fileChooser.getExtensionFilters().add(getTxtExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 if (nFile == null)
                     return;
@@ -408,9 +417,28 @@ public class Controller implements Initializable {
             alert.setTitle(ABOUT_TITLE);
             gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
             gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
-            gPane.add(getClassicTextWithPadding("Github: 'https://github.com/CurtisNewbie/todoapp'"), 0, 2);
+            gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
+            gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
             alert.getDialogPane().setContent(gPane);
             alert.show();
+        });
+    }
+
+    private void onAppendHandler(ActionEvent e) {
+        Platform.runLater(() -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(APPEND_TODO_TITLE);
+            fileChooser.getExtensionFilters().add(getJsonExtFilter());
+            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
+            if (nFile == null || !nFile.exists())
+                return;
+            try {
+                ioHandler.loadTodoJob(nFile).forEach(job -> {
+                    addTodoJobView(new TodoJobView(job, lang));
+                });
+            } catch (FailureToLoadException ex) {
+                ex.printStackTrace();
+            }
         });
     }
 
