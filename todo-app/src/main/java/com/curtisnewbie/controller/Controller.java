@@ -243,15 +243,19 @@ public class Controller implements Initializable {
      */
     private void registerCtrlKeyHandler(ListView<TodoJobView> lv) {
         lv.setOnKeyPressed(e -> {
-            if (!e.isControlDown())
-                return;
-            if (e.getCode().equals(KeyCode.S)) {
-                saveAsync();
-                saved.set(true);
-                toastInfo(SAVED_TEXT + " - " + new Date().toString());
-            } else if (e.getCode().equals(KeyCode.Z)) {
-                saved.set(false);
-                redo();
+            if (e.isControlDown()) {
+                if (e.getCode().equals(KeyCode.S)) {
+                    saveAsync();
+                    saved.set(true);
+                    toastInfo(SAVED_TEXT + " - " + new Date().toString());
+                } else if (e.getCode().equals(KeyCode.Z)) {
+                    saved.set(false);
+                    redo();
+                }
+            } else {
+                if (e.getCode().equals(KeyCode.DELETE)) {
+                    deleteSelected();
+                }
             }
         });
     }
@@ -342,9 +346,13 @@ public class Controller implements Initializable {
     }
 
     private void onDeleteHandler(ActionEvent e) {
-        int selected = listView.getSelectionModel().getSelectedIndex();
-        if (selected >= 0) {
-            Platform.runLater(() -> {
+        deleteSelected();
+    }
+
+    private void deleteSelected() {
+        Platform.runLater(() -> {
+            int selected = listView.getSelectionModel().getSelectedIndex();
+            if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(DELETE_TITLE);
                 alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
@@ -352,8 +360,8 @@ public class Controller implements Initializable {
                     TodoJobView jobView = listView.getItems().remove(selected);
                     redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
                 });
-            });
-        }
+            }
+        });
     }
 
     private void onCopyHandler(ActionEvent e) {
@@ -384,8 +392,9 @@ public class Controller implements Initializable {
                 return;
 
             // 1. pick date range
+            LocalDate earliestDate = findEarliestDate();
             LocalDate now = LocalDate.now();
-            DateRangeDialog dateRangeDialog = new DateRangeDialog(now, now);
+            DateRangeDialog dateRangeDialog = new DateRangeDialog(earliestDate, now);
             var opt = dateRangeDialog.showAndWait();
             if (opt.isPresent()) {
                 DateRange dr = opt.get();
@@ -408,6 +417,19 @@ public class Controller implements Initializable {
                 ioHandler.exportTodoJobAsync(todoJobs, nFile, lang);
             }
         });
+    }
+
+    // this method should be ran in UI thread, wrap it inside Platform.runLater()
+    private LocalDate findEarliestDate() {
+        if (!listView.getItems().isEmpty()) {
+            LocalDate earliest = listView.getItems().get(0).getStartDate();
+            for (var jobView : listView.getItems()) {
+                if (jobView.getStartDate().compareTo(earliest) < 0)
+                    earliest = jobView.getStartDate();
+            }
+            return earliest;
+        }
+        return LocalDate.now();
     }
 
     private void onAboutHandler(ActionEvent e) {
