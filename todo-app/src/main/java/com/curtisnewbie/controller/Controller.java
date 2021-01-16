@@ -131,7 +131,7 @@ public class Controller implements Initializable {
         // save the whole to-do list on app shutdown only when it needs to
         App.registerOnClose(() -> {
             if (!saved.get()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, SAVE_ON_CLOSE_TEXT, ButtonType.OK, ButtonType.CANCEL);
+                Alert alert = new Alert(Alert.AlertType.WARNING, SAVE_ON_CLOSE_TEXT, ButtonType.YES, ButtonType.NO);
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
                     saveSync();
@@ -160,6 +160,7 @@ public class Controller implements Initializable {
             sortListView();
         });
         Platform.runLater(() -> {
+            saved.set(false);
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
             listView.getItems().add(jobView);
@@ -355,11 +356,13 @@ public class Controller implements Initializable {
             if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(DELETE_TITLE);
-                alert.showAndWait().filter(resp -> resp == ButtonType.OK).ifPresent(resp -> {
-                    saved.set(false);
-                    TodoJobView jobView = listView.getItems().remove(selected);
-                    redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
-                });
+                alert.showAndWait()
+                        .filter(resp -> resp == ButtonType.OK)
+                        .ifPresent(resp -> {
+                            saved.set(false);
+                            TodoJobView jobView = listView.getItems().remove(selected);
+                            redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                        });
             }
         });
     }
@@ -455,9 +458,11 @@ public class Controller implements Initializable {
             if (nFile == null || !nFile.exists())
                 return;
             try {
-                ioHandler.loadTodoJob(nFile).forEach(job -> {
+                var list = ioHandler.loadTodoJob(nFile);
+                list.forEach(job -> {
                     addTodoJobView(new TodoJobView(job, lang));
                 });
+                toastInfo(String.format("Loaded %d TO-DOs", list.size()));
             } catch (FailureToLoadException ex) {
                 ex.printStackTrace();
             }
