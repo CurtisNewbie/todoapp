@@ -138,13 +138,17 @@ public class IOHandlerImpl implements IOHandler {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
                         bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDateStrSlash(j.getStartDate()),
-                                j.getName()));
+                                formatName(j.getName())));
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private static String formatName(String name) {
+        return name.replaceAll("\\n", "\n  ");
     }
 
     /**
