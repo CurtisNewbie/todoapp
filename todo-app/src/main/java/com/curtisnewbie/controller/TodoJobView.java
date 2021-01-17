@@ -30,8 +30,6 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
 public class TodoJobView extends HBox {
 
     public static final int WIDTH_FOR_LABELS = 170;
-    private Object dateLock = new Object();
-
     private final String checkboxName;
     private final Label doneLabel;
     /**
@@ -51,7 +49,7 @@ public class TodoJobView extends HBox {
      */
     private final CheckBox doneCb = CheckBoxFactory.getClassicCheckBox();
 
-    private volatile OnEvent doneCbRegisteredHandler;
+    private OnEvent doneCbRegisteredHandler;
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -75,14 +73,14 @@ public class TodoJobView extends HBox {
     }
 
     public void setStartDate(LocalDate date) {
-        synchronized (dateLock) {
+        synchronized (this) {
             this.startDate = date;
             this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
         }
     }
 
     public LocalDate getStartDate() {
-        synchronized (dateLock) {
+        synchronized (this) {
             return this.startDate;
         }
     }
@@ -97,19 +95,21 @@ public class TodoJobView extends HBox {
     }
 
     public void setName(String txt) {
-        synchronized (nameText) {
+        synchronized (this) {
             nameText.setText(txt);
         }
     }
 
     public String getName() {
-        synchronized (nameText) {
+        synchronized (this) {
             return nameText.getText();
         }
     }
 
     public boolean isSelected() {
-        return doneCb.isSelected();
+        synchronized (this) {
+            return doneCb.isSelected();
+        }
     }
 
     /**
@@ -134,22 +134,32 @@ public class TodoJobView extends HBox {
      * @throws EventHandlerRegisteredException if this method is invoked for multiple times for the same object
      */
     public void regDoneCbEventHandler(OnEvent onEvent) {
-        if (this.doneCbRegisteredHandler != null)
-            throw new EventHandlerRegisteredException();
         synchronized (this) {
+            if (this.doneCbRegisteredHandler != null)
+                throw new EventHandlerRegisteredException();
             this.doneCbRegisteredHandler = onEvent;
         }
     }
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
-        updateDoneLabelGraphic(doneCb.isSelected());
-        if (doneCbRegisteredHandler != null)
-            doneCbRegisteredHandler.react();
+        synchronized (this) {
+            updateDoneLabelGraphic(doneCb.isSelected());
+            if (doneCbRegisteredHandler != null)
+                doneCbRegisteredHandler.react();
+        }
     }
 
     private void updateDoneLabelGraphic(boolean isDone) {
         Platform.runLater(() -> {
             this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
         });
+    }
+
+    /** make the internal checkbox uneditable */
+    public final void freeze() {
+        synchronized (this) {
+            if (!doneCb.isDisable())
+                doneCb.setDisable(true);
+        }
     }
 }

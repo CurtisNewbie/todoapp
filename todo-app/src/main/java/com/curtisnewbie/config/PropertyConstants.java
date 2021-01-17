@@ -9,7 +9,7 @@ package com.curtisnewbie.config;
  */
 public final class PropertyConstants {
 
-    private PropertyConstants(){
+    private PropertyConstants() {
     }
 
     public static final String APP_GITHUB = "app.github";
@@ -25,6 +25,7 @@ public final class PropertyConstants {
     public static final String TITLE_CHOOSE_LANGUAGE_PREFIX = "title.lang.choice.";
     public static final String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
     public static final String TITLE_APPEND_TODO_PREFIX = "title.append.todo.";
+    public static final String TITLE_LOAD_TODO_PREFIX = "title.load.todo.";
     public static final String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
     public static final String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
     public static final String TITLE_SAVE_PATH_PREFIX = "title.save.path.";
@@ -38,5 +39,6 @@ public final class PropertyConstants {
     public static final String TITLE_BACKUP_PREFIX = "title.backup.";
     public static final String TITLE_EXPORT_PREFIX = "title.export.";
     public static final String TITLE_APPEND_PREFIX = "title.append.";
+    public static final String TITLE_LOAD_PREFIX = "title.load.";
     public static final String TITLE_ABOUT_PREFIX = "title.about.";
 }

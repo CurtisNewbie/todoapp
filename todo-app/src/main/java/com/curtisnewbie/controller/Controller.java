@@ -50,6 +50,7 @@ public class Controller implements Initializable {
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
     private final String APPEND_TODO_TITLE;
+    private final String LOAD_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
     private final String TODO_LOADING_FAILURE_TITLE;
     private final String CONFIG_PATH_TITLE;
@@ -66,6 +67,7 @@ public class Controller implements Initializable {
     private final String ABOUT_TITLE;
     private final String GITHUB_ABOUT;
     private final String AUTHOR_ABOUT;
+    private final String LOAD_TITLE;
 
     private final Language lang;
 
@@ -78,7 +80,10 @@ public class Controller implements Initializable {
     /**
      * record whether user has content that is not saved
      */
-    private final AtomicBoolean saved = new AtomicBoolean(true);
+    private static final AtomicBoolean saved = new AtomicBoolean(true);
+
+    /** record whether the current file is readonly */
+    private static final AtomicBoolean readOnly = new AtomicBoolean(false);
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -100,6 +105,7 @@ public class Controller implements Initializable {
         EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
         BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
         APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, lang);
+        LOAD_TODO_TITLE = props.get(TITLE_LOAD_TODO_PREFIX, lang);
         TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX, lang);
         SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
         CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
@@ -112,6 +118,7 @@ public class Controller implements Initializable {
         BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, lang);
         EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, lang);
         APPEND_TITLE = props.get(TITLE_APPEND_PREFIX, lang);
+        LOAD_TITLE = props.get(TITLE_LOAD_PREFIX, lang);
         ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, lang);
     }
 
@@ -130,7 +137,7 @@ public class Controller implements Initializable {
 
         // save the whole to-do list on app shutdown only when it needs to
         App.registerOnClose(() -> {
-            if (!saved.get()) {
+            if (!saved.get() && !readOnly.get()) {
                 Alert alert = new Alert(Alert.AlertType.WARNING, SAVE_ON_CLOSE_TEXT, ButtonType.YES, ButtonType.NO);
                 Optional<ButtonType> result = alert.showAndWait();
                 if (result.get() == ButtonType.OK) {
@@ -170,20 +177,6 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Add new {@code TodoJobView} into the {@code ListView}.
-     *
-     * <p>
-     * The operation of adding the jobView to the ListView is always executed in Javafx's thread
-     * </p>
-     *
-     * @param jobName
-     */
-    public void addTodoJobView(String jobName) {
-        TodoJobView jobView = new TodoJobView(new TodoJob(jobName), lang);
-        addTodoJobView(jobView);
-    }
-
-    /**
      * <p>
      * Sort the {@code ListView} based on 1) whether they are finished and 2) the date when they are created
      * </p>
@@ -207,9 +200,9 @@ public class Controller implements Initializable {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
                 .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(BACKUP_TITLE, this::onBackupHandler)
-                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
-                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(LOAD_TITLE, this::onLoadHandler)
+                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
+                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -217,14 +210,19 @@ public class Controller implements Initializable {
      * Save the to-do list based on config in a synchronous way
      */
     private void saveSync() {
+        if (readOnly.get())
+            return;
         List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
         ioHandler.writeTodoJobSync(list, config.getSavePath());
+
     }
 
     /**
      * Save the to-do list based on config in a asynchronous way
      */
     private void saveAsync() {
+        if (readOnly.get())
+            return;
         List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
         ioHandler.writeTodoJobAsync(list, config.getSavePath());
     }
@@ -246,15 +244,21 @@ public class Controller implements Initializable {
         lv.setOnKeyPressed(e -> {
             if (e.isControlDown()) {
                 if (e.getCode().equals(KeyCode.S)) {
+                    if (readOnly.get())
+                        return;
                     saveAsync();
                     saved.set(true);
                     toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
+                    if (readOnly.get())
+                        return;
                     saved.set(false);
                     redo();
                 }
             } else {
                 if (e.getCode().equals(KeyCode.DELETE)) {
+                    if (readOnly.get())
+                        return;
                     deleteSelected();
                 }
             }
@@ -317,6 +321,8 @@ public class Controller implements Initializable {
 
     private void onAddHandler(ActionEvent e) {
         Platform.runLater(() -> {
+            if (readOnly.get())
+                return;
             TodoJobDialog dialog = new TodoJobDialog();
             dialog.setTitle(UPDATE_TODO_NAME_TITLE);
             Optional<TodoJob> result = dialog.showAndWait();
@@ -330,6 +336,8 @@ public class Controller implements Initializable {
 
     private void onUpdateHandler(ActionEvent e) {
         Platform.runLater(() -> {
+            if (readOnly.get())
+                return;
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView jobView = listView.getItems().get(selected);
@@ -352,6 +360,8 @@ public class Controller implements Initializable {
 
     private void deleteSelected() {
         Platform.runLater(() -> {
+            if (readOnly.get())
+                return;
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -386,6 +396,33 @@ public class Controller implements Initializable {
                 return;
             ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
                     nFile.getAbsolutePath());
+        });
+    }
+
+    private void onLoadHandler(ActionEvent e) {
+        Platform.runLater(() -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle(LOAD_TODO_TITLE);
+            fileChooser.getExtensionFilters().add(getJsonExtFilter());
+            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
+            if (nFile == null || !nFile.exists())
+                return;
+            try {
+                var list = ioHandler.loadTodoJob(nFile);
+                // clean all todoJobView
+                listView.getItems().clear();
+                // readonly
+                readOnly.set(true);
+                // laod the read-only ones
+                list.forEach(job -> {
+                    var jobView = new TodoJobView(job, lang);
+                    jobView.freeze(); // readonly
+                    addTodoJobView(jobView);
+                });
+                toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
+            } catch (FailureToLoadException ex) {
+                ex.printStackTrace();
+            }
         });
     }
 
@@ -451,6 +488,8 @@ public class Controller implements Initializable {
 
     private void onAppendHandler(ActionEvent e) {
         Platform.runLater(() -> {
+            if (readOnly.get())
+                return;
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(APPEND_TODO_TITLE);
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
@@ -492,6 +531,10 @@ public class Controller implements Initializable {
 
     public Language getLang() {
         return lang;
+    }
+
+    public static final boolean isReadOnly() {
+        return readOnly.get();
     }
 }
 
