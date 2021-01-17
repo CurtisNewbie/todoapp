@@ -28,8 +28,8 @@ public class App extends Application {
     private static final String VERSION = properties.get("app.version");
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
-    private final int DEF_WIDTH = 650;
-    private final int DEF_HEIGHT = 500;
+    private final int DEF_WIDTH = Integer.parseInt(properties.get("app.def.width"));
+    private final int DEF_HEIGHT = Integer.parseInt(properties.get("app.def.height"));
     private final int MIN_WIDTH = 500;
     private final int MIN_HEIGHT = 350;
 
