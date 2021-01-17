@@ -525,6 +525,7 @@ public class Controller implements Initializable {
                 } else {
                     config.setLanguage(Language.CHN.key);
                 }
+                toastInfo("Restart to apply the new configuration");
             }
             ioHandler.writeConfigAsync(config);
         });
