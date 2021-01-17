@@ -419,6 +419,7 @@ public class Controller implements Initializable {
                     jobView.freeze(); // readonly
                     addTodoJobView(jobView);
                 });
+                updateStageTitle(getStageTitle() + " " + "[Read-only Mode]");
                 toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
             } catch (FailureToLoadException ex) {
                 ex.printStackTrace();
@@ -527,6 +528,16 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
+    }
+
+    // This is not thread-safe
+    private String getStageTitle() {
+        return App.getPrimaryStage().getTitle();
+    }
+
+    // This is not thread-safe
+    private void updateStageTitle(String title) {
+        App.getPrimaryStage().setTitle(title);
     }
 }
 
