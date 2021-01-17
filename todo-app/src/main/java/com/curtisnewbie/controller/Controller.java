@@ -324,7 +324,7 @@ public class Controller implements Initializable {
             if (readOnly.get())
                 return;
             TodoJobDialog dialog = new TodoJobDialog();
-            dialog.setTitle(UPDATE_TODO_NAME_TITLE);
+            dialog.setTitle(ADD_NEW_TODO_TITLE);
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 saved.set(false);
@@ -527,14 +527,6 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
-    }
-
-    public Language getLang() {
-        return lang;
-    }
-
-    public static final boolean isReadOnly() {
-        return readOnly.get();
     }
 }
 
