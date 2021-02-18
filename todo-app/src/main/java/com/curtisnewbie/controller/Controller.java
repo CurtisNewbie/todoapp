@@ -166,11 +166,11 @@ public class Controller implements Initializable {
      */
     private void addTodoJobView(TodoJobView jobView) {
         jobView.regDoneCbEventHandler(() -> {
-            saved.set(false);
+            setToNotSaved();
             sortListView();
         });
         Platform.runLater(() -> {
-            saved.set(false);
+            setToNotSaved();
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
             listView.getItems().add(jobView);
@@ -183,7 +183,7 @@ public class Controller implements Initializable {
     private void _initBatchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
             jobView.regDoneCbEventHandler(() -> {
-                saved.set(false);
+                setToNotSaved();
                 sortListView();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
@@ -264,13 +264,12 @@ public class Controller implements Initializable {
                         return;
                     saveAsync();
                     saved.set(true);
-                    String originalTitle = App.getTitle().substring(0, App.TITLE.length());
-                    App.setTitle(originalTitle + " Last updated at: " + DateUtil.getNowTimeShortStr());
+                    App.setTitle(App.TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
                     toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
                         return;
-                    saved.set(false);
+                    setToNotSaved();
                     redo();
                 }
             } else {
@@ -345,7 +344,7 @@ public class Controller implements Initializable {
             dialog.setTitle(ADD_NEW_TODO_TITLE);
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
-                saved.set(false);
+                setToNotSaved();
                 addTodoJobView(new TodoJobView(result.get(), lang));
                 sortListView();
             }
@@ -363,7 +362,7 @@ public class Controller implements Initializable {
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
-                    saved.set(false);
+                    setToNotSaved();
                     jobView.setName(result.get().getName());
                     jobView.setStartDate(result.get().getStartDate());
                     sortListView();
@@ -387,7 +386,7 @@ public class Controller implements Initializable {
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
-                            saved.set(false);
+                            setToNotSaved();
                             TodoJobView jobView = listView.getItems().remove(selected);
                             redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
                         });
@@ -547,6 +546,11 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
+    }
+
+    private void setToNotSaved() {
+        saved.set(false);
+        App.setTitle(App.TITLE + " [Not saved yet]");
     }
 }
 
