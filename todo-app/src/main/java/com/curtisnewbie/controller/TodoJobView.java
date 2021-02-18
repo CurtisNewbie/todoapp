@@ -4,7 +4,7 @@ import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
-import com.curtisnewbie.exception.EventHandlerRegisteredException;
+import com.curtisnewbie.exception.EventHandlerAlreadyRegisteredException;
 import com.curtisnewbie.util.*;
 import com.curtisnewbie.callback.OnEvent;
 import javafx.application.Platform;
@@ -131,12 +131,12 @@ public class TodoJobView extends HBox {
      * </p>
      *
      * @param onEvent
-     * @throws EventHandlerRegisteredException if this method is invoked for multiple times for the same object
+     * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
     public void regDoneCbEventHandler(OnEvent onEvent) {
         synchronized (this) {
             if (this.doneCbRegisteredHandler != null)
-                throw new EventHandlerRegisteredException();
+                throw new EventHandlerAlreadyRegisteredException();
             this.doneCbRegisteredHandler = onEvent;
         }
     }

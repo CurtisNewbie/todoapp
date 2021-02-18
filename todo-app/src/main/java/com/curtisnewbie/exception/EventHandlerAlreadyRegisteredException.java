@@ -8,5 +8,5 @@ package com.curtisnewbie.exception;
  *
  * @author yongjie.zhuang
  */
-public class EventHandlerRegisteredException extends RuntimeException {
+public class EventHandlerAlreadyRegisteredException extends RuntimeException {
 }
