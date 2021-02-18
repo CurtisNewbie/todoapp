@@ -131,7 +131,7 @@ public class Controller implements Initializable {
             for (TodoJob j : jobList) {
                 jobViewList.add(new TodoJobView(j, lang));
             }
-            _initBatchAddTodoJobViews(jobViewList);
+            _batchAddTodoJobViews(jobViewList);
         } catch (FailureToLoadException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
             e.printStackTrace();
@@ -179,8 +179,8 @@ public class Controller implements Initializable {
         });
     }
 
-    // only used on application startup
-    private void _initBatchAddTodoJobViews(List<TodoJobView> jobViews) {
+    // only used on application startup, or loading read-only todos
+    private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
             jobView.regDoneCbEventHandler(() -> {
                 setToNotSaved();
@@ -264,7 +264,7 @@ public class Controller implements Initializable {
                         return;
                     saveAsync();
                     saved.set(true);
-                    App.setTitle(App.TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
+                    App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
                     toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
@@ -430,13 +430,15 @@ public class Controller implements Initializable {
                 listView.getItems().clear();
                 // readonly
                 readOnly.set(true);
-                // laod the read-only ones
+                // load the read-only ones
+                var readOnlyJobViewList = new ArrayList<TodoJobView>();
                 list.forEach(job -> {
                     var jobView = new TodoJobView(job, lang);
                     jobView.freeze(); // readonly
-                    addTodoJobView(jobView);
+                    readOnlyJobViewList.add(jobView);
                 });
-                App.setTitle(App.getTitle() + " " + "[Read-only Mode]");
+                _batchAddTodoJobViews(readOnlyJobViewList);
+                App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
                 toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
             } catch (FailureToLoadException ex) {
                 ex.printStackTrace();
@@ -550,7 +552,7 @@ public class Controller implements Initializable {
 
     private void setToNotSaved() {
         saved.set(false);
-        App.setTitle(App.TITLE + " [Not saved yet]");
+        App.setTitle(App.STARTUP_TITLE + " [Not saved yet]");
     }
 }
 

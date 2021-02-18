@@ -7,7 +7,6 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
@@ -25,7 +24,7 @@ public class App extends Application {
 
     private static final PropertiesLoader properties = PropertiesLoader.getInstance();
     public static final String VERSION = properties.get("app.version");
-    public static final String TITLE = "TO-DO " + VERSION;
+    public static final String STARTUP_TITLE = "TO-DO " + VERSION;
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
     private final int DEF_WIDTH = Integer.parseInt(properties.get("app.def.width"));
@@ -51,7 +50,7 @@ public class App extends Application {
         App.primaryStage = stage;
         Scene s = new Scene(parent);
         stage.setScene(s);
-        stage.setTitle(TITLE);
+        stage.setTitle(STARTUP_TITLE);
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
         stage.setWidth(DEF_WIDTH);
@@ -97,9 +96,9 @@ public class App extends Application {
         }
     }
 
-    public static void setTitle(String title) {
+    public static void setTitle(String startupTitle) {
         synchronized (App.primaryStage) {
-            App.primaryStage.setTitle(title);
+            App.primaryStage.setTitle(startupTitle);
         }
     }
 
