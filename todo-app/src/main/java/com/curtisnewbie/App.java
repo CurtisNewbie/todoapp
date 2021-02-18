@@ -73,18 +73,34 @@ public class App extends Application {
      * @param oc callback
      */
     public static void registerOnClose(OnClose oc) {
-        App.onCloseList.add(oc);
+        synchronized (onCloseList) {
+            App.onCloseList.add(oc);
+        }
     }
 
     /**
      * Invokes all registered callbacks
      */
     private static void invokesOnCloseList() {
-        App.onCloseList.forEach(OnClose::close);
+        synchronized (onCloseList) {
+            App.onCloseList.forEach(OnClose::close);
+        }
     }
 
     public static Stage getPrimaryStage() {
         return App.primaryStage;
+    }
+
+    public static String getTitle() {
+        synchronized (App.primaryStage) {
+            return App.primaryStage.getTitle();
+        }
+    }
+
+    public static void setTitle(String title) {
+        synchronized (App.primaryStage) {
+            App.primaryStage.setTitle(title);
+        }
     }
 
     public static void main(String... args) {

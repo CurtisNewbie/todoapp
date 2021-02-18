@@ -164,7 +164,7 @@ public class Controller implements Initializable {
      *
      * @param jobView
      */
-    public void addTodoJobView(TodoJobView jobView) {
+    private void addTodoJobView(TodoJobView jobView) {
         jobView.regDoneCbEventHandler(() -> {
             saved.set(false);
             sortListView();
@@ -264,8 +264,8 @@ public class Controller implements Initializable {
                         return;
                     saveAsync();
                     saved.set(true);
-                    String originalTitle = getStageTitle().substring(0, App.TITLE.length());
-                    updateStageTitle(originalTitle + " Last updated at: " + DateUtil.getNowTimeShortStr());
+                    String originalTitle = App.getTitle().substring(0, App.TITLE.length());
+                    App.setTitle(originalTitle + " Last updated at: " + DateUtil.getNowTimeShortStr());
                     toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
@@ -437,7 +437,7 @@ public class Controller implements Initializable {
                     jobView.freeze(); // readonly
                     addTodoJobView(jobView);
                 });
-                updateStageTitle(getStageTitle() + " " + "[Read-only Mode]");
+                App.setTitle(App.getTitle() + " " + "[Read-only Mode]");
                 toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
             } catch (FailureToLoadException ex) {
                 ex.printStackTrace();
@@ -547,18 +547,6 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
-    }
-
-    private String getStageTitle() {
-        synchronized (App.getPrimaryStage()) {
-            return App.getPrimaryStage().getTitle();
-        }
-    }
-
-    private void updateStageTitle(String title) {
-        synchronized (App.getPrimaryStage()) {
-            App.getPrimaryStage().setTitle(title);
-        }
     }
 }
 
