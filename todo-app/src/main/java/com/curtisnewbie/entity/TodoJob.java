@@ -41,6 +41,12 @@ public class TodoJob {
         this.startDate = LocalDate.now();
     }
 
+    public TodoJob(TodoJob copied) {
+        this.name = copied.name;
+        this.done = copied.done;
+        this.startDate = copied.startDate;
+    }
+
     public String getName() {
         return name;
     }

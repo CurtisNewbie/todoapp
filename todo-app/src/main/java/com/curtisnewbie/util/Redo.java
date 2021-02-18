@@ -16,7 +16,7 @@ public final class Redo {
 
     public Redo(RedoType type, TodoJob job) {
         this.type = type;
-        this.todoJob = job;
+        this.todoJob = new TodoJob(job);
     }
 
     public RedoType getType() {
