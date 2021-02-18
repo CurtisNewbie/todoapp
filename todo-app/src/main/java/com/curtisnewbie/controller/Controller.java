@@ -391,7 +391,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle(BACKUP_TODO_TITLE);
-            fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
+            fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".json");
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
             if (nFile == null)
