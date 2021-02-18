@@ -126,14 +126,17 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // load previous job list if exists
         try {
-            var list = ioHandler.loadTodoJob(config.getSavePath());
-            for (TodoJob j : list) {
-                addTodoJobView(new TodoJobView(j, lang));
+            var jobList = ioHandler.loadTodoJob(config.getSavePath());
+            var jobViewList = new ArrayList<TodoJobView>();
+            for (TodoJob j : jobList) {
+                jobViewList.add(new TodoJobView(j, lang));
             }
+            _initBatchAddTodoJobViews(jobViewList);
         } catch (FailureToLoadException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
             e.printStackTrace();
         }
+
 
         // save the whole to-do list on app shutdown only when it needs to
         App.registerOnClose(() -> {
@@ -176,6 +179,19 @@ public class Controller implements Initializable {
         });
     }
 
+    // only used on application startup
+    private void _initBatchAddTodoJobViews(List<TodoJobView> jobViews) {
+        jobViews.forEach(jobView -> {
+            jobView.regDoneCbEventHandler(() -> {
+                saved.set(false);
+                sortListView();
+            });
+            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
+            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
+            listView.getItems().add(jobView);
+        });
+    }
+
     /**
      * <p>
      * Sort the {@code ListView} based on 1) whether they are finished and 2) the date when they are created
@@ -184,7 +200,7 @@ public class Controller implements Initializable {
      * This method is always executed within Javafx Thread
      * </p>
      */
-    protected void sortListView() {
+    private void sortListView() {
         Platform.runLater(() -> {
             listView.getItems().sort((a, b) -> {
                 int res = Boolean.compare(a.isSelected(), b.isSelected());
@@ -313,11 +329,11 @@ public class Controller implements Initializable {
         });
     }
 
-    private FileChooser.ExtensionFilter getTxtExtFilter() {
+    private static FileChooser.ExtensionFilter getTxtExtFilter() {
         return new FileChooser.ExtensionFilter("txt", Arrays.asList("*.txt"));
     }
 
-    private FileChooser.ExtensionFilter getJsonExtFilter() {
+    private static FileChooser.ExtensionFilter getJsonExtFilter() {
         return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
     }
 
@@ -444,7 +460,7 @@ public class Controller implements Initializable {
                 // 2. choose where to export
                 FileChooser fileChooser = new FileChooser();
                 fileChooser.setTitle(EXPORT_TODO_TITLE);
-                fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", ""));
+                fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
                 fileChooser.getExtensionFilters().add(getTxtExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                 if (nFile == null)
