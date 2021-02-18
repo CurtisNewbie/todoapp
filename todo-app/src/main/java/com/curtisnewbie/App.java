@@ -23,9 +23,9 @@ import java.util.List;
  */
 public class App extends Application {
 
-    private static final String TITLE = "TO-DO";
     private static final PropertiesLoader properties = PropertiesLoader.getInstance();
-    private static final String VERSION = properties.get("app.version");
+    public static final String VERSION = properties.get("app.version");
+    public static final String TITLE = "TO-DO " + VERSION;
     private static final String FXML_FILE = "ui.fxml";
     private static final String ICON_FILE = "icon.png";
     private final int DEF_WIDTH = Integer.parseInt(properties.get("app.def.width"));
@@ -51,7 +51,7 @@ public class App extends Application {
         App.primaryStage = stage;
         Scene s = new Scene(parent);
         stage.setScene(s);
-        stage.setTitle(String.format("%s %s", TITLE, VERSION));
+        stage.setTitle(TITLE);
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
         stage.setWidth(DEF_WIDTH);

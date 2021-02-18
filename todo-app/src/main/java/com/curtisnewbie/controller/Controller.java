@@ -248,6 +248,8 @@ public class Controller implements Initializable {
                         return;
                     saveAsync();
                     saved.set(true);
+                    String originalTitle = getStageTitle().substring(0, App.TITLE.length());
+                    updateStageTitle(originalTitle + " Last updated at: " + DateUtil.getNowTimeShortStr());
                     toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
@@ -531,14 +533,16 @@ public class Controller implements Initializable {
         });
     }
 
-    // This is not thread-safe
     private String getStageTitle() {
-        return App.getPrimaryStage().getTitle();
+        synchronized (App.getPrimaryStage()) {
+            return App.getPrimaryStage().getTitle();
+        }
     }
 
-    // This is not thread-safe
     private void updateStageTitle(String title) {
-        App.getPrimaryStage().setTitle(title);
+        synchronized (App.getPrimaryStage()) {
+            App.getPrimaryStage().setTitle(title);
+        }
     }
 }
 
