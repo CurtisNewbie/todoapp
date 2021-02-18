@@ -1,8 +1,6 @@
 package com.curtisnewbie.util;
 
-import javafx.geometry.Insets;
 import javafx.geometry.VPos;
-import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;

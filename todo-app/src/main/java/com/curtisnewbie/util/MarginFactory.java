@@ -19,7 +19,7 @@ public final class MarginFactory {
     }
 
     /**
-     * HBox acts as an infinit "margin" that expand "sometimes" when it's possible
+     * HBox acts as an infinite "margin" that expand "sometimes" when it's possible
      */
     public static HBox expandingMargin() {
         HBox box = new HBox();
@@ -37,6 +37,13 @@ public final class MarginFactory {
         return box;
     }
 
+    /**
+     * Wrap a Node with padding, and the container that wraps it is returned (a HBox)
+     *
+     * @param node    node
+     * @param padding Size of the padding
+     * @return container that wraps the node
+     */
     public static HBox wrapWithPadding(Node node, Insets padding) {
         HBox hbox = new HBox();
         hbox.getChildren().add(node);
@@ -44,10 +51,22 @@ public final class MarginFactory {
         return hbox;
     }
 
+    /**
+     * Wrap a Node with common padding (see {@link #getCommonInsets()}), and the container that wraps it is returned (a
+     * HBox)
+     *
+     * @param node node
+     * @return container that wraps the node
+     */
     public static HBox wrapWithCommonPadding(Node node) {
         return wrapWithPadding(node, getCommonInsets());
     }
 
+    /**
+     * Default Insets for convenience, which is of: top-3, right-2, bottom-3, left-2
+     *
+     * @return insets
+     */
     public static Insets getCommonInsets() {
         return new Insets(3, 2, 3, 2);
     }

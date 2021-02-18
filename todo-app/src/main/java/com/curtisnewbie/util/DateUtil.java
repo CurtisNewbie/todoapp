@@ -9,21 +9,21 @@ import java.util.Date;
 
 /**
  * <p>
- * Util for Date
+ * Util for Date / time
  * </p>
  *
  * @author yongjie.zhuang
  */
 public final class DateUtil {
 
-    private DateUtil() {
-    }
-
     private static final ThreadLocal<SimpleDateFormat> shortDateFormatSlashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd/MM/YYYY"));
     private static final ThreadLocal<DateTimeFormatter> shortLDateFormatSlashThreadLocal = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("dd/MM/uuuu"));
     private static final ThreadLocal<DateTimeFormatter> shortCurrTimeFormatThreadLocal = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("H:m:s"));
     private static final ThreadLocal<SimpleDateFormat> shortDateFormatDashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY"));
     private static final ThreadLocal<SimpleDateFormat> longDateFormatDashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY-HH:mm:ss"));
+
+    private DateUtil() {
+    }
 
     /**
      * Convert date to yyyy/MM/dd string
