@@ -452,9 +452,13 @@ public class Controller implements Initializable {
                 return;
 
             // 1. pick date range
-            LocalDate earliestDate = findEarliestDate();
             LocalDate now = LocalDate.now();
-            DateRangeDialog dateRangeDialog = new DateRangeDialog(earliestDate, now);
+            int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
+            LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
+            DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
+
+            LocalDate earliestDate = findEarliestDate();
+            dateRangeDialog.showEarliestDate(earliestDate);
             var opt = dateRangeDialog.showAndWait();
             if (opt.isPresent()) {
                 DateRange dr = opt.get();

@@ -1,5 +1,6 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.util.DateUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -7,12 +8,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
+import java.util.Objects;
 
-import static com.curtisnewbie.util.MarginFactory.*;
+import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 
 /**
  * Dialog for picking range of dates
@@ -25,9 +24,11 @@ public class DateRangeDialog extends Dialog<DateRange> {
     private final Label label;
     private final DatePicker startDatePicker;
     private final DatePicker endDatePicker;
+    private boolean earliestDateIsShown = false;
 
     /**
-     * Create TodoJobDialog with {@code start} (in milliseconds) and {@code end} (in milliseconds) as the default value of dateRange
+     * Create TodoJobDialog with {@code start} and {@code end} as the default value of the
+     * DatePicker(s)
      */
     public DateRangeDialog(LocalDate start, LocalDate end) {
         final DialogPane dialogPane = getDialogPane();
@@ -81,5 +82,22 @@ public class DateRangeDialog extends Dialog<DateRange> {
         return label;
     }
 
+    /**
+     * Show a button which displays the earliest startDate that the user can select, clicking on it makes the {@code
+     * startDatePicker} set to this given {@code localDate}
+     * <p>
+     * Note that this method only works for once
+     */
+    public void showEarliestDate(LocalDate earliestDate) {
+        Objects.requireNonNull(earliestDate);
+        if (earliestDateIsShown)
+            return;
+        earliestDateIsShown = true;
 
+        Button earliestBtn = new Button("Earliest: " + DateUtil.toDateStrSlash(earliestDate));
+        grid.add(wrapWithPadding(earliestBtn, new Insets(1, 2, 5, 2)), 1, 2);
+        earliestBtn.setOnAction(e -> {
+            startDatePicker.setValue(earliestDate);
+        });
+    }
 }
