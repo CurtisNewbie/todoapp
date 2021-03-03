@@ -286,11 +286,13 @@ public class Controller implements Initializable {
      * Redo previous action
      */
     private void redo() {
-        Redo redo = redoQueue.poll();
-        if (redo == null)
-            return;
-        if (redo.getType().equals(RedoType.DELETE)) {
-            addTodoJobView(new TodoJobView(redo.getTodoJob(), lang));
+        synchronized (redoQueue) {
+            Redo redo = redoQueue.poll();
+            if (redo == null)
+                return;
+            if (redo.getType().equals(RedoType.DELETE)) {
+                addTodoJobView(new TodoJobView(redo.getTodoJob(), lang));
+            }
         }
     }
 
@@ -388,7 +390,9 @@ public class Controller implements Initializable {
                         .ifPresent(resp -> {
                             setToNotSaved();
                             TodoJobView jobView = listView.getItems().remove(selected);
-                            redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                            synchronized (redoQueue) {
+                                redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                            }
                         });
             }
         });

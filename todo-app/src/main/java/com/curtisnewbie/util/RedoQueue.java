@@ -5,10 +5,10 @@ import java.util.Queue;
 
 /**
  * <p>
- * A class that internally contains a list of "redo" action. It internally contains a queue, and it's Thread-Safe.
+ * A class that internally contains a list of "redo" action. It's not thread-safe.
  * </p>
  * <p>
- * The kind of redo action is typically represented by {@link RedoType}
+ * The kind of redo action is represented by {@link RedoType}
  * </p>
  *
  * @author yongjie.zhuang
@@ -25,7 +25,7 @@ public final class RedoQueue {
     /**
      * Add an redo (and remove last one if it's current size exceeds its desirable size)
      */
-    public synchronized void offer(Redo redo) {
+    public void offer(Redo redo) {
         if (redoQueue.size() > MAX_SIZE)
             poll();
         redoQueue.offer(redo);
@@ -35,19 +35,15 @@ public final class RedoQueue {
      * <p>
      * Get (as well as remove) an redo.
      * </p>
-     * <p>
-     * If it's empty, it will simply return NULL to simplify some of the synchronisation issue. Thus, do not rely on
-     * {@link #size()} to judge whether the queue is empty.
-     * </p>
      *
      * @return Redo action
      */
-    public synchronized Redo poll() {
+    public Redo poll() {
         return redoQueue.poll();
     }
 
     /**
-     * Return size (this is not synchronized, i.e., it's not reliable)
+     * Return size
      *
      * @return size
      */
