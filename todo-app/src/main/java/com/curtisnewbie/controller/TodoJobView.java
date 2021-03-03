@@ -61,7 +61,7 @@ public class TodoJobView extends HBox {
         this.doneLabel = new Label();
         updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDateStrSlash(todoJob.getStartDate()));
+        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toDDmmUUUUSlash(todoJob.getStartDate()));
         this.startDate = todoJob.getStartDate();
         this.doneCb.setSelected(todoJob.isDone());
         this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
@@ -75,7 +75,7 @@ public class TodoJobView extends HBox {
     public void setStartDate(LocalDate date) {
         synchronized (this) {
             this.startDate = date;
-            this.startDateLabel.setText(DateUtil.toDateStrSlash(date));
+            this.startDateLabel.setText(DateUtil.toDDmmUUUUSlash(date));
         }
     }
 

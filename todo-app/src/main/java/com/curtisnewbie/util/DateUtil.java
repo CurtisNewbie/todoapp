@@ -16,43 +16,54 @@ import java.util.Date;
  */
 public final class DateUtil {
 
-    private static final ThreadLocal<SimpleDateFormat> shortDateFormatSlashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd/MM/YYYY"));
-    private static final ThreadLocal<DateTimeFormatter> shortLDateFormatSlashThreadLocal = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("dd/MM/uuuu"));
-    private static final ThreadLocal<DateTimeFormatter> shortCurrTimeFormatThreadLocal = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("H:m:s"));
-    private static final ThreadLocal<SimpleDateFormat> shortDateFormatDashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY"));
-    private static final ThreadLocal<SimpleDateFormat> longDateFormatDashThreadLocal = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY-HH:mm:ss"));
+    private static final ThreadLocal<SimpleDateFormat> DDMMYYYY_SLASH_THREADLOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd/MM/YYYY"));
+    private static final ThreadLocal<DateTimeFormatter> DDMMUUUU_SLASH_THREADLOCAL = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("dd/MM/uuuu"));
+    private static final ThreadLocal<DateTimeFormatter> MMDDUUUU_SLASH_THREADLOCAL = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("MM/dd/uuuu"));
+    private static final ThreadLocal<DateTimeFormatter> HMS_THREADLOCAL = ThreadLocal.withInitial(() -> DateTimeFormatter.ofPattern("H:m:s"));
+    private static final ThreadLocal<SimpleDateFormat> DDMMYYYY_DASH_THREADLOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY"));
+    private static final ThreadLocal<SimpleDateFormat> LONG_DATE_DASH_THREADLOCAL = ThreadLocal.withInitial(() -> new SimpleDateFormat("dd-MM-YYYY-HH:mm:ss"));
 
     private DateUtil() {
     }
 
     /**
-     * Convert date to yyyy/MM/dd string
+     * Convert date to dd/MM/YYYY string
      *
      * @param d date
-     * @return date string in yyyy/MM/dd
+     * @return date string in dd/MM/YYYY
      */
-    public static String toDateStrSlash(Date d) {
-        return shortDateFormatSlashThreadLocal.get().format(d);
+    public static String toDDmmYYYYSlash(Date d) {
+        return DDMMYYYY_SLASH_THREADLOCAL.get().format(d);
     }
 
     /**
-     * Convert date to yyyy/MM/dd string
+     * Convert date to dd/MM/uuuu string
      *
      * @param d date
-     * @return date string in yyyy/MM/dd
+     * @return date string in dd/MM/uuuu
      */
-    public static String toDateStrSlash(LocalDate d) {
-        return d.format(shortLDateFormatSlashThreadLocal.get());
+    public static String toDDmmUUUUSlash(LocalDate d) {
+        return d.format(DDMMUUUU_SLASH_THREADLOCAL.get());
     }
 
     /**
-     * Convert date to yyyy-MM-dd string
+     * Convert date to MM/dd/uuuu string
      *
      * @param d date
-     * @return date string in yyyy-MM-dd
+     * @return date string in MM/dd/uuuu
      */
-    public static String toDateStrDash(Date d) {
-        return shortDateFormatDashThreadLocal.get().format(d);
+    public static String toMMddUUUUSlash(LocalDate d) {
+        return d.format(MMDDUUUU_SLASH_THREADLOCAL.get());
+    }
+
+    /**
+     * Convert date to dd-MM-YYYY string
+     *
+     * @param d date
+     * @return date string in dd-MM-YYYY
+     */
+    public static String toYYYYmmDDDash(Date d) {
+        return DDMMYYYY_DASH_THREADLOCAL.get().format(d);
     }
 
     /**
@@ -62,16 +73,16 @@ public final class DateUtil {
      * @return date string in yyyy-MM-dd-hh:MM:ss
      */
     public static String toLongDateStrDash(Date d) {
-        return longDateFormatDashThreadLocal.get().format(d);
+        return LONG_DATE_DASH_THREADLOCAL.get().format(d);
     }
 
     /**
-     * Return a short string for current time
+     * Return a short string for current time (H:m:s)
      *
      * @return
      */
     public static String getNowTimeShortStr() {
-        return LocalDateTime.now().format(shortCurrTimeFormatThreadLocal.get());
+        return LocalDateTime.now().format(HMS_THREADLOCAL.get());
     }
 
 

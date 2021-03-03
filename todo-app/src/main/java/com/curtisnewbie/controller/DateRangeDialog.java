@@ -94,7 +94,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
             return;
         earliestDateIsShown = true;
 
-        Button earliestBtn = new Button("Earliest: " + DateUtil.toDateStrSlash(earliestDate));
+        Button earliestBtn = new Button("Earliest: " + DateUtil.toMMddUUUUSlash(earliestDate));
         grid.add(wrapWithPadding(earliestBtn, new Insets(1, 2, 5, 2)), 1, 2);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(earliestDate);
