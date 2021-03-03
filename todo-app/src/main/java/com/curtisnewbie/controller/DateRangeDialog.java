@@ -84,7 +84,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
 
     /**
      * Show a button which displays the earliest startDate that the user can select, clicking on it makes the {@code
-     * startDatePicker} set to this given {@code localDate}
+     * startDatePicker} set to this given {@code earliestDate}
      * <p>
      * Note that this method only works for once
      */
