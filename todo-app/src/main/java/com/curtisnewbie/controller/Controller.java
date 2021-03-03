@@ -75,7 +75,7 @@ public class Controller implements Initializable {
     private ListView<TodoJobView> listView;
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
-    private final RedoQueue redoQueue = new RedoQueue();
+    private final RedoStack redoStack = new RedoStack();
 
     /**
      * record whether user has content that is not saved
@@ -286,8 +286,8 @@ public class Controller implements Initializable {
      * Redo previous action
      */
     private void redo() {
-        synchronized (redoQueue) {
-            Redo redo = redoQueue.poll();
+        synchronized (redoStack) {
+            Redo redo = redoStack.pop();
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
@@ -390,8 +390,8 @@ public class Controller implements Initializable {
                         .ifPresent(resp -> {
                             setToNotSaved();
                             TodoJobView jobView = listView.getItems().remove(selected);
-                            synchronized (redoQueue) {
-                                redoQueue.offer(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                            synchronized (redoStack) {
+                                redoStack.push(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
                             }
                         });
             }

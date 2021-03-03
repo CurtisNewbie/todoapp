@@ -1,7 +1,7 @@
 package com.curtisnewbie.util;
 
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Queue;
 
 /**
  * <p>
@@ -13,22 +13,22 @@ import java.util.Queue;
  *
  * @author yongjie.zhuang
  */
-public final class RedoQueue {
+public final class RedoStack {
 
     /**
      * Desirable maximum size that this queue should respect, this is strictly followed.
      */
     private static final int MAX_SIZE = 50;
 
-    private final Queue<Redo> redoQueue = new LinkedList<>();
+    private final Deque<Redo> redoQueue = new LinkedList<>();
 
     /**
-     * Add an redo (and remove last one if it's current size exceeds its desirable size)
+     * Add an redo (and remove earliest one if it's current size exceeds its desirable size)
      */
-    public void offer(Redo redo) {
+    public void push(Redo redo) {
         if (redoQueue.size() > MAX_SIZE)
-            poll();
-        redoQueue.offer(redo);
+            redoQueue.pollFirst();
+        redoQueue.offerLast(redo);
     }
 
     /**
@@ -38,8 +38,8 @@ public final class RedoQueue {
      *
      * @return Redo action
      */
-    public Redo poll() {
-        return redoQueue.poll();
+    public Redo pop() {
+        return redoQueue.pollLast();
     }
 
     /**
