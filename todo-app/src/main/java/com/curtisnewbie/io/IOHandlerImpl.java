@@ -136,7 +136,7 @@ public class IOHandlerImpl implements IOHandler {
                 String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, lang);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toDDmmUUUUSlash(j.getStartDate()),
+                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toMMddUUUUSlash(j.getStartDate()),
                                 formatName(j.getName())));
                     }
                 }
