@@ -265,7 +265,8 @@ public class Controller implements Initializable {
                     saveAsync();
                     saved.set(true);
                     App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
-                    toastInfo(SAVED_TEXT + " - " + new Date().toString());
+                    // TODO: 04/03/2021 toastInfo is quite unnecessary, since it has updated the title already
+//                    toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
                         return;
