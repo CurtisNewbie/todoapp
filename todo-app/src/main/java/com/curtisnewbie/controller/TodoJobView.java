@@ -59,7 +59,6 @@ public class TodoJobView extends HBox {
     public TodoJobView(TodoJob todoJob, Language lang) {
         this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
         this.doneLabel = new Label();
-        updateDoneLabelGraphic(todoJob.isDone());
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toMMddUUUUSlash(todoJob.getStartDate()));
         this.startDate = todoJob.getStartDate();
@@ -69,6 +68,7 @@ public class TodoJobView extends HBox {
                 .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
                         MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(checkboxName), doneCb);
         HBox.setHgrow(this, Priority.SOMETIMES);
+        updateGraphicForJobState(todoJob.isDone());
         this.requestFocus();
     }
 
@@ -135,7 +135,7 @@ public class TodoJobView extends HBox {
      */
     public void regDoneCbEventHandler(OnEvent onEvent) {
         synchronized (mutex) {
-            if (this.doneCbRegisteredHandler != null)
+            if (doneCbRegisteredHandler != null)
                 throw new EventHandlerAlreadyRegisteredException();
             this.doneCbRegisteredHandler = onEvent;
         }
@@ -143,13 +143,13 @@ public class TodoJobView extends HBox {
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
         synchronized (mutex) {
-            updateDoneLabelGraphic(doneCb.isSelected());
+            updateGraphicForJobState(doneCb.isSelected());
             if (doneCbRegisteredHandler != null)
                 doneCbRegisteredHandler.react();
         }
     }
 
-    private void updateDoneLabelGraphic(boolean isDone) {
+    private void updateGraphicForJobState(boolean isDone) {
         Platform.runLater(() -> {
             this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
             this.nameText.setStrikethrough(isDone);
