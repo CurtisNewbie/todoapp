@@ -1,12 +1,12 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.callback.OnEvent;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerAlreadyRegisteredException;
 import com.curtisnewbie.util.*;
-import com.curtisnewbie.callback.OnEvent;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
@@ -28,10 +28,10 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
  * @author yongjie.zhuang
  */
 public class TodoJobView extends HBox {
-
     public static final int WIDTH_FOR_LABELS = 170;
     private final String checkboxName;
     private final Label doneLabel;
+    private final Object mutex = new Object();
     /**
      * The name of this {@code TodoJob}
      */
@@ -73,14 +73,14 @@ public class TodoJobView extends HBox {
     }
 
     public void setStartDate(LocalDate date) {
-        synchronized (this) {
+        synchronized (mutex) {
             this.startDate = date;
             this.startDateLabel.setText(DateUtil.toMMddUUUUSlash(date));
         }
     }
 
     public LocalDate getStartDate() {
-        synchronized (this) {
+        synchronized (mutex) {
             return this.startDate;
         }
     }
@@ -89,25 +89,25 @@ public class TodoJobView extends HBox {
      * Bind the wrapping width of text
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
-        synchronized (this) {
+        synchronized (mutex) {
             nameText.wrappingWidthProperty().bind(binding);
         }
     }
 
     public void setName(String txt) {
-        synchronized (this) {
+        synchronized (mutex) {
             nameText.setText(txt);
         }
     }
 
     public String getName() {
-        synchronized (this) {
+        synchronized (mutex) {
             return nameText.getText();
         }
     }
 
     public boolean isSelected() {
-        synchronized (this) {
+        synchronized (mutex) {
             return doneCb.isSelected();
         }
     }
@@ -134,7 +134,7 @@ public class TodoJobView extends HBox {
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
     public void regDoneCbEventHandler(OnEvent onEvent) {
-        synchronized (this) {
+        synchronized (mutex) {
             if (this.doneCbRegisteredHandler != null)
                 throw new EventHandlerAlreadyRegisteredException();
             this.doneCbRegisteredHandler = onEvent;
@@ -142,7 +142,7 @@ public class TodoJobView extends HBox {
     }
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
-        synchronized (this) {
+        synchronized (mutex) {
             updateDoneLabelGraphic(doneCb.isSelected());
             if (doneCbRegisteredHandler != null)
                 doneCbRegisteredHandler.react();
@@ -152,12 +152,13 @@ public class TodoJobView extends HBox {
     private void updateDoneLabelGraphic(boolean isDone) {
         Platform.runLater(() -> {
             this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
+            this.nameText.setStrikethrough(isDone);
         });
     }
 
     /** make the internal checkbox uneditable */
     public final void freeze() {
-        synchronized (this) {
+        synchronized (mutex) {
             if (!doneCb.isDisable())
                 doneCb.setDisable(true);
         }
