@@ -2,6 +2,7 @@ package com.curtisnewbie.dao;
 
 import com.curtisnewbie.entity.TodoJob;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface TodoJobMapper {
 
-    List<TodoJob> findById(int id);
+    List<TodoJob> findById(int id) throws SQLException;
 
     List<TodoJob> findByPage(int page, int limit);
 

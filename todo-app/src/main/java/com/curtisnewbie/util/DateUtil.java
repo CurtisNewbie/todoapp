@@ -85,11 +85,21 @@ public final class DateUtil {
         return LocalDateTime.now().format(HMS_THREADLOCAL.get());
     }
 
-
     /**
      * Get start time of the date
      */
     public static long startTimeOf(LocalDate ld) {
         return Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime();
+    }
+
+    /**
+     * Convert Date to LocalDate
+     */
+    public static LocalDate localDateOf(Date date) {
+        if (date == null)
+            return null;
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }

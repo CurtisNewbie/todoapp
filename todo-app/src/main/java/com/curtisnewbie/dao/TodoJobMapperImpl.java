@@ -1,9 +1,11 @@
 package com.curtisnewbie.dao;
 
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.util.DateUtil;
 
-import java.sql.Connection;
+import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,11 +17,39 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     public TodoJobMapperImpl(Connection connection) {
         this.connection = connection;
+        createTableIfNotExists();
+    }
+
+    private void createTableIfNotExists() {
+        String initTableSql = "CREATE TABLE IF NOT EXISTS todojob (\n" +
+                "    id INTEGER PRIMARY KEY AUTOINCREMENT, -- \"Primary key\"\n" +
+                "    name VARCHAR(255) NOT NULL,\n" +
+                "    is_done TINYINT NOT NULL, -- \"1-true, 0-false\"\n" +
+                "    start_date DATE NOT NULL\n" +
+                ")";
+        try (Statement stmt = connection.createStatement();) {
+            stmt.executeUpdate(initTableSql);
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
-    public List<TodoJob> findById(int id) {
-        return null;
+    public List<TodoJob> findById(int id) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob WHERE id = ?");) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            List<TodoJob> result = new ArrayList<>();
+            while (rs.next()) {
+                var job = new TodoJob();
+                job.setId(rs.getInt(1));
+                job.setName(rs.getString(2));
+                job.setDone(rs.getBoolean(3));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                result.add(job);
+            }
+            return result;
+        }
     }
 
     @Override

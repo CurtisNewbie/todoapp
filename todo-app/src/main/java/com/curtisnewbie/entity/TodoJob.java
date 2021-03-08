@@ -17,6 +17,10 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TodoJob {
 
+    /** primary key */
+    @JsonIgnore
+    private Integer id;
+
     /**
      * Name of the job
      */
@@ -76,8 +80,19 @@ public class TodoJob {
         this.startDate = LocalDate.ofInstant(new Date(startDate).toInstant(), ZoneId.systemDefault());
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public TodoJob setId(Integer id) {
+        this.id = id;
+        return this;
+    }
+
     @JsonGetter("startDate")
     public long startDateDeserializer() {
         return DateUtil.startTimeOf(startDate);
     }
+
+
 }
