@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface TodoJobMapper {
 
-    List<TodoJob> findById(int id) throws SQLException;
+    TodoJob findById(int id) throws SQLException;
 
     List<TodoJob> findByPage(int page, int limit);
 

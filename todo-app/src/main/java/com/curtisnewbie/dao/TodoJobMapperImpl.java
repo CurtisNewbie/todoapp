@@ -35,20 +35,19 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public List<TodoJob> findById(int id) throws SQLException {
+    public TodoJob findById(int id) throws SQLException {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob WHERE id = ?");) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
-            List<TodoJob> result = new ArrayList<>();
-            while (rs.next()) {
+            if (rs.next()) {
                 var job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
                 job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
-                result.add(job);
+                return job;
             }
-            return result;
+            return null;
         }
     }
 
