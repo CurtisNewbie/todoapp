@@ -52,8 +52,22 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public List<TodoJob> findByPage(int page, int limit) {
-        return null;
+    public List<TodoJob> findByPage(int page, int limit) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob LIMIT ? OFFSET ?");) {
+            stmt.setInt(1, limit);
+            stmt.setInt(2, page > 0 ? page - 1 * limit : 0);
+            ResultSet rs = stmt.executeQuery();
+            List<TodoJob> result = new ArrayList<>();
+            while (rs.next()) {
+                var job = new TodoJob();
+                job.setId(rs.getInt(1));
+                job.setName(rs.getString(2));
+                job.setDone(rs.getBoolean(3));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                result.add(job);
+            }
+            return result;
+        }
     }
 
     @Override

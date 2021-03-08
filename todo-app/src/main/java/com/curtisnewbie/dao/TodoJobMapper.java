@@ -13,7 +13,7 @@ public interface TodoJobMapper {
 
     TodoJob findById(int id) throws SQLException;
 
-    List<TodoJob> findByPage(int page, int limit);
+    List<TodoJob> findByPage(int page, int limit) throws SQLException;
 
     List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);
 
