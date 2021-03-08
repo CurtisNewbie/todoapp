@@ -4,6 +4,8 @@ import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.dao.MapperFactory;
+import com.curtisnewbie.dao.TodoJobMapper;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
@@ -70,6 +72,7 @@ public class Controller implements Initializable {
     private final String LOAD_TITLE;
 
     private final Language lang;
+    private final TodoJobMapper todoJobMapper = MapperFactory.getFactory().getTodoJobMapper();
 
     @FXML
     private ListView<TodoJobView> listView;
