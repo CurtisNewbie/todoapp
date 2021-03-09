@@ -7,6 +7,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yongjie.zhuang
@@ -91,22 +92,53 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public LocalDate findEarliestDate() {
+    public LocalDate findEarliestDate() throws SQLException {
+        try (Statement stmt = connection.createStatement();) {
+            var rs = stmt.executeQuery("SELECT start_date FROM todojob LIMIT 1 ORDER BY start_date ASC");
+            if (rs.next()) {
+                return DateUtil.localDateOf(rs.getDate(1).getTime());
+            }
+        }
         return null;
     }
 
     @Override
-    public LocalDate findLatestDate() {
+    public LocalDate findLatestDate() throws SQLException {
+        try (Statement stmt = connection.createStatement();) {
+            var rs = stmt.executeQuery("SELECT start_date FROM todojob LIMIT 1 ORDER BY start_date DESC");
+            if (rs.next()) {
+                return DateUtil.localDateOf(rs.getDate(1).getTime());
+            }
+        }
         return null;
     }
 
     @Override
-    public TodoJob updateById(TodoJob todoJob) {
-        return null;
+    public int updateById(TodoJob todoJob) throws SQLException {
+        Objects.requireNonNull(todoJob);
+        Objects.requireNonNull(todoJob.getId());
+
+        try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name, is_done, start_date WHERE id = ? LIMIT 1")) {
+            stmt.setInt(1, todoJob.getId());
+            return stmt.executeUpdate();
+        }
     }
 
     @Override
-    public TodoJob deleteById(int id) {
-        return null;
+    public int deleteById(int id) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ? LIMIT 1")) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public int insert(TodoJob todoJob) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO todojob (name, is_done, start_date) VALUES (?,?,?)")) {
+            stmt.setString(1, todoJob.getName());
+            stmt.setBoolean(2, todoJob.isDone());
+            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
+            return stmt.executeUpdate();
+        }
     }
 }

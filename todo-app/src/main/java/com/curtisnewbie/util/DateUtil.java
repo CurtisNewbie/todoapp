@@ -1,6 +1,7 @@
 package com.curtisnewbie.util;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -99,6 +100,15 @@ public final class DateUtil {
         if (date == null)
             return null;
         return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
+    /**
+     * Convert epoch milliseconds to LocalDate
+     */
+    public static LocalDate localDateOf(long epochMilliSec) {
+        return Instant.ofEpochMilli(epochMilliSec)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
     }

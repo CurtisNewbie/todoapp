@@ -17,11 +17,13 @@ public interface TodoJobMapper {
 
     List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) throws SQLException;
 
-    LocalDate findEarliestDate();
+    LocalDate findEarliestDate() throws SQLException;
 
-    LocalDate findLatestDate();
+    LocalDate findLatestDate() throws SQLException;
 
-    TodoJob updateById(TodoJob todoJob);
+    int updateById(TodoJob todoJob) throws SQLException;
 
-    TodoJob deleteById(int id);
+    int deleteById(int id) throws SQLException;
+
+    int insert(TodoJob todoJob) throws SQLException;
 }
