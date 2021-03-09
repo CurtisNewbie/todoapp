@@ -21,9 +21,25 @@ public interface TodoJobMapper {
 
     LocalDate findLatestDate() throws SQLException;
 
-    int updateById(TodoJob todoJob) throws SQLException;
+    /**
+     * Update record
+     *
+     * @return number of rows affected
+     * @throws SQLException
+     */
+    int updateById(TodoJob todoJob) ;
 
-    int deleteById(int id) throws SQLException;
+    /**
+     * Delete record
+     *
+     * @return number of rows affected
+     */
+    int deleteById(int id);
 
-    int insert(TodoJob todoJob) throws SQLException;
+    /**
+     * Insert record
+     *
+     * @return primary key
+     */
+    Integer insert(TodoJob todoJob);
 }

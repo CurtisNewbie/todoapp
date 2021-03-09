@@ -114,31 +114,46 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public int updateById(TodoJob todoJob) throws SQLException {
+    public int updateById(TodoJob todoJob) {
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(todoJob.getId());
 
         try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name, is_done, start_date WHERE id = ? LIMIT 1")) {
             stmt.setInt(1, todoJob.getId());
             return stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public int deleteById(int id) throws SQLException {
+    public int deleteById(int id) {
         try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ? LIMIT 1")) {
             stmt.setInt(1, id);
             return stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 
     @Override
-    public int insert(TodoJob todoJob) throws SQLException {
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO todojob (name, is_done, start_date) VALUES (?,?,?)")) {
+    public Integer insert(TodoJob todoJob) {
+        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO todojob (name, is_done, start_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
-            return stmt.executeUpdate();
+            int c = stmt.executeUpdate();
+            if (c > 0) {
+                try (var rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 }
