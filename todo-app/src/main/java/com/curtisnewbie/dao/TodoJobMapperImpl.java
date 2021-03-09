@@ -71,8 +71,23 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
-        return null;
+    public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) throws SQLException {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
+                "WHERE start_date BETWEEN ? AND ?");) {
+            stmt.setDate(1, new java.sql.Date(DateUtil.startTimeOf(startDate)));
+            stmt.setDate(2, new java.sql.Date(DateUtil.startTimeOf(endDate)));
+            ResultSet rs = stmt.executeQuery();
+            List<TodoJob> result = new ArrayList<>();
+            while (rs.next()) {
+                var job = new TodoJob();
+                job.setId(rs.getInt(1));
+                job.setName(rs.getString(2));
+                job.setDone(rs.getBoolean(3));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                result.add(job);
+            }
+            return result;
+        }
     }
 
     @Override

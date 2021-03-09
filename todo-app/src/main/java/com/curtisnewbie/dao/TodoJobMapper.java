@@ -15,7 +15,7 @@ public interface TodoJobMapper {
 
     List<TodoJob> findByPage(int page, int limit) throws SQLException;
 
-    List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);
+    List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) throws SQLException;
 
     LocalDate findEarliestDate();
 
