@@ -129,7 +129,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(todoJob.getId());
 
-        try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name = ?, is_done = ?, start_date = ? WHERE id = ? LIMIT 1")) {
+        try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name = ?, is_done = ?, start_date = ? WHERE id = ?")) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
