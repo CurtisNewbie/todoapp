@@ -24,13 +24,14 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
-import static com.curtisnewbie.util.TextFactory.*;
+import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
 
 /**
  * <p>
@@ -129,13 +130,20 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // load previous job list if exists
         try {
-            var jobList = ioHandler.loadTodoJob(config.getSavePath());
+//            var jobList = ioHandler.loadTodoJob(config.getSavePath());
+            var jobList = todoJobMapper.findByPage(1, 100);
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
                 jobViewList.add(new TodoJobView(j, lang));
+//                try {
+//                    todoJobMapper.insert(j);
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
             }
+
             _batchAddTodoJobViews(jobViewList);
-        } catch (FailureToLoadException e) {
+        } catch (SQLException e) {
             toastError(TODO_LOADING_FAILURE_TITLE);
             e.printStackTrace();
         }

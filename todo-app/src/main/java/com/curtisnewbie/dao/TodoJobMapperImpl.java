@@ -64,7 +64,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
                 result.add(job);
             }
             return result;
