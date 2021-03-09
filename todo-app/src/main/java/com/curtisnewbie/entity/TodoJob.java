@@ -46,6 +46,7 @@ public class TodoJob {
     }
 
     public TodoJob(TodoJob copied) {
+        this.id = copied.id;
         this.name = copied.name;
         this.done = copied.done;
         this.startDate = copied.startDate;

@@ -24,7 +24,6 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -129,36 +128,15 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // load previous job list if exists
-        try {
+        // TODO: 09/03/2021 create migration plan, from json to db
 //            var jobList = ioHandler.loadTodoJob(config.getSavePath());
-            var jobList = todoJobMapper.findByPage(1, 100);
-            var jobViewList = new ArrayList<TodoJobView>();
-            for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, lang));
-//                try {
-//                    todoJobMapper.insert(j);
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-            }
-
-            _batchAddTodoJobViews(jobViewList);
-        } catch (SQLException e) {
-            toastError(TODO_LOADING_FAILURE_TITLE);
-            e.printStackTrace();
+        var jobList = todoJobMapper.findByPage(1, 100);
+        var jobViewList = new ArrayList<TodoJobView>();
+        for (TodoJob j : jobList) {
+            jobViewList.add(new TodoJobView(j, lang));
         }
+        _batchAddTodoJobViews(jobViewList);
 
-
-        // save the whole to-do list on app shutdown only when it needs to
-        App.registerOnClose(() -> {
-            if (!saved.get() && !readOnly.get()) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, SAVE_ON_CLOSE_TEXT, ButtonType.YES, ButtonType.NO);
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    saveSync();
-                }
-            }
-        });
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
@@ -177,11 +155,13 @@ public class Controller implements Initializable {
      */
     private void addTodoJobView(TodoJobView jobView) {
         jobView.regDoneCbEventHandler(() -> {
-            setToNotSaved();
-            sortListView();
+            int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
+            if (c > 0)
+                sortListView();
+            else
+                toastError("Failed to update to-do, please try again");
         });
         Platform.runLater(() -> {
-            setToNotSaved();
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
             listView.getItems().add(jobView);
@@ -194,7 +174,6 @@ public class Controller implements Initializable {
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
             jobView.regDoneCbEventHandler(() -> {
-                setToNotSaved();
                 sortListView();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
@@ -276,12 +255,9 @@ public class Controller implements Initializable {
                     saveAsync();
                     saved.set(true);
                     App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
-                    // TODO: 04/03/2021 toastInfo is quite unnecessary, since it has updated the title already
-//                    toastInfo(SAVED_TEXT + " - " + new Date().toString());
                 } else if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
                         return;
-                    setToNotSaved();
                     redo();
                 }
             } else {
@@ -303,7 +279,14 @@ public class Controller implements Initializable {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                addTodoJobView(new TodoJobView(redo.getTodoJob(), lang));
+                Integer newId = todoJobMapper.insert(redo.getTodoJob());
+                if (newId != null) {
+                    var job = redo.getTodoJob();
+                    job.setId(newId);
+                    addTodoJobView(new TodoJobView(job, lang));
+                } else {
+                    toastError("Unknown error happens when try to redo");
+                }
             }
         }
     }
@@ -358,8 +341,14 @@ public class Controller implements Initializable {
             dialog.setTitle(ADD_NEW_TODO_TITLE);
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
-                setToNotSaved();
-                addTodoJobView(new TodoJobView(result.get(), lang));
+                TodoJob newTodo = result.get();
+                Integer id = todoJobMapper.insert(newTodo);
+                if (id == null) {
+                    toastError("Failed to add new to-do, please try again");
+                    return;
+                }
+                newTodo.setId(id);
+                addTodoJobView(new TodoJobView(newTodo, lang));
                 sortListView();
             }
         });
@@ -376,10 +365,16 @@ public class Controller implements Initializable {
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
-                    setToNotSaved();
-                    jobView.setName(result.get().getName());
-                    jobView.setStartDate(result.get().getStartDate());
-                    sortListView();
+                    var job = result.get();
+                    job.setDone(jobView.isSelected());
+                    job.setId(jobView.getIdOfTodoJob());
+                    if (todoJobMapper.updateById(job) > 0) {
+                        jobView.setName(result.get().getName());
+                        jobView.setStartDate(result.get().getStartDate());
+                        sortListView();
+                    } else {
+                        toastError("Failed to update to-do, please try again");
+                    }
                 }
             }
         });
@@ -400,10 +395,14 @@ public class Controller implements Initializable {
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
-                            setToNotSaved();
-                            TodoJobView jobView = listView.getItems().remove(selected);
-                            synchronized (redoStack) {
-                                redoStack.push(new Redo(RedoType.DELETE, jobView.createTodoJobCopy()));
+                            int id = listView.getItems().get(selected).getIdOfTodoJob();
+                            if (todoJobMapper.deleteById(id) <= 0) {
+                                toastInfo("Failed to delete to-do, please try again");
+                            } else {
+                                var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
+                                synchronized (redoStack) {
+                                    redoStack.push(new Redo(RedoType.DELETE, jobCopy));
+                                }
                             }
                         });
             }
@@ -432,6 +431,7 @@ public class Controller implements Initializable {
         });
     }
 
+    // TODO: 09/03/2021 remove this functionality
     private void onLoadHandler(ActionEvent e) {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
@@ -473,7 +473,8 @@ public class Controller implements Initializable {
             LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
             DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
 
-            LocalDate earliestDate = findEarliestDate();
+            var d = todoJobMapper.findEarliestDate();
+            LocalDate earliestDate = d != null ? d : LocalDate.now();
             dateRangeDialog.showEarliestDate(earliestDate);
             var opt = dateRangeDialog.showAndWait();
             if (opt.isPresent()) {
@@ -488,28 +489,9 @@ public class Controller implements Initializable {
                     return;
 
                 // 3. filter based on date range, and create a todoJob copy of each "view"
-                var todoJobs = new ArrayList<TodoJob>();
-                for (var v : listView.getItems()) {
-                    if (v.getStartDate().compareTo(dr.getStart()) >= 0 && v.getStartDate().compareTo(dr.getEnd()) <= 0) {
-                        todoJobs.add(v.createTodoJobCopy());
-                    }
-                }
-                ioHandler.exportTodoJobAsync(todoJobs, nFile, lang);
+                ioHandler.exportTodoJobAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()), nFile, lang);
             }
         });
-    }
-
-    // this method should be ran in UI thread, wrap it inside Platform.runLater()
-    private LocalDate findEarliestDate() {
-        if (!listView.getItems().isEmpty()) {
-            LocalDate earliest = listView.getItems().get(0).getStartDate();
-            for (var jobView : listView.getItems()) {
-                if (jobView.getStartDate().compareTo(earliest) < 0)
-                    earliest = jobView.getStartDate();
-            }
-            return earliest;
-        }
-        return LocalDate.now();
     }
 
     private void onAboutHandler(ActionEvent e) {
@@ -568,11 +550,6 @@ public class Controller implements Initializable {
             }
             ioHandler.writeConfigAsync(config);
         });
-    }
-
-    private void setToNotSaved() {
-        saved.set(false);
-        App.setTitle(App.STARTUP_TITLE + " [Not saved yet]");
     }
 }
 

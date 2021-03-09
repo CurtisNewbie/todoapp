@@ -33,6 +33,10 @@ public class TodoJobView extends HBox {
     private final Label doneLabel;
     private final Object mutex = new Object();
     /**
+     * The id of the todojob
+     */
+    private final int idOfTodoJob;
+    /**
      * The name of this {@code TodoJob}
      */
     private final Text nameText;
@@ -57,6 +61,7 @@ public class TodoJobView extends HBox {
      * @param todoJob
      */
     public TodoJobView(TodoJob todoJob, Language lang) {
+        this.idOfTodoJob = todoJob.getId();
         this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
         this.doneLabel = new Label();
         this.nameText = TextFactory.getClassicText(todoJob.getName());
@@ -119,6 +124,7 @@ public class TodoJobView extends HBox {
      */
     public TodoJob createTodoJobCopy() {
         TodoJob copy = new TodoJob();
+        copy.setId(idOfTodoJob);
         copy.setName(getName());
         copy.setDone(isSelected());
         copy.setStartDate(getStartDate());
@@ -162,5 +168,9 @@ public class TodoJobView extends HBox {
             if (!doneCb.isDisable())
                 doneCb.setDisable(true);
         }
+    }
+
+    public int getIdOfTodoJob() {
+        return idOfTodoJob;
     }
 }

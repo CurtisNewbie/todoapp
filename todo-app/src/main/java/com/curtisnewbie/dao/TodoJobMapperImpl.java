@@ -36,7 +36,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     @Override
-    public TodoJob findById(int id) throws SQLException {
+    public TodoJob findById(int id) {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob WHERE id = ?");) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
@@ -49,11 +49,13 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 return job;
             }
             return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public List<TodoJob> findByPage(int page, int limit) throws SQLException {
+    public List<TodoJob> findByPage(int page, int limit) {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, page > 0 ? (page - 1) * limit : 0);
@@ -68,11 +70,13 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 result.add(job);
             }
             return result;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) throws SQLException {
+    public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
                 "WHERE start_date BETWEEN ? AND ?");) {
             stmt.setDate(1, new java.sql.Date(DateUtil.startTimeOf(startDate)));
@@ -84,33 +88,39 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
                 result.add(job);
             }
             return result;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
     }
 
     @Override
-    public LocalDate findEarliestDate() throws SQLException {
+    public LocalDate findEarliestDate() {
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT start_date FROM todojob LIMIT 1 ORDER BY start_date ASC");
+            var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date ASC LIMIT 1");
             if (rs.next()) {
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
-        return null;
     }
 
     @Override
-    public LocalDate findLatestDate() throws SQLException {
+    public LocalDate findLatestDate() {
         try (Statement stmt = connection.createStatement();) {
             var rs = stmt.executeQuery("SELECT start_date FROM todojob LIMIT 1 ORDER BY start_date DESC");
             if (rs.next()) {
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
-        return null;
     }
 
     @Override
@@ -124,17 +134,18 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
     @Override
     public int deleteById(int id) {
-        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ? LIMIT 1")) {
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ?")) {
             stmt.setInt(1, id);
             return stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            return 0;
         }
+        return 0;
     }
 
     @Override

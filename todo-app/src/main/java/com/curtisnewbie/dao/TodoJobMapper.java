@@ -11,15 +11,15 @@ import java.util.List;
  */
 public interface TodoJobMapper {
 
-    TodoJob findById(int id) throws SQLException;
+    TodoJob findById(int id);
 
-    List<TodoJob> findByPage(int page, int limit) throws SQLException;
+    List<TodoJob> findByPage(int page, int limit);
 
-    List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) throws SQLException;
+    List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);
 
-    LocalDate findEarliestDate() throws SQLException;
+    LocalDate findEarliestDate();
 
-    LocalDate findLatestDate() throws SQLException;
+    LocalDate findLatestDate();
 
     /**
      * Update record
