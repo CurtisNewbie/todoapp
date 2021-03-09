@@ -56,7 +56,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public List<TodoJob> findByPage(int page, int limit) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob LIMIT ? OFFSET ?");) {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
+                "ORDER BY start_date DESC, is_done ASC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, page > 0 ? (page - 1) * limit : 0);
             ResultSet rs = stmt.executeQuery();
@@ -78,7 +79,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     @Override
     public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
-                "WHERE start_date BETWEEN ? AND ?");) {
+                "WHERE start_date BETWEEN ? AND ? ORDER BY start_date DESC, is_done ASC");) {
             stmt.setDate(1, new java.sql.Date(DateUtil.startTimeOf(startDate)));
             stmt.setDate(2, new java.sql.Date(DateUtil.startTimeOf(endDate)));
             ResultSet rs = stmt.executeQuery();
@@ -113,7 +114,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     @Override
     public LocalDate findLatestDate() {
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT start_date FROM todojob LIMIT 1 ORDER BY start_date DESC");
+            var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date DESC LIMIT 1");
             if (rs.next()) {
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
