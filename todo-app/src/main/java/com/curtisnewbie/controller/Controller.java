@@ -249,13 +249,14 @@ public class Controller implements Initializable {
     private void registerCtrlKeyHandler(ListView<TodoJobView> lv) {
         lv.setOnKeyPressed(e -> {
             if (e.isControlDown()) {
-                if (e.getCode().equals(KeyCode.S)) {
-                    if (readOnly.get())
-                        return;
-                    saveAsync();
-                    saved.set(true);
-                    App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
-                } else if (e.getCode().equals(KeyCode.Z)) {
+//                if (e.getCode().equals(KeyCode.S)) {
+//                    if (readOnly.get())
+//                        return;
+//                    saveAsync();
+//                    saved.set(true);
+//                    App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
+//                } else
+                if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
                         return;
                     redo();
