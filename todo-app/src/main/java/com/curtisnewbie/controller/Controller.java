@@ -215,6 +215,7 @@ public class Controller implements Initializable {
     /**
      * Save the to-do list based on config in a synchronous way
      */
+    @Deprecated
     private void saveSync() {
         if (readOnly.get())
             return;
@@ -226,6 +227,7 @@ public class Controller implements Initializable {
     /**
      * Save the to-do list based on config in a asynchronous way
      */
+    @Deprecated
     private void saveAsync() {
         if (readOnly.get())
             return;
@@ -249,13 +251,6 @@ public class Controller implements Initializable {
     private void registerCtrlKeyHandler(ListView<TodoJobView> lv) {
         lv.setOnKeyPressed(e -> {
             if (e.isControlDown()) {
-//                if (e.getCode().equals(KeyCode.S)) {
-//                    if (readOnly.get())
-//                        return;
-//                    saveAsync();
-//                    saved.set(true);
-//                    App.setTitle(App.STARTUP_TITLE + " [Saved at: " + DateUtil.getNowTimeShortStr() + "]");
-//                } else
                 if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
                         return;
@@ -522,6 +517,12 @@ public class Controller implements Initializable {
             try {
                 var list = ioHandler.loadTodoJob(nFile);
                 list.forEach(job -> {
+                    Integer id = todoJobMapper.insert(job);
+                    if (id == null) {
+                        toastError("Failed to add new to-do, please try again");
+                        return;
+                    }
+                    job.setId(id);
                     addTodoJobView(new TodoJobView(job, lang));
                 });
                 toastInfo(String.format("Loaded %d TO-DOs", list.size()));
