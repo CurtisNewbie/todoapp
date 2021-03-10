@@ -19,6 +19,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     public TodoJobMapperImpl(Connection connection) {
         this.connection = connection;
         createTableIfNotExists();
+        createIndexesIfNotExists();
     }
 
     private void createTableIfNotExists() {
@@ -30,6 +31,15 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 ")";
         try (Statement stmt = connection.createStatement();) {
             stmt.executeUpdate(initTableSql);
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void createIndexesIfNotExists() {
+        String initIdxSql = "CREATE INDEX IF NOT EXISTS sort_idx ON todojob (start_date DESC, is_done ASC)";
+        try (Statement stmt = connection.createStatement();) {
+            stmt.executeUpdate(initIdxSql);
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
@@ -60,6 +70,26 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 "ORDER BY start_date DESC, is_done ASC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, page > 0 ? (page - 1) * limit : 0);
+            ResultSet rs = stmt.executeQuery();
+            List<TodoJob> result = new ArrayList<>();
+            while (rs.next()) {
+                var job = new TodoJob();
+                job.setId(rs.getInt(1));
+                job.setName(rs.getString(2));
+                job.setDone(rs.getBoolean(3));
+                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                result.add(job);
+            }
+            return result;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public List<TodoJob> findAll() {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
+                "ORDER BY start_date DESC, is_done ASC");) {
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {

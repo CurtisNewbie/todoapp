@@ -130,7 +130,7 @@ public class Controller implements Initializable {
         // load previous job list if exists
         // TODO: 09/03/2021 create migration plan, from json to db
 //            var jobList = ioHandler.loadTodoJob(config.getSavePath());
-        var jobList = todoJobMapper.findByPage(1, 100);
+        var jobList = todoJobMapper.findAll();
         var jobViewList = new ArrayList<TodoJobView>();
         for (TodoJob j : jobList) {
             jobViewList.add(new TodoJobView(j, lang));

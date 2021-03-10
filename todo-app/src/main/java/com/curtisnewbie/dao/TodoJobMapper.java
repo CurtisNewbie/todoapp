@@ -15,6 +15,8 @@ public interface TodoJobMapper {
 
     List<TodoJob> findByPage(int page, int limit);
 
+    List<TodoJob> findAll();
+
     List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);
 
     LocalDate findEarliestDate();
