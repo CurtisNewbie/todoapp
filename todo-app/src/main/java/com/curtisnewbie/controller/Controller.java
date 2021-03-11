@@ -87,8 +87,9 @@ public class Controller implements Initializable {
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
 
     /** current page, need to be synchronised using {@link #currPageLock} */
-    private static int currPage = 0;
-    private static Object currPageLock = new Object();
+    private int currPage = 0;
+    private Object currPageLock = new Object();
+    private Label currPageLabel = LabelFactory.getClassicLabel("1");
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -142,7 +143,10 @@ public class Controller implements Initializable {
             loadNextPage();
         });
         pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(prevPageBtn, MarginFactory.fixedMargin(10), nextPageBtn, MarginFactory.fixedMargin(10));
+        pageControlHBox.getChildren().addAll(LabelFactory.getClassicLabel("Page:"), MarginFactory.fixedMargin(10),
+                currPageLabel, MarginFactory.fixedMargin(10),
+                prevPageBtn, MarginFactory.fixedMargin(10),
+                nextPageBtn, MarginFactory.fixedMargin(10));
     }
 
     private void loadNextPage() {
@@ -152,6 +156,9 @@ public class Controller implements Initializable {
                 if (jobList.isEmpty())
                     return null;
                 currPage += 1;
+                Platform.runLater(() -> {
+                    currPageLabel.setText(String.valueOf(currPage));
+                });
                 return jobList;
             }
         }).thenAccept((jobList) -> {
@@ -179,6 +186,9 @@ public class Controller implements Initializable {
                 if (jobList.isEmpty())
                     return null;
                 currPage -= 1;
+                Platform.runLater(() -> {
+                    currPageLabel.setText(String.valueOf(currPage));
+                });
                 return jobList;
             }
         }).thenAccept((jobList) -> {
