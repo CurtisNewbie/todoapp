@@ -130,7 +130,7 @@ public class Controller implements Initializable {
         loadNextPage();
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
-        // register ctrl+s key event handler for ListView
+        // register ctrl+? key event handler for ListView
         registerCtrlKeyHandler(listView);
         // registers event handlers for paging
         Button prevPageBtn = ButtonFactory.getRectBtn("Previous Page");
@@ -146,11 +146,17 @@ public class Controller implements Initializable {
     }
 
     private void loadNextPage() {
-        synchronized (currPageLock) {
-            var jobList = todoJobMapper.findByPage(currPage + 1);
-            if (jobList.isEmpty())
+        CompletableFuture.supplyAsync(() -> {
+            synchronized (currPageLock) {
+                var jobList = todoJobMapper.findByPage(currPage + 1);
+                if (jobList.isEmpty())
+                    return null;
+                currPage += 1;
+                return jobList;
+            }
+        }).thenAccept((jobList) -> {
+            if (jobList == null)
                 return;
-            currPage += 1;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
                 jobViewList.add(new TodoJobView(j, lang));
@@ -159,17 +165,23 @@ public class Controller implements Initializable {
                 listView.getItems().clear();
                 _batchAddTodoJobViews(jobViewList);
             });
-        }
+        });
     }
 
     private void loadPrevPage() {
-        synchronized (currPageLock) {
-            if (currPage <= 1)
+        CompletableFuture.supplyAsync(() -> {
+            synchronized (currPageLock) {
+                if (currPage <= 1)
+                    return null;
+                var jobList = todoJobMapper.findByPage(currPage - 1);
+                if (jobList.isEmpty())
+                    return null;
+                currPage -= 1;
+                return jobList;
+            }
+        }).thenAccept((jobList) -> {
+            if (jobList == null)
                 return;
-            var jobList = todoJobMapper.findByPage(currPage - 1);
-            if (jobList.isEmpty())
-                return;
-            currPage -= 1;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
                 jobViewList.add(new TodoJobView(j, lang));
@@ -178,7 +190,29 @@ public class Controller implements Initializable {
                 listView.getItems().clear();
                 _batchAddTodoJobViews(jobViewList);
             });
-        }
+        });
+    }
+
+    private void loadCurrPage() {
+        CompletableFuture.supplyAsync(() -> {
+            synchronized (currPageLock) {
+                var jobList = todoJobMapper.findByPage(currPage);
+                if (jobList.isEmpty())
+                    return null;
+                return jobList;
+            }
+        }).thenAccept((jobList) -> {
+            if (jobList == null)
+                return;
+            var jobViewList = new ArrayList<TodoJobView>();
+            for (TodoJob j : jobList) {
+                jobViewList.add(new TodoJobView(j, lang));
+            }
+            Platform.runLater(() -> {
+                listView.getItems().clear();
+                _batchAddTodoJobViews(jobViewList);
+            });
+        });
     }
 
     /**
@@ -273,6 +307,10 @@ public class Controller implements Initializable {
                     if (readOnly.get())
                         return;
                     deleteSelected();
+                } else if (e.getCode().equals(KeyCode.F5)) {
+                    if (readOnly.get())
+                        return;
+                    loadCurrPage();
                 }
             }
         });
