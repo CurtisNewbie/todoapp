@@ -15,6 +15,7 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -48,14 +49,11 @@ public class Controller implements Initializable {
 
     private static final int PADDING = 55;
 
-    private final String SAVED_TEXT;
-    private final String SAVE_ON_CLOSE_TEXT;
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
     private final String APPEND_TODO_TITLE;
     private final String LOAD_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
-    private final String TODO_LOADING_FAILURE_TITLE;
     private final String CONFIG_PATH_TITLE;
     private final String SAVE_PATH_TITLE;
     private final String ADD_NEW_TODO_TITLE;
@@ -105,14 +103,11 @@ public class Controller implements Initializable {
         }
         GITHUB_ABOUT = props.get(APP_GITHUB);
         AUTHOR_ABOUT = props.get(APP_AUTHOR);
-        SAVED_TEXT = props.get(TEXT_SAVED_PREFIX, lang);
-        SAVE_ON_CLOSE_TEXT = props.get(TEXT_SAVE_ON_CLOSE_PREFIX, lang);
         CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, lang);
         EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
         BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
         APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, lang);
         LOAD_TODO_TITLE = props.get(TITLE_LOAD_TODO_PREFIX, lang);
-        TODO_LOADING_FAILURE_TITLE = props.get(TITLE_TODO_LOADING_FAILURE_PREFIX, lang);
         SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
         CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
         ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, lang);
@@ -130,22 +125,13 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // load previous job list if exists
-        // TODO: 09/03/2021 create migration plan, from json to db
-//            var jobList = ioHandler.loadTodoJob(config.getSavePath());
-//        var jobViewList = new ArrayList<TodoJobView>();
-//        for (TodoJob j : jobList) {
-//            jobViewList.add(new TodoJobView(j, lang));
-//        }
-//        _batchAddTodoJobViews(jobViewList);
-
         // load the first page
         loadNextPage();
-
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
         registerCtrlKeyHandler(listView);
+        // registers event handlers for paging
         Button prevPageBtn = ButtonFactory.getRectBtn("Previous Page");
         prevPageBtn.setOnAction(e -> {
             loadPrevPage();
@@ -154,7 +140,8 @@ public class Controller implements Initializable {
         nextPageBtn.setOnAction(e -> {
             loadNextPage();
         });
-        pageControlHBox.getChildren().addAll(prevPageBtn, nextPageBtn);
+        pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
+        pageControlHBox.getChildren().addAll(prevPageBtn, MarginFactory.fixedMargin(10), nextPageBtn, MarginFactory.fixedMargin(10));
     }
 
     private void loadNextPage() {
