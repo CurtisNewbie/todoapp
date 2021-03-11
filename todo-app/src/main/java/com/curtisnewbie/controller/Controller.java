@@ -20,6 +20,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -76,17 +77,19 @@ public class Controller implements Initializable {
 
     @FXML
     private ListView<TodoJobView> listView;
+    @FXML
+    private HBox pageControlHBox;
+
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
     private final RedoStack redoStack = new RedoStack();
 
-    /**
-     * record whether user has content that is not saved
-     */
-    private static final AtomicBoolean saved = new AtomicBoolean(true);
-
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
+
+    /** current page, need to be synchronised using {@link #currPageLock} */
+    private static int currPage = 0;
+    private static Object currPageLock = new Object();
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -130,17 +133,64 @@ public class Controller implements Initializable {
         // load previous job list if exists
         // TODO: 09/03/2021 create migration plan, from json to db
 //            var jobList = ioHandler.loadTodoJob(config.getSavePath());
-        var jobList = todoJobMapper.findAll();
-        var jobViewList = new ArrayList<TodoJobView>();
-        for (TodoJob j : jobList) {
-            jobViewList.add(new TodoJobView(j, lang));
-        }
-        _batchAddTodoJobViews(jobViewList);
+//        var jobViewList = new ArrayList<TodoJobView>();
+//        for (TodoJob j : jobList) {
+//            jobViewList.add(new TodoJobView(j, lang));
+//        }
+//        _batchAddTodoJobViews(jobViewList);
+
+        // load the first page
+        loadNextPage();
 
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+s key event handler for ListView
         registerCtrlKeyHandler(listView);
+        Button prevPageBtn = new Button("Previous Page");
+        prevPageBtn.setOnAction(e -> {
+            loadPrevPage();
+        });
+        Button nextPageBtn = new Button("Next Page");
+        nextPageBtn.setOnAction(e -> {
+            loadNextPage();
+        });
+        pageControlHBox.getChildren().addAll(prevPageBtn, nextPageBtn);
+    }
+
+    private void loadNextPage() {
+        synchronized (currPageLock) {
+            var jobList = todoJobMapper.findByPage(currPage + 1);
+            if (jobList.isEmpty())
+                return;
+            currPage += 1;
+            var jobViewList = new ArrayList<TodoJobView>();
+            for (TodoJob j : jobList) {
+                jobViewList.add(new TodoJobView(j, lang));
+            }
+            Platform.runLater(() -> {
+                listView.getItems().clear();
+                _batchAddTodoJobViews(jobViewList);
+            });
+        }
+    }
+
+    private void loadPrevPage() {
+        synchronized (currPageLock) {
+            if (currPage <= 1)
+                return;
+            var jobList = todoJobMapper.findByPage(currPage - 1);
+            if (jobList.isEmpty())
+                return;
+            currPage -= 1;
+            var jobViewList = new ArrayList<TodoJobView>();
+            for (TodoJob j : jobList) {
+                jobViewList.add(new TodoJobView(j, lang));
+            }
+            Platform.runLater(() -> {
+                listView.getItems().clear();
+                _batchAddTodoJobViews(jobViewList);
+            });
+        }
     }
 
     /**

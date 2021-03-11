@@ -14,6 +14,7 @@ import java.util.Objects;
  */
 public final class TodoJobMapperImpl implements TodoJobMapper {
 
+    private static final int DEFAULT_PAGE_LIMIT = 30;
     private final Connection connection;
 
     public TodoJobMapperImpl(Connection connection) {
@@ -66,10 +67,14 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public List<TodoJob> findByPage(int page, int limit) {
+        if (limit <= 0)
+            throw new IllegalArgumentException("limit must be greater than 0");
+        if (page <= 0)
+            throw new IllegalArgumentException("page must be greater than 0");
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
                 "ORDER BY start_date DESC, is_done ASC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
-            stmt.setInt(2, page > 0 ? (page - 1) * limit : 0);
+            stmt.setInt(2, (page - 1) * limit);
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
@@ -84,6 +89,11 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public List<TodoJob> findByPage(int page) {
+        return findByPage(page, DEFAULT_PAGE_LIMIT);
     }
 
     @Override
