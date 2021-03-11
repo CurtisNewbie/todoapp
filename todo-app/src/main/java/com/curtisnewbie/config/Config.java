@@ -16,6 +16,7 @@ public class Config implements Serializable {
     /**
      * Path to where the to-do list is saved on disk
      */
+    @Deprecated // TODO: 11/03/2021 to be removed 
     private String savePath;
 
     /**
