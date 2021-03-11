@@ -6,6 +6,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
+import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +41,8 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
         try {
             if (!saveFile.exists()) {
                 return Collections.EMPTY_LIST;
@@ -51,9 +54,14 @@ public class IOHandlerImpl implements IOHandler {
                         sb.append(line);
                     }
                     String json = sb.toString();
+                    List<TodoJob> list;
                     if (StrUtil.isEmpty(json) || json.matches("^\\[\\s+\\]$"))
-                        return Collections.EMPTY_LIST;
-                    return Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
+                        list = Collections.EMPTY_LIST;
+                    else
+                        list = Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
+                    timer.stop();
+                    System.out.printf("[IoHandler] LoadTodoJob, loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec());
+                    return list;
                 }
             }
         } catch (IOException e) {

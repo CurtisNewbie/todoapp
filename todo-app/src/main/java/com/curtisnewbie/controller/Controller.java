@@ -449,25 +449,33 @@ public class Controller implements Initializable {
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists())
                 return;
-            try {
-                var list = ioHandler.loadTodoJob(nFile);
-                // clean all todoJobView
-                listView.getItems().clear();
-                // readonly
-                readOnly.set(true);
-                // load the read-only ones
-                var readOnlyJobViewList = new ArrayList<TodoJobView>();
-                list.forEach(job -> {
-                    var jobView = new TodoJobView(job, lang);
-                    jobView.freeze(); // readonly
-                    readOnlyJobViewList.add(jobView);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    return ioHandler.loadTodoJob(nFile);
+                } catch (FailureToLoadException exception) {
+                    exception.printStackTrace();
+                    return null;
+                }
+            }).thenAccept((list) -> {
+                if (list == null)
+                    return;
+                Platform.runLater(() -> {
+                    // clean all todoJobView
+                    listView.getItems().clear();
+                    // readonly
+                    readOnly.set(true);
+                    // load the read-only ones
+                    var readOnlyJobViewList = new ArrayList<TodoJobView>();
+                    list.forEach(job -> {
+                        var jobView = new TodoJobView(job, lang);
+                        jobView.freeze(); // readonly
+                        readOnlyJobViewList.add(jobView);
+                    });
+                    _batchAddTodoJobViews(readOnlyJobViewList);
+                    App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
+                    toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
                 });
-                _batchAddTodoJobViews(readOnlyJobViewList);
-                App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
-                toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
-            } catch (FailureToLoadException ex) {
-                ex.printStackTrace();
-            }
+            });
         });
     }
 
@@ -530,8 +538,6 @@ public class Controller implements Initializable {
 
             CompletableFuture.supplyAsync(() -> {
                 try {
-                    CountdownTimer timer = new CountdownTimer();
-                    timer.start();
                     var list = ioHandler.loadTodoJob(nFile);
                     list.forEach(job -> {
                         Integer id = todoJobMapper.insert(job);
@@ -540,8 +546,6 @@ public class Controller implements Initializable {
                             return;
                         }
                     });
-                    timer.stop();
-                    System.out.printf("onAppendHandler loaded and inserted %d records, took %.2f milliseconds \n", list.size(), timer.getMilliSec());
                     return list.size();
                 } catch (FailureToLoadException ex) {
                     ex.printStackTrace();

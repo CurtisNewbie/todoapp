@@ -35,7 +35,7 @@ public class TodoJobView extends HBox {
     /**
      * The id of the todojob
      */
-    private final int idOfTodoJob;
+    private final Integer idOfTodoJob;
     /**
      * The name of this {@code TodoJob}
      */
