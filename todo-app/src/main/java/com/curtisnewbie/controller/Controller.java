@@ -559,7 +559,6 @@ public class Controller implements Initializable {
                 if (nFile == null)
                     return;
 
-                // 3. filter based on date range, and create a todoJob copy of each "view"
                 ioHandler.exportTodoJobAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()), nFile, lang);
             }
         });
