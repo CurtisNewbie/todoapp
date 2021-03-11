@@ -28,6 +28,7 @@ import java.io.File;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -250,34 +251,8 @@ public class Controller implements Initializable {
     }
 
     /**
-     * Save the to-do list based on config in a synchronous way
-     */
-    @Deprecated
-    private void saveSync() {
-        if (readOnly.get())
-            return;
-        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
-        ioHandler.writeTodoJobSync(list, config.getSavePath());
-
-    }
-
-    /**
-     * Save the to-do list based on config in a asynchronous way
-     */
-    @Deprecated
-    private void saveAsync() {
-        if (readOnly.get())
-            return;
-        List<TodoJob> list = listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList());
-        ioHandler.writeTodoJobAsync(list, config.getSavePath());
-    }
-
-    /**
      * <p>
      * Register ctrl+? key event handler for ListView
-     * </p>
-     * <p>
-     * E.g., Ctrl+s, triggers {@link #saveAsync()} for saving To-do list
      * </p>
      * <p>
      * E.g., Ctrl+z, triggers {@link #redo()} for redoing previous action if possible
@@ -375,6 +350,7 @@ public class Controller implements Initializable {
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 TodoJob newTodo = result.get();
+
                 Integer id = todoJobMapper.insert(newTodo);
                 if (id == null) {
                     toastError("Failed to add new to-do, please try again");
@@ -551,21 +527,35 @@ public class Controller implements Initializable {
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists())
                 return;
-            try {
-                var list = ioHandler.loadTodoJob(nFile);
-                list.forEach(job -> {
-                    Integer id = todoJobMapper.insert(job);
-                    if (id == null) {
-                        toastError("Failed to add new to-do, please try again");
-                        return;
+
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    CountdownTimer timer = new CountdownTimer();
+                    timer.start();
+                    var list = ioHandler.loadTodoJob(nFile);
+                    list.forEach(job -> {
+                        Integer id = todoJobMapper.insert(job);
+                        if (id == null) {
+                            toastError("Failed to add new to-do, please try again");
+                            return;
+                        }
+                    });
+                    timer.stop();
+                    System.out.printf("onAppendHandler loaded and inserted %d records, took %.2f milliseconds \n", list.size(), timer.getMilliSec());
+                    return list.size();
+                } catch (FailureToLoadException ex) {
+                    ex.printStackTrace();
+                    return 0;
+                }
+            }).thenAccept((todoCount) -> {
+                toastInfo(String.format("Loaded %d TO-DOs", todoCount));
+                if (todoCount > 0) {
+                    synchronized (currPageLock) {
+                        currPage = 0;
                     }
-                    job.setId(id);
-                    addTodoJobView(new TodoJobView(job, lang));
-                });
-                toastInfo(String.format("Loaded %d TO-DOs", list.size()));
-            } catch (FailureToLoadException ex) {
-                ex.printStackTrace();
-            }
+                    loadNextPage();
+                }
+            });
         });
     }
 
