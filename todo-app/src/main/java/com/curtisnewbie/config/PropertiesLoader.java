@@ -45,7 +45,7 @@ public class PropertiesLoader {
      * @param keySeg array of strings that will be concatenated as a single key
      * @return value (which may be null)
      */
-    public String get(String... keySeg) {
+    private String _get(String... keySeg) {
         if (keySeg.length == 0)
             return null;
         StringBuilder sb = new StringBuilder();
@@ -61,7 +61,17 @@ public class PropertiesLoader {
      * @return value (which may be null)
      */
     public String get(String key, Language lang) {
-        return get(key, lang.key);
+        return _get(key, lang.key);
+    }
+
+    /**
+     * Get property as boolean
+     */
+    public boolean getBool(String key) {
+        String v = get(key);
+        if (v == null)
+            throw new IllegalStateException(key + " not found");
+        return Boolean.valueOf(v);
     }
 
     /**
