@@ -31,7 +31,7 @@ public interface TodoJobMapper {
      * @return number of rows affected
      * @throws SQLException
      */
-    int updateById(TodoJob todoJob) ;
+    int updateById(TodoJob todoJob);
 
     /**
      * Delete record

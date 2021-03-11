@@ -1,6 +1,5 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
@@ -18,14 +17,11 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     private static final int DEFAULT_PAGE_LIMIT = 30;
     private final Connection connection;
-    private final boolean isDebugEnabled = PropertiesLoader.getInstance().getBool("debug.enabled");
 
     public TodoJobMapperImpl(Connection connection) {
         this.connection = connection;
         createTableIfNotExists();
         createIndexesIfNotExists();
-        if (isDebugEnabled)
-            System.out.println("[DEBUG] Debug mode enabled");
     }
 
     private void createTableIfNotExists() {
@@ -76,11 +72,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             throw new IllegalArgumentException("limit must be greater than 0");
         if (page <= 0)
             throw new IllegalArgumentException("page must be greater than 0");
-        CountdownTimer timer = null;
-        if (isDebugEnabled) {
-            timer = new CountdownTimer();
-            timer.start();
-        }
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
                 "ORDER BY start_date DESC, is_done ASC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
@@ -95,10 +88,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
                 result.add(job);
             }
-            if (isDebugEnabled) {
-                timer.stop();
-                System.out.printf("[DEBUG] FindByPage found: %d took: %.2f\n", result.size(), timer.getMilliSec());
-            }
+            timer.stop();
+            System.out.printf("[MAPPER] FindByPage found: %d records, took: %.2f\n", result.size(), timer.getMilliSec());
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -132,6 +123,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
                 "WHERE start_date BETWEEN ? AND ? ORDER BY start_date DESC, is_done ASC");) {
             stmt.setDate(1, new java.sql.Date(DateUtil.startTimeOf(startDate)));
@@ -146,6 +139,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
                 result.add(job);
             }
+            timer.stop();
+            System.out.printf("[MAPPER] FindBetweenDate found: %d records, took: %.2f\n", result.size(), timer.getMilliSec());
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -154,9 +149,13 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public LocalDate findEarliestDate() {
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
         try (Statement stmt = connection.createStatement();) {
             var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date ASC LIMIT 1");
             if (rs.next()) {
+                timer.stop();
+                System.out.printf("[MAPPER] FindEarliestDate took: %.2f\n", timer.getMilliSec());
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
             return null;

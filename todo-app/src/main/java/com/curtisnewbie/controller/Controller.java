@@ -80,7 +80,6 @@ public class Controller implements Initializable {
     @FXML
     private HBox pageControlHBox;
 
-    private final boolean isDebugEnabled = PropertiesLoader.getInstance().getBool("debug.enabled");
     private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
     private final RedoStack redoStack = new RedoStack();
@@ -160,8 +159,6 @@ public class Controller implements Initializable {
 
     private void loadNextPage() {
         synchronized (currPageLock) {
-            if (isDebugEnabled)
-                System.out.println("[DEBUG] currentPage: " + currPage);
             var jobList = todoJobMapper.findByPage(currPage + 1);
             if (jobList.isEmpty())
                 return;
@@ -179,8 +176,6 @@ public class Controller implements Initializable {
 
     private void loadPrevPage() {
         synchronized (currPageLock) {
-            if (isDebugEnabled)
-                System.out.println("[DEBUG] currentPage: " + currPage);
             if (currPage <= 1)
                 return;
             var jobList = todoJobMapper.findByPage(currPage - 1);
