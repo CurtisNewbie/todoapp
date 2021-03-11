@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS todojob (
     start_date DATE NOT NULL
 )
 
-CREATE INDEX IF NOT EXISTS sort_idx ON todojob (start_date DESC, is_done ASC);
+CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, start_date DESC);

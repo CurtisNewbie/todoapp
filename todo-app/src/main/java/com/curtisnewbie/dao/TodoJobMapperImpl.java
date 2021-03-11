@@ -39,7 +39,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     }
 
     private void createIndexesIfNotExists() {
-        String initIdxSql = "CREATE INDEX IF NOT EXISTS sort_idx ON todojob (start_date DESC, is_done ASC)";
+        String initIdxSql = "CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, start_date DESC)";
         try (Statement stmt = connection.createStatement();) {
             stmt.executeUpdate(initIdxSql);
         } catch (SQLException e) {
@@ -75,7 +75,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         CountdownTimer timer = new CountdownTimer();
         timer.start();
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
-                "ORDER BY start_date DESC, is_done ASC LIMIT ? OFFSET ?");) {
+                "ORDER BY is_done ASC, start_date DESC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, (page - 1) * limit);
             ResultSet rs = stmt.executeQuery();
@@ -89,7 +89,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 result.add(job);
             }
             timer.stop();
-            System.out.printf("[MAPPER] FindByPage found: %d records, took: %.2f\n", result.size(), timer.getMilliSec());
+            System.out.printf("[MAPPER] FindByPage found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec());
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -140,7 +140,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 result.add(job);
             }
             timer.stop();
-            System.out.printf("[MAPPER] FindBetweenDate found: %d records, took: %.2f\n", result.size(), timer.getMilliSec());
+            System.out.printf("[MAPPER] FindBetweenDate found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec());
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -155,7 +155,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date ASC LIMIT 1");
             if (rs.next()) {
                 timer.stop();
-                System.out.printf("[MAPPER] FindEarliestDate took: %.2f\n", timer.getMilliSec());
+                System.out.printf("[MAPPER] FindEarliestDate took: %.2f milliseconds\n", timer.getMilliSec());
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
             return null;
