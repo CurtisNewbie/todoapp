@@ -163,7 +163,9 @@ public class Controller implements Initializable {
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
-                _batchAddTodoJobViews(jobViewList);
+                jobViewList.forEach(jv -> {
+                    addTodoJobView(jv);
+                });
             });
         });
     }
@@ -188,7 +190,9 @@ public class Controller implements Initializable {
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
-                _batchAddTodoJobViews(jobViewList);
+                jobViewList.forEach(jv -> {
+                    addTodoJobView(jv);
+                });
             });
         });
     }
@@ -210,7 +214,9 @@ public class Controller implements Initializable {
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
-                _batchAddTodoJobViews(jobViewList);
+                jobViewList.forEach(jv -> {
+                    addTodoJobView(jv);
+                });
             });
         });
     }
