@@ -17,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
 
@@ -117,6 +118,12 @@ public class TodoJobView extends HBox {
         }
     }
 
+    public void setSelected(boolean isSelected) {
+        synchronized (mutex) {
+            doneCb.setSelected(isSelected);
+        }
+    }
+
     /**
      * Retrieves information of current {@code TodoJobView} and put them in a new {@code TodoJob}
      *
@@ -139,7 +146,7 @@ public class TodoJobView extends HBox {
      * @param onEvent
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
-    public void regDoneCbEventHandler(OnEvent onEvent) {
+    public void regCheckboxEvntHandler(OnEvent onEvent) {
         synchronized (mutex) {
             if (doneCbRegisteredHandler != null)
                 throw new EventHandlerAlreadyRegisteredException();
@@ -149,9 +156,23 @@ public class TodoJobView extends HBox {
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
         synchronized (mutex) {
-            updateGraphicForJobState(doneCb.isSelected());
-            if (doneCbRegisteredHandler != null)
-                doneCbRegisteredHandler.react();
+            boolean isSelected = isSelected();
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    if (doneCbRegisteredHandler != null)
+                        doneCbRegisteredHandler.react();
+                    return true;
+                } catch (Exception ignored) {
+                    return false;
+                }
+            }).thenAccept(isSuccess -> {
+                if (isSuccess)
+                    updateGraphicForJobState(isSelected);
+                else {
+                    // rollback action
+                    setSelected(!isSelected);
+                }
+            });
         }
     }
 

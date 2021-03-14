@@ -242,7 +242,7 @@ public class Controller implements Initializable {
      * @param jobView
      */
     private void addTodoJobView(TodoJobView jobView) {
-        jobView.regDoneCbEventHandler(() -> {
+        jobView.regCheckboxEvntHandler(() -> {
             int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
             if (c > 0)
                 sortListView();
@@ -261,7 +261,7 @@ public class Controller implements Initializable {
     // only used on application startup, or loading read-only todos
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
-            jobView.regDoneCbEventHandler(() -> {
+            jobView.regCheckboxEvntHandler(() -> {
                 sortListView();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
