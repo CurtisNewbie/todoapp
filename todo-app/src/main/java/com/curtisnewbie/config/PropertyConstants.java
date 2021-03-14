@@ -25,7 +25,7 @@ public final class PropertyConstants {
     public static final String TITLE_CHOOSE_LANGUAGE_PREFIX = "title.lang.choice.";
     public static final String TITLE_BACKUP_TODO_PREFIX = "title.backup.todo.";
     public static final String TITLE_APPEND_TODO_PREFIX = "title.append.todo.";
-    public static final String TITLE_LOAD_TODO_PREFIX = "title.load.todo.";
+    public static final String TITLE_READ_TODO_PREFIX = "title.read.todo.";
     public static final String TITLE_EXPORT_TODO_PREFIX = "title.export.todo.";
     public static final String TITLE_TODO_LOADING_FAILURE_PREFIX = "title.todo.loading.failure.";
     public static final String TITLE_SAVE_PATH_PREFIX = "title.save.path.";

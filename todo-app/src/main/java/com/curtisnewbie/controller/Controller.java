@@ -53,7 +53,7 @@ public class Controller implements Initializable {
     private final String CHOOSE_LANGUAGE_TITLE;
     private final String BACKUP_TODO_TITLE;
     private final String APPEND_TODO_TITLE;
-    private final String LOAD_TODO_TITLE;
+    private final String READ_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
     private final String CONFIG_PATH_TITLE;
     private final String SAVE_PATH_TITLE;
@@ -109,7 +109,7 @@ public class Controller implements Initializable {
         EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
         BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
         APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, lang);
-        LOAD_TODO_TITLE = props.get(TITLE_LOAD_TODO_PREFIX, lang);
+        READ_TODO_TITLE = props.get(TITLE_READ_TODO_PREFIX, lang);
         SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
         CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
         ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, lang);
@@ -294,7 +294,7 @@ public class Controller implements Initializable {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
                 .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(LOAD_TITLE, this::onLoadHandler)
+                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(LOAD_TITLE, this::onReadHandler)
                 .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
                 .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
@@ -494,11 +494,10 @@ public class Controller implements Initializable {
         });
     }
 
-    // TODO: 09/03/2021 remove this functionality
-    private void onLoadHandler(ActionEvent e) {
+    private void onReadHandler(ActionEvent e) {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(LOAD_TODO_TITLE);
+            fileChooser.setTitle(READ_TODO_TITLE);
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists())
