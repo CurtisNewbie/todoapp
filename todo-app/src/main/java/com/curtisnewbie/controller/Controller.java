@@ -523,6 +523,13 @@ public class Controller implements Initializable {
                         var jobView = new TodoJobView(job, lang);
                         jobView.freeze(); // readonly
                         readOnlyJobViewList.add(jobView);
+                        pageControlHBox.getChildren().forEach(btn -> {
+                            btn.setDisable(true);
+                        });
+                        synchronized (currPageLock) {
+                            currPage = 1;
+                            currPageLabel.setText(String.valueOf(1));
+                        }
                     });
                     _batchAddTodoJobViews(readOnlyJobViewList);
                     App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
