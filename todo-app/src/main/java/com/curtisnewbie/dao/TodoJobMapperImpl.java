@@ -9,12 +9,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * @author yongjie.zhuang
  */
 public final class TodoJobMapperImpl implements TodoJobMapper {
 
+    private static final Logger logger = Logger.getLogger(TodoJobMapperImpl.class.getName());
     private static final int DEFAULT_PAGE_LIMIT = 30;
     private final Connection connection;
 
@@ -89,7 +91,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 result.add(job);
             }
             timer.stop();
-            System.out.printf("[MAPPER] FindByPage found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec());
+            logger.info(String.format("Found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -140,7 +142,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 result.add(job);
             }
             timer.stop();
-            System.out.printf("[MAPPER] FindBetweenDate found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec());
+            logger.info(String.format("Found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -155,7 +157,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date ASC LIMIT 1");
             if (rs.next()) {
                 timer.stop();
-                System.out.printf("[MAPPER] FindEarliestDate took: %.2f milliseconds\n", timer.getMilliSec());
+                logger.info(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
             return null;
@@ -181,13 +183,17 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     public int updateById(TodoJob todoJob) {
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(todoJob.getId());
-
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name = ?, is_done = ?, start_date = ? WHERE id = ?")) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
             stmt.setInt(4, todoJob.getId());
-            return stmt.executeUpdate();
+            int res = stmt.executeUpdate();
+            timer.stop();
+            logger.info(String.format("Update took %.2f milliseconds", timer.getMilliSec()));
+            return res;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -223,5 +229,18 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public int countRows() {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) FROM todojob")) {
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

@@ -13,11 +13,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * @author yongjie.zhuang
@@ -29,6 +32,7 @@ public class IOHandlerImpl implements IOHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
     private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+    private static final Logger logger = Logger.getLogger(IOHandlerImpl.class.getName());
 
     @Override
     public List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException {
@@ -60,7 +64,7 @@ public class IOHandlerImpl implements IOHandler {
                     else
                         list = Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                     timer.stop();
-                    System.out.printf("[IoHandler] LoadTodoJob, loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec());
+                    logger.info(String.format("[IoHandler] LoadTodoJob, loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec()));
                     return list;
                 }
             }
@@ -209,6 +213,11 @@ public class IOHandlerImpl implements IOHandler {
     @Override
     public String getConfPath() {
         return getBasePath() + File.separator + IOHandlerImpl.CONF_NAME;
+    }
+
+    @Override
+    public boolean fileExists(String path) {
+        return Files.exists(Paths.get(path));
     }
 
     private String getBasePath() {

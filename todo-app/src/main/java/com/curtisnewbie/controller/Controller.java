@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
@@ -90,6 +91,7 @@ public class Controller implements Initializable {
     private int currPage = 0;
     private Object currPageLock = new Object();
     private Label currPageLabel = LabelFactory.getClassicLabel("1");
+    private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     public Controller() {
         config = ioHandler.readConfig();
@@ -127,6 +129,18 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // for migration
+        if (todoJobMapper.countRows() == 0 && ioHandler.fileExists(config.getSavePath())) {
+            logger.info("[Controller] Detected data migration needed, attempting to migrate todos");
+            try {
+                List<TodoJob> jsonList = ioHandler.loadTodoJob(config.getSavePath());
+                logger.info("[Controller] Found " + jsonList.size() + " todos, migrating...");
+                for (var j : jsonList)
+                    todoJobMapper.insert(j);
+            } catch (FailureToLoadException e) {
+                e.printStackTrace();
+            }
+        }
         // load the first page
         loadNextPage();
         // register a ContextMenu for the ListView

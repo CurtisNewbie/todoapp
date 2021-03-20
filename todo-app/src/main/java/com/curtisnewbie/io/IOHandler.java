@@ -79,4 +79,6 @@ public interface IOHandler {
      * Get Conf file path
      */
     String getConfPath();
+
+    boolean fileExists(String path);
 }

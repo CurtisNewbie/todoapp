@@ -46,4 +46,6 @@ public interface TodoJobMapper {
      * @return primary key
      */
     Integer insert(TodoJob todoJob);
+
+    int countRows();
 }
