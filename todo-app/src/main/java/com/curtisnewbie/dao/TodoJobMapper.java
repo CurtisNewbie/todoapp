@@ -47,5 +47,9 @@ public interface TodoJobMapper {
      */
     Integer insert(TodoJob todoJob);
 
+    /** Count total number of rows */
     int countRows();
+
+    /** Check if current DB has any record */
+    boolean hasRecord();
 }

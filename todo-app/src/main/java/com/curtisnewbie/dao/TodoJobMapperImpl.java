@@ -195,9 +195,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             logger.info(String.format("Update took %.2f milliseconds", timer.getMilliSec()));
             return res;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-        return 0;
     }
 
     @Override
@@ -206,9 +205,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             stmt.setInt(1, id);
             return stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-        return 0;
     }
 
     @Override
@@ -225,10 +223,10 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                     }
                 }
             }
+            return null;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-        return null;
     }
 
     @Override
@@ -237,10 +235,25 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             var rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
+            } else {
+                return 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
-        return 0;
+    }
+
+    @Override
+    public boolean hasRecord() {
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT id FROM todojob LIMIT 1")) {
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

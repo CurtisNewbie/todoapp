@@ -154,7 +154,7 @@ public class Controller implements Initializable {
 
     private void prepareStartupData() {
         // for migration
-        if (todoJobMapper.countRows() == 0 && ioHandler.fileExists(config.getSavePath())) {
+        if (!todoJobMapper.hasRecord() && ioHandler.fileExists(config.getSavePath())) {
             logger.info("Detected data migration needed, attempting to migrate todos");
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
