@@ -134,11 +134,11 @@ public class Controller implements Initializable {
         // register ctrl+? key event handler for ListView
         registerCtrlKeyHandler(listView);
         // registers event handlers for paging
-        Button prevPageBtn = ButtonFactory.getRectBtn("Previous Page");
+        Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
         prevPageBtn.setOnAction(e -> {
             loadPrevPage();
         });
-        Button nextPageBtn = ButtonFactory.getRectBtn("Next Page");
+        Button nextPageBtn = ButtonFactory.getArrowRightBtn();
         nextPageBtn.setOnAction(e -> {
             loadNextPage();
         });
