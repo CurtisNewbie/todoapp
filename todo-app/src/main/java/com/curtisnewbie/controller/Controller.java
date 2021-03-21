@@ -147,9 +147,7 @@ public class Controller implements Initializable {
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
                 nextPageBtn, MarginFactory.fixedMargin(10));
-        CompletableFuture.runAsync(() -> {
-            prepareStartupData();
-        });
+        CompletableFuture.runAsync(this::prepareStartupData);
     }
 
     private void prepareStartupData() {
