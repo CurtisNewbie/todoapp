@@ -18,8 +18,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
 /**
@@ -31,7 +30,6 @@ public class IOHandlerImpl implements IOHandler {
     private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
-    private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
     private static final Logger logger = Logger.getLogger(IOHandlerImpl.class.getName());
 
     @Override
@@ -64,7 +62,7 @@ public class IOHandlerImpl implements IOHandler {
                     else
                         list = Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                     timer.stop();
-                    logger.info(String.format("[IoHandler] LoadTodoJob, loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec()));
+                    logger.info(String.format("Loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec()));
                     return list;
                 }
             }
@@ -131,7 +129,7 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeTodoJobAsync(List<TodoJob> jobs, String savePath) {
-        singleThreadExecutor.execute(() -> {
+        CompletableFuture.runAsync(() -> {
             writeTodoJob(jobs, savePath);
         });
     }
@@ -140,7 +138,7 @@ public class IOHandlerImpl implements IOHandler {
     public void exportTodoJobAsync(List<TodoJob> jobs, File file, Language lang) {
         if (file == null)
             return;
-        singleThreadExecutor.execute(() -> {
+        CompletableFuture.runAsync(() -> {
             try {
                 if (!file.exists())
                     file.createNewFile();
@@ -179,7 +177,7 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeConfigAsync(Config config) {
-        singleThreadExecutor.execute(() -> {
+        CompletableFuture.runAsync(() -> {
             File file = new File(getConfPath());
             try {
                 if (!file.exists())

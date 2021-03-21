@@ -155,7 +155,7 @@ public class Controller implements Initializable {
     private void prepareStartupData() {
         // for migration
         if (todoJobMapper.countRows() == 0 && ioHandler.fileExists(config.getSavePath())) {
-            logger.info("[Controller] Detected data migration needed, attempting to migrate todos");
+            logger.info("Detected data migration needed, attempting to migrate todos");
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
                         "Detected data for previous version, do you want to migrate them?",
@@ -165,7 +165,7 @@ public class Controller implements Initializable {
                     CompletableFuture.supplyAsync(() -> {
                         try {
                             var jsonList = ioHandler.loadTodoJob(config.getSavePath());
-                            logger.info("[Controller] Found " + jsonList.size() + " todos, migrating...");
+                            logger.info("Found " + jsonList.size() + " todos, migrating...");
                             return jsonList;
                         } catch (FailureToLoadException e) {
                             e.printStackTrace();
