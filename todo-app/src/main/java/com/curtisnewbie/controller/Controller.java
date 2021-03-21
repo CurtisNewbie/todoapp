@@ -88,7 +88,7 @@ public class Controller implements Initializable {
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
 
     /** current page, need to be synchronised using {@link #currPageLock} */
-    private int currPage = 0;
+    private int currPage = 1;
     private Object currPageLock = new Object();
     private Label currPageLabel = LabelFactory.getClassicLabel("1");
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
@@ -129,20 +129,6 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // for migration
-        if (todoJobMapper.countRows() == 0 && ioHandler.fileExists(config.getSavePath())) {
-            logger.info("[Controller] Detected data migration needed, attempting to migrate todos");
-            try {
-                List<TodoJob> jsonList = ioHandler.loadTodoJob(config.getSavePath());
-                logger.info("[Controller] Found " + jsonList.size() + " todos, migrating...");
-                for (var j : jsonList)
-                    todoJobMapper.insert(j);
-            } catch (FailureToLoadException e) {
-                e.printStackTrace();
-            }
-        }
-        // load the first page
-        loadNextPage();
         // register a ContextMenu for the ListView
         listView.setContextMenu(createCtxMenu());
         // register ctrl+? key event handler for ListView
@@ -161,6 +147,43 @@ public class Controller implements Initializable {
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
                 nextPageBtn, MarginFactory.fixedMargin(10));
+        CompletableFuture.runAsync(() -> {
+            prepareStartupData();
+        });
+    }
+
+    private void prepareStartupData() {
+        // for migration
+        if (todoJobMapper.countRows() == 0 && ioHandler.fileExists(config.getSavePath())) {
+            logger.info("[Controller] Detected data migration needed, attempting to migrate todos");
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                        "Detected data for previous version, do you want to migrate them?",
+                        ButtonType.YES, ButtonType.NO);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.YES) {
+                    CompletableFuture.supplyAsync(() -> {
+                        try {
+                            var jsonList = ioHandler.loadTodoJob(config.getSavePath());
+                            logger.info("[Controller] Found " + jsonList.size() + " todos, migrating...");
+                            return jsonList;
+                        } catch (FailureToLoadException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }).thenAcceptAsync(jsonList -> {
+                        if (jsonList != null)
+                            for (TodoJob j : jsonList)
+                                todoJobMapper.insert(j);
+                    }).thenRun(() -> {
+                        loadCurrPage();
+                    });
+                }
+            });
+        } else {
+            // load the first page
+            loadCurrPage();
+        }
     }
 
     private void loadNextPage() {
