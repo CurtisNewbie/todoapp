@@ -649,7 +649,7 @@ public class Controller implements Initializable {
                 toastInfo(String.format("Loaded %d TO-DOs", todoCount));
                 if (todoCount > 0) {
                     synchronized (currPageLock) {
-                        currPage = 0;
+                        currPage = 1;
                     }
                     loadNextPage();
                 }
