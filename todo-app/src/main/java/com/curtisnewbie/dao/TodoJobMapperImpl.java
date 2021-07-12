@@ -14,44 +14,20 @@ import java.util.logging.Logger;
 /**
  * @author yongjie.zhuang
  */
-public final class TodoJobMapperImpl implements TodoJobMapper {
+public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMapper {
 
     private static final Logger logger = Logger.getLogger(TodoJobMapperImpl.class.getName());
     private static final int DEFAULT_PAGE_LIMIT = 30;
-    private final Connection connection;
 
     public TodoJobMapperImpl(Connection connection) {
-        this.connection = connection;
-        createTableIfNotExists();
-        createIndexesIfNotExists();
-    }
-
-    private void createTableIfNotExists() {
-        String initTableSql = "CREATE TABLE IF NOT EXISTS todojob (\n" +
-                "    id INTEGER PRIMARY KEY AUTOINCREMENT, -- \"Primary key\"\n" +
-                "    name VARCHAR(255) NOT NULL,\n" +
-                "    is_done TINYINT NOT NULL, -- \"1-true, 0-false\"\n" +
-                "    start_date DATE NOT NULL\n" +
-                ")";
-        try (Statement stmt = connection.createStatement();) {
-            stmt.executeUpdate(initTableSql);
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private void createIndexesIfNotExists() {
-        String initIdxSql = "CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, start_date DESC)";
-        try (Statement stmt = connection.createStatement();) {
-            stmt.executeUpdate(initIdxSql);
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
+        super(connection);
     }
 
     @Override
     public TodoJob findById(int id) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob WHERE id = ?");) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob WHERE id = ?"
+        );) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -59,7 +35,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
                 return job;
             }
             return null;
@@ -76,8 +53,9 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
             throw new IllegalArgumentException("page must be greater than 0");
         CountdownTimer timer = new CountdownTimer();
         timer.start();
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
-                "ORDER BY is_done ASC, start_date DESC LIMIT ? OFFSET ?");) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
+                        "ORDER BY is_done ASC, expected_end_date DESC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, (page - 1) * limit);
             ResultSet rs = stmt.executeQuery();
@@ -87,7 +65,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
                 result.add(job);
             }
             timer.stop();
@@ -105,8 +84,9 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public List<TodoJob> findAll() {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
-                "ORDER BY start_date DESC, is_done ASC");) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
+                        "ORDER BY expected_end_date DESC, is_done ASC");) {
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
@@ -114,7 +94,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
                 result.add(job);
             }
             return result;
@@ -127,8 +108,9 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
         CountdownTimer timer = new CountdownTimer();
         timer.start();
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id, name, is_done, start_date FROM todojob " +
-                "WHERE start_date BETWEEN ? AND ? ORDER BY start_date DESC, is_done ASC");) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
+                        "WHERE expected_end_date BETWEEN ? AND ? ORDER BY expected_end_date DESC, is_done ASC");) {
             stmt.setDate(1, new java.sql.Date(DateUtil.startTimeOf(startDate)));
             stmt.setDate(2, new java.sql.Date(DateUtil.startTimeOf(endDate)));
             ResultSet rs = stmt.executeQuery();
@@ -138,7 +120,8 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setStartDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
                 result.add(job);
             }
             timer.stop();
@@ -154,7 +137,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         CountdownTimer timer = new CountdownTimer();
         timer.start();
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date ASC LIMIT 1");
+            var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
             if (rs.next()) {
                 timer.stop();
                 logger.info(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
@@ -169,7 +152,7 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
     @Override
     public LocalDate findLatestDate() {
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT start_date FROM todojob ORDER BY start_date DESC LIMIT 1");
+            var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
             if (rs.next()) {
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
@@ -185,10 +168,11 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
         Objects.requireNonNull(todoJob.getId());
         CountdownTimer timer = new CountdownTimer();
         timer.start();
-        try (PreparedStatement stmt = connection.prepareStatement("UPDATE todojob SET name = ?, is_done = ?, start_date = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ? WHERE id = ?")) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
-            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
+            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
             stmt.setInt(4, todoJob.getId());
             int res = stmt.executeUpdate();
             timer.stop();
@@ -211,10 +195,11 @@ public final class TodoJobMapperImpl implements TodoJobMapper {
 
     @Override
     public Integer insert(TodoJob todoJob) {
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO todojob (name, is_done, start_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO todojob (name, is_done, expected_end_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
-            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getStartDate())));
+            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
             int c = stmt.executeUpdate();
             if (c > 0) {
                 try (var rs = stmt.getGeneratedKeys()) {

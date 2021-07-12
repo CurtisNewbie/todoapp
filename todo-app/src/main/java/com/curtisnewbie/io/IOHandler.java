@@ -6,6 +6,7 @@ import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -80,5 +81,18 @@ public interface IOHandler {
      */
     String getConfPath();
 
+    /**
+     * Check if the file exists
+     *
+     * @param path file path
+     */
     boolean fileExists(String path);
+
+    /**
+     * Read file in resources/ folder as string
+     *
+     * @param relPath relative path under resources/ folder
+     * @throws IOException when file is not found or some other I/O related error occurred while reading the file
+     */
+    String readResourceAsString(String relPath) throws IOException;
 }

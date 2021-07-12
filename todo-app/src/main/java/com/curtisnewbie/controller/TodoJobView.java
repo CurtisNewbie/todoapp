@@ -6,7 +6,9 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.EventHandlerAlreadyRegisteredException;
-import com.curtisnewbie.util.*;
+import com.curtisnewbie.util.CheckBoxFactory;
+import com.curtisnewbie.util.ShapeFactory;
+import com.curtisnewbie.util.TextFactory;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
@@ -19,43 +21,63 @@ import javafx.scene.text.Text;
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
 
-import static com.curtisnewbie.util.MarginFactory.wrapWithCommonPadding;
+import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
+import static com.curtisnewbie.util.LabelFactory.classicLabel;
+import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
+import static com.curtisnewbie.util.MarginFactory.*;
+
+// TODO fix the overly complicated or say problematic synchronization, model and view are mixed in a weired way
 
 /**
- * <p>
  * A "view" object representing a to-do job
- * </p>
  *
  * @author yongjie.zhuang
  */
 public class TodoJobView extends HBox {
     public static final int WIDTH_FOR_LABELS = 170;
+    private final Object mutex = new Object();
     private final String checkboxName;
     private final Label doneLabel;
-    private final Object mutex = new Object();
+
     /**
      * The id of the todojob
      */
     private final Integer idOfTodoJob;
+
     /**
      * The name of this {@code TodoJob}
      */
     private final Text nameText;
+
     /**
-     * Start Date in milliseconds since EPOCH
+     * Expected end date
      */
-    private LocalDate startDate;
+    private LocalDate expectedEndDate;
+
     /**
-     * The date when this {@code TodoJob} is created
+     * Expected end date in {@link Label}
      */
-    private final Label startDateLabel;
+    private final Label expectedEndDateLabel;
+
+    /**
+     * Actual end date
+     */
+    private LocalDate actualEndDate;
+
+    /**
+     * Actual end date in {@link Label}
+     */
+    private final Label actualEndDateLabel;
+
     /**
      * Whether the {@code TodoJob} is finished
      */
-    private final CheckBox doneCb = CheckBoxFactory.getClassicCheckBox();
+    private final CheckBox doneCheckBox = CheckBoxFactory.getClassicCheckBox();
 
-    private OnEvent doneCbRegisteredHandler;
+    /** Registered callback for {@link #doneCheckBox} */
+    private volatile OnEvent doneCheckboxRegisteredCallback;
 
+    /** Environment configuration */
     private final Environment environment;
 
     /**
@@ -69,28 +91,45 @@ public class TodoJobView extends HBox {
         this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
         this.doneLabel = new Label();
         this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toMMddUUUUSlash(todoJob.getStartDate()));
-        this.startDate = todoJob.getStartDate();
-        this.doneCb.setSelected(todoJob.isDone());
-        this.doneCb.setOnAction(this::onDoneCbActionEventHandler);
+        this.expectedEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getExpectedEndDate()));
+        this.expectedEndDate = todoJob.getExpectedEndDate();
+        this.actualEndDate = todoJob.getActualEndDate();
+        this.actualEndDateLabel = actualEndDate != null ? classicLabel(toMMddUUUUSlash(todoJob.getActualEndDate())) : classicLabel("--/--/----");
+        this.doneCheckBox.setSelected(todoJob.isDone());
+        this.doneCheckBox.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren()
-                .addAll(doneLabel, MarginFactory.fixedMargin(3), startDateLabel, MarginFactory.fixedMargin(10), wrapWithCommonPadding(nameText),
-                        MarginFactory.expandingMargin(), LabelFactory.getLeftPaddedLabel(checkboxName), doneCb);
+                .addAll(doneLabel,
+                        fixedMargin(3),
+                        expectedEndDateLabel,
+                        fixedMargin(3),
+                        actualEndDateLabel,
+                        fixedMargin(20),
+                        wrapWithCommonPadding(nameText),
+                        expandingMargin(),
+                        leftPaddedLabel(checkboxName),
+                        doneCheckBox);
         HBox.setHgrow(this, Priority.SOMETIMES);
-        updateGraphicForJobState(todoJob.isDone());
+        updateGraphicOnJobStatus(todoJob.isDone());
         this.requestFocus();
     }
 
-    public void setStartDate(LocalDate date) {
+    /**
+     * Set the {@link #expectedEndDate} as well as updating the label
+     */
+    public void setExpectedEndDate(LocalDate date) {
         synchronized (mutex) {
-            this.startDate = date;
-            this.startDateLabel.setText(DateUtil.toMMddUUUUSlash(date));
+            this.expectedEndDate = date;
+            this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
         }
     }
 
-    public LocalDate getStartDate() {
+    /**
+     * Set the {@link #actualEndDate} as well as updating the label
+     */
+    public void setActualEndDate(LocalDate date) {
         synchronized (mutex) {
-            return this.startDate;
+            this.actualEndDate = date;
+            this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
         }
     }
 
@@ -100,6 +139,18 @@ public class TodoJobView extends HBox {
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
         synchronized (mutex) {
             nameText.wrappingWidthProperty().bind(binding);
+        }
+    }
+
+    public LocalDate getExpectedEndDate() {
+        synchronized (mutex) {
+            return this.expectedEndDate;
+        }
+    }
+
+    public LocalDate getActualEndDate() {
+        synchronized (mutex) {
+            return this.actualEndDate;
         }
     }
 
@@ -115,29 +166,32 @@ public class TodoJobView extends HBox {
         }
     }
 
-    public boolean isSelected() {
+    public boolean isCheckboxSelected() {
         synchronized (mutex) {
-            return doneCb.isSelected();
+            return doneCheckBox.isSelected();
         }
     }
 
-    public void setSelected(boolean isSelected) {
+    public void setCheckboxSelected(boolean isSelected) {
         synchronized (mutex) {
-            doneCb.setSelected(isSelected);
+            doneCheckBox.setSelected(isSelected);
         }
     }
 
     /**
-     * Retrieves information of current {@code TodoJobView} and put them in a new {@code TodoJob}
+     * Get copy of current {@code TodoJobView} in forms of a new {@code TodoJob}
      *
      * @return todoJob
      */
     public TodoJob createTodoJobCopy() {
         TodoJob copy = new TodoJob();
         copy.setId(idOfTodoJob);
-        copy.setName(getName());
-        copy.setDone(isSelected());
-        copy.setStartDate(getStartDate());
+        synchronized (mutex) {
+            copy.setName(nameText.getText());
+            copy.setDone(doneCheckBox.isSelected());
+            copy.setExpectedEndDate(this.expectedEndDate);
+            copy.setActualEndDate(this.actualEndDate);
+        }
         return copy;
     }
 
@@ -151,52 +205,43 @@ public class TodoJobView extends HBox {
      */
     public void regCheckboxEvntHandler(OnEvent onEvent) {
         synchronized (mutex) {
-            if (doneCbRegisteredHandler != null)
+            if (doneCheckboxRegisteredCallback != null)
                 throw new EventHandlerAlreadyRegisteredException();
-            this.doneCbRegisteredHandler = onEvent;
+            this.doneCheckboxRegisteredCallback = onEvent;
         }
     }
 
     private void onDoneCbActionEventHandler(ActionEvent e) {
-        synchronized (mutex) {
-            boolean isSelected = isSelected();
-            CompletableFuture.supplyAsync(() -> {
-                try {
-                    if (doneCbRegisteredHandler != null)
-                        doneCbRegisteredHandler.react();
-                    return true;
-                } catch (Exception ignored) {
-                    return false;
-                }
-            }).thenAccept(isSuccess -> {
-                if (isSuccess)
-                    updateGraphicForJobState(isSelected);
-                else {
-                    // rollback action
-                    setSelected(!isSelected);
-                }
-            });
-        }
+        boolean isSelected = isCheckboxSelected();
+        CompletableFuture.supplyAsync(() -> {
+            // this callback cannot be changed, no need to synchronise
+            if (doneCheckboxRegisteredCallback != null)
+                doneCheckboxRegisteredCallback.react();
+            return null;
+        }).thenAccept(nilVal -> {
+            updateGraphicOnJobStatus(isSelected);
+        });
     }
 
-    private void updateGraphicForJobState(boolean isDone) {
+    /** Update graphic based on job's status */
+    private void updateGraphicOnJobStatus(boolean isJobFinished) {
         Platform.runLater(() -> {
-            this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
+            this.doneLabel.setGraphic(isJobFinished ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
             if (environment.isStrikethroughEffectEnabled()) {
-                this.nameText.setStrikethrough(isDone);
+                this.nameText.setStrikethrough(isJobFinished);
             }
         });
     }
 
-    /** make the internal checkbox uneditable */
+    /** make the internal checkbox not editable */
     public final void freeze() {
         synchronized (mutex) {
-            if (!doneCb.isDisable())
-                doneCb.setDisable(true);
+            if (!doneCheckBox.isDisable())
+                doneCheckBox.setDisable(true);
         }
     }
 
-    public int getIdOfTodoJob() {
+    public Integer getIdOfTodoJob() {
         return idOfTodoJob;
     }
 }

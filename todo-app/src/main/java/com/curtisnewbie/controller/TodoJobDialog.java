@@ -84,9 +84,9 @@ public class TodoJobDialog extends Dialog<TodoJob> {
             if (data == ButtonBar.ButtonData.OK_DONE) {
                 var todoJob = new TodoJob(textArea.getText().trim());
                 if (localDate != null) {
-                    todoJob.setStartDate(localDate);
+                    todoJob.setExpectedEndDate(localDate);
                 } else {
-                    todoJob.setStartDate(LocalDate.now());
+                    todoJob.setExpectedEndDate(LocalDate.now());
                 }
                 return todoJob;
             } else {

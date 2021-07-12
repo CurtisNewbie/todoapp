@@ -4,6 +4,9 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Factory of Mapper
@@ -14,11 +17,13 @@ public final class MapperFactory {
 
     private static final String DB_NAME = "todoapp.db";
     private static final String DIR_NAME = "todo-app";
-    private static final MapperFactory INSTANCE = new MapperFactory();
+    private static final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>(Arrays.asList(
+            new MigrateV2ScriptMapperPreprocessor(),
+            new InitialiseScriptMapperPreprocessor()
+    ));
+    private static final Connection conn;
 
-    private Connection conn;
-
-    private MapperFactory() {
+    static {
         try {
             String baseDir = System.getProperty("user.home") + File.separator + DIR_NAME;
             new File(baseDir).mkdirs();
@@ -28,11 +33,20 @@ public final class MapperFactory {
         }
     }
 
-    public static MapperFactory getFactory() {
-        return INSTANCE;
+    /**
+     * Get a new mapper
+     */
+    public static TodoJobMapper getNewTodoJobMapper() {
+        TodoJobMapper todoJobMapper = new TodoJobMapperImpl(conn);
+        applyPreProcessing(todoJobMapper);
+        return todoJobMapper;
     }
 
-    public TodoJobMapper getTodoJobMapper() {
-        return new TodoJobMapperImpl(this.conn);
+    private static void applyPreProcessing(Mapper m) {
+        for (MapperPreprocessor p : mapperPreprocessors) {
+            if (p.supports(m)) {
+                p.preprocessMapper(m);
+            }
+        }
     }
 }

@@ -17,26 +17,26 @@ public final class LabelFactory {
     private LabelFactory() {
     }
 
-    public static Label getClassicLabel(String name) {
-        Label label = getBaseLabel(name);
+    public static Label classicLabel(String name) {
+        Label label = baseLabel(name);
         label.setPadding(new Insets(3, 2, 3, 2));
         return label;
     }
 
-    public static Label getLeftPaddedLabel(String name) {
-        Label label = getBaseLabel(name);
+    public static Label leftPaddedLabel(String name) {
+        Label label = baseLabel(name);
         label.setPadding(new Insets(3, 2, 3, 15));
         return label;
     }
 
 
-    public static Label getRightPaddedLabel(String name) {
-        Label label = getBaseLabel(name);
+    public static Label rightPaddedLabel(String name) {
+        Label label = baseLabel(name);
         label.setPadding(new Insets(3, 15, 3, 2));
         return label;
     }
 
-    private static Label getBaseLabel(String name) {
+    private static Label baseLabel(String name) {
         Label label = new Label(name);
         label.setWrapText(false);
         label.setBorder(Border.EMPTY);

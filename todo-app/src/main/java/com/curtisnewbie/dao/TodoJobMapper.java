@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author yongjie.zhuang
  */
-public interface TodoJobMapper {
+public interface TodoJobMapper extends Mapper {
 
     TodoJob findById(int id);
 

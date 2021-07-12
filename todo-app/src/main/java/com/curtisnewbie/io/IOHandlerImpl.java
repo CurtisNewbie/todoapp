@@ -7,19 +7,22 @@ import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.CountdownTimer;
-import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+
+import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 
 /**
  * @author yongjie.zhuang
@@ -146,7 +149,11 @@ public class IOHandlerImpl implements IOHandler {
                 String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, lang);
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
                     for (TodoJob j : jobs) {
-                        bw.write(String.format("[%s] %s '%s'\n", j.isDone() ? done : inProgress, DateUtil.toMMddUUUUSlash(j.getStartDate()),
+                        String status = j.isDone() ? done : inProgress;
+                        bw.write(String.format("[%s] %s-%s '%s'\n",
+                                status,
+                                toMMddUUUUSlash(j.getExpectedEndDate()),
+                                j.getActualEndDate() != null ? toMMddUUUUSlash(j.getActualEndDate()) : "__/__/____",
                                 formatName(j.getName())));
                     }
                 }
@@ -216,6 +223,20 @@ public class IOHandlerImpl implements IOHandler {
     @Override
     public boolean fileExists(String path) {
         return Files.exists(Paths.get(path));
+    }
+
+    @Override
+    public String readResourceAsString(String relPath) throws IOException {
+        Path p;
+        try {
+            p = Paths.get(this.getClass().getClassLoader().getResource(relPath).toURI());
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+        if (Files.exists(p)) {
+            return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
+        }
+        throw new FileNotFoundException(relPath);
     }
 
     private String getBasePath() {

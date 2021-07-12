@@ -10,7 +10,7 @@ import com.curtisnewbie.dao.TodoJobMapper;
 import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
-import com.curtisnewbie.io.IOHandlerImpl;
+import com.curtisnewbie.io.IOHandlerFactory;
 import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -74,14 +74,14 @@ public class Controller implements Initializable {
     private final String LOAD_TITLE;
 
     private final Environment environment;
-    private final TodoJobMapper todoJobMapper = MapperFactory.getFactory().getTodoJobMapper();
+    private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
 
     @FXML
     private ListView<TodoJobView> listView;
     @FXML
     private HBox pageControlHBox;
 
-    private final IOHandler ioHandler = new IOHandlerImpl();
+    private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
 
     /** record whether the current file is readonly */
@@ -90,7 +90,7 @@ public class Controller implements Initializable {
     /** current page, need to be synchronised using {@link #currPageLock} */
     private int currPage = 1;
     private Object currPageLock = new Object();
-    private Label currPageLabel = LabelFactory.getClassicLabel("1");
+    private Label currPageLabel = LabelFactory.classicLabel("1");
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     public Controller() {
@@ -142,45 +142,15 @@ public class Controller implements Initializable {
             loadNextPage();
         });
         pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(LabelFactory.getClassicLabel("Page:"), MarginFactory.fixedMargin(10),
+        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel("Page:"), MarginFactory.fixedMargin(10),
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
                 nextPageBtn, MarginFactory.fixedMargin(10));
-        CompletableFuture.runAsync(this::prepareStartupData);
-    }
 
-    private void prepareStartupData() {
-        // for migration
-        if (!todoJobMapper.hasRecord() && ioHandler.fileExists(environment.getSavePath())) {
-            logger.info("Detected data migration needed, attempting to migrate todos");
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                        "Detected data for previous version, do you want to migrate them?",
-                        ButtonType.YES, ButtonType.NO);
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.YES) {
-                    CompletableFuture.supplyAsync(() -> {
-                        try {
-                            var jsonList = ioHandler.loadTodoJob(environment.getSavePath());
-                            logger.info("Found " + jsonList.size() + " todos, migrating...");
-                            return jsonList;
-                        } catch (FailureToLoadException e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    }).thenAcceptAsync(jsonList -> {
-                        if (jsonList != null)
-                            for (TodoJob j : jsonList)
-                                todoJobMapper.insert(j);
-                    }).thenRun(() -> {
-                        loadCurrPage();
-                    });
-                }
-            });
-        } else {
-            // load the first page
-            loadCurrPage();
-        }
+        // load the first page
+        CompletableFuture.runAsync(
+                this::loadCurrPage
+        );
     }
 
     private void loadNextPage() {
@@ -315,11 +285,11 @@ public class Controller implements Initializable {
     private void sortListView() {
         Platform.runLater(() -> {
             listView.getItems().sort((a, b) -> {
-                int res = Boolean.compare(a.isSelected(), b.isSelected());
+                int res = Boolean.compare(a.isCheckboxSelected(), b.isCheckboxSelected());
                 if (res != 0)
                     return res;
                 else
-                    return b.getStartDate().compareTo(a.getStartDate());
+                    return b.getExpectedEndDate().compareTo(a.getExpectedEndDate());
             });
         });
     }
@@ -458,16 +428,16 @@ public class Controller implements Initializable {
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView jobView = listView.getItems().get(selected);
-                TodoJobDialog dialog = new TodoJobDialog(jobView.getName(), jobView.getStartDate());
+                TodoJobDialog dialog = new TodoJobDialog(jobView.getName(), jobView.getExpectedEndDate());
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
                     var job = result.get();
-                    job.setDone(jobView.isSelected());
+                    job.setDone(jobView.isCheckboxSelected());
                     job.setId(jobView.getIdOfTodoJob());
                     if (todoJobMapper.updateById(job) > 0) {
                         jobView.setName(result.get().getName());
-                        jobView.setStartDate(result.get().getStartDate());
+                        jobView.setExpectedEndDate(result.get().getExpectedEndDate());
                         sortListView();
                     } else {
                         toastError("Failed to update to-do, please try again");

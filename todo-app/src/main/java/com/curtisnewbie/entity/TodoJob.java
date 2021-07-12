@@ -1,7 +1,10 @@
 package com.curtisnewbie.entity;
 
 import com.curtisnewbie.util.DateUtil;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -14,11 +17,11 @@ import java.util.Date;
  *
  * @author yongjie.zhuang
  */
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TodoJob {
 
     /** primary key */
-    @JsonIgnore
     private Integer id;
 
     /**
@@ -32,68 +35,54 @@ public class TodoJob {
     private boolean done;
 
     /**
-     * Create date of this job
+     * Expected end date of this job
      */
-    private LocalDate startDate;
+    private LocalDate expectedEndDate;
+
+    /**
+     * Actual end date
+     */
+    private LocalDate actualEndDate;
 
     public TodoJob() {
+
     }
 
     public TodoJob(String name) {
         this.name = name;
         this.done = false;
-        this.startDate = LocalDate.now();
+        this.expectedEndDate = LocalDate.now();
+        this.actualEndDate = null;
     }
 
     public TodoJob(TodoJob copied) {
         this.id = copied.id;
         this.name = copied.name;
         this.done = copied.done;
-        this.startDate = copied.startDate;
+        this.expectedEndDate = copied.expectedEndDate;
+        this.actualEndDate = copied.actualEndDate;
     }
 
-    public String getName() {
-        return name;
+    @JsonGetter("expectedEndDate")
+    public long expectedEndDateSerializer() {
+        return DateUtil.startTimeOf(expectedEndDate);
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @JsonSetter("expectedEndDate")
+    public void expectedEndDateDeserializer(long expectedEndDate) {
+        this.expectedEndDate = LocalDate.ofInstant(new Date(expectedEndDate).toInstant(), ZoneId.systemDefault());
     }
 
-    public boolean isDone() {
-        return done;
+    @JsonGetter("actualEndDate")
+    public long actualEndDateSerializer() {
+        return DateUtil.startTimeOf(actualEndDate);
     }
 
-    public void setDone(boolean done) {
-        this.done = done;
+    @JsonSetter("actualEndDate")
+    public void actualEndDateDeserializer(Long actualEndDate) {
+        if (actualEndDate == null)
+            this.expectedEndDate = null;
+        else
+            this.expectedEndDate = LocalDate.ofInstant(new Date(actualEndDate).toInstant(), ZoneId.systemDefault());
     }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate date) {
-        this.startDate = date;
-    }
-
-    @JsonSetter("startDate")
-    public void startDateSerializer(long startDate) {
-        this.startDate = LocalDate.ofInstant(new Date(startDate).toInstant(), ZoneId.systemDefault());
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public TodoJob setId(Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    @JsonGetter("startDate")
-    public long startDateDeserializer() {
-        return DateUtil.startTimeOf(startDate);
-    }
-
-
 }
