@@ -25,6 +25,22 @@ public class Config implements Serializable {
     @JsonProperty(required = false, defaultValue = "eng")
     private String language;
 
+    /**
+     * Should finished task to have strikethrough effect
+     */
+    @JsonProperty(required = false, defaultValue = "false")
+    private boolean strikethroughEffectEnabled;
+
+    public Config() {
+
+    }
+
+    public Config(Environment environment) {
+        this.savePath = environment.getSavePath();
+        this.language = environment.getLanguage().key;
+        this.strikethroughEffectEnabled = environment.isStrikethroughEffectEnabled();
+    }
+
     public String getSavePath() {
         return savePath;
     }
@@ -41,8 +57,20 @@ public class Config implements Serializable {
         this.language = language;
     }
 
+    public boolean getStrikethroughEffectEnabled() {
+        return strikethroughEffectEnabled;
+    }
+
+    public void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
+        this.strikethroughEffectEnabled = strikethroughEffectEnabled;
+    }
+
     @Override
     public String toString() {
-        return "Config{" + "savePath='" + savePath + '\'' + '}';
+        return "Config{" +
+                "savePath='" + savePath + '\'' +
+                ", language='" + language + '\'' +
+                ", strikethroughEffectEnabled='" + strikethroughEffectEnabled + '\'' +
+                '}';
     }
 }

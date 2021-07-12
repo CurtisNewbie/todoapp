@@ -23,4 +23,17 @@ public enum Language {
     Language(String key) {
         this.key = key;
     }
+
+    public static Language parseLang(String langStr) {
+        if (langStr == null)
+            langStr = Language.DEFAULT.key;
+        boolean isChn = langStr.equals(Language.CHN.key);
+        Language lang;
+        if (isChn) {
+            lang = Language.CHN;
+        } else {
+            lang = Language.ENG;
+        }
+        return lang;
+    }
 }

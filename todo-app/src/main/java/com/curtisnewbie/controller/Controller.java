@@ -2,6 +2,7 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.App;
 import com.curtisnewbie.config.Config;
+import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.dao.MapperFactory;
@@ -72,7 +73,7 @@ public class Controller implements Initializable {
     private final String AUTHOR_ABOUT;
     private final String LOAD_TITLE;
 
-    private final Language lang;
+    private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getFactory().getTodoJobMapper();
 
     @FXML
@@ -80,7 +81,6 @@ public class Controller implements Initializable {
     @FXML
     private HBox pageControlHBox;
 
-    private final Config config;
     private final IOHandler ioHandler = new IOHandlerImpl();
     private final RedoStack redoStack = new RedoStack();
 
@@ -94,37 +94,36 @@ public class Controller implements Initializable {
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     public Controller() {
-        config = ioHandler.readConfig();
+        // read configuration from file
+        Config config = ioHandler.readConfig();
+
+        // get properties loader, who has already loaded all properties
         PropertiesLoader props = PropertiesLoader.getInstance();
-        String langStr = config.getLanguage();
-        if (langStr == null)
-            langStr = Language.DEFAULT.key;
-        boolean isChn = langStr.equals(Language.CHN.key);
-        if (isChn) {
-            lang = Language.CHN;
-        } else {
-            lang = Language.ENG;
-        }
+
+        // setup environment
+        this.environment = new Environment(config);
+
+        // load text and titles based on configured language
         GITHUB_ABOUT = props.get(APP_GITHUB);
         AUTHOR_ABOUT = props.get(APP_AUTHOR);
-        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, lang);
-        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, lang);
-        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, lang);
-        APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, lang);
-        READ_TODO_TITLE = props.get(TITLE_READ_TODO_PREFIX, lang);
-        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, lang);
-        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, lang);
-        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, lang);
-        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX, lang);
-        ADD_TITLE = props.get(TITLE_ADD_PREFIX, lang);
-        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX, lang);
-        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX, lang);
-        COPY_TITLE = props.get(TITLE_COPY_PREFIX, lang);
-        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, lang);
-        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, lang);
-        APPEND_TITLE = props.get(TITLE_APPEND_PREFIX, lang);
-        LOAD_TITLE = props.get(TITLE_LOAD_PREFIX, lang);
-        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, lang);
+        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, environment.getLanguage());
+        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, environment.getLanguage());
+        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, environment.getLanguage());
+        APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, environment.getLanguage());
+        READ_TODO_TITLE = props.get(TITLE_READ_TODO_PREFIX, environment.getLanguage());
+        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, environment.getLanguage());
+        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, environment.getLanguage());
+        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, environment.getLanguage());
+        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX, environment.getLanguage());
+        ADD_TITLE = props.get(TITLE_ADD_PREFIX, environment.getLanguage());
+        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX, environment.getLanguage());
+        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX, environment.getLanguage());
+        COPY_TITLE = props.get(TITLE_COPY_PREFIX, environment.getLanguage());
+        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, environment.getLanguage());
+        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, environment.getLanguage());
+        APPEND_TITLE = props.get(TITLE_APPEND_PREFIX, environment.getLanguage());
+        LOAD_TITLE = props.get(TITLE_LOAD_PREFIX, environment.getLanguage());
+        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, environment.getLanguage());
     }
 
     @Override
@@ -152,7 +151,7 @@ public class Controller implements Initializable {
 
     private void prepareStartupData() {
         // for migration
-        if (!todoJobMapper.hasRecord() && ioHandler.fileExists(config.getSavePath())) {
+        if (!todoJobMapper.hasRecord() && ioHandler.fileExists(environment.getSavePath())) {
             logger.info("Detected data migration needed, attempting to migrate todos");
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION,
@@ -162,7 +161,7 @@ public class Controller implements Initializable {
                 if (result.get() == ButtonType.YES) {
                     CompletableFuture.supplyAsync(() -> {
                         try {
-                            var jsonList = ioHandler.loadTodoJob(config.getSavePath());
+                            var jsonList = ioHandler.loadTodoJob(environment.getSavePath());
                             logger.info("Found " + jsonList.size() + " todos, migrating...");
                             return jsonList;
                         } catch (FailureToLoadException e) {
@@ -201,7 +200,7 @@ public class Controller implements Initializable {
                 return;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, lang));
+                jobViewList.add(new TodoJobView(j, environment));
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
@@ -231,7 +230,7 @@ public class Controller implements Initializable {
                 return;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, lang));
+                jobViewList.add(new TodoJobView(j, environment));
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
@@ -255,7 +254,7 @@ public class Controller implements Initializable {
                 return;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, lang));
+                jobViewList.add(new TodoJobView(j, environment));
             }
             Platform.runLater(() -> {
                 listView.getItems().clear();
@@ -380,7 +379,7 @@ public class Controller implements Initializable {
                 if (newId != null) {
                     var job = redo.getTodoJob();
                     job.setId(newId);
-                    addTodoJobView(new TodoJobView(job, lang));
+                    addTodoJobView(new TodoJobView(job, environment));
                 } else {
                     toastError("Unknown error happens when try to redo");
                 }
@@ -446,7 +445,7 @@ public class Controller implements Initializable {
                     return;
                 }
                 newTodo.setId(id);
-                addTodoJobView(new TodoJobView(newTodo, lang));
+                addTodoJobView(new TodoJobView(newTodo, environment));
                 sortListView();
             }
         });
@@ -555,7 +554,7 @@ public class Controller implements Initializable {
                     // load the read-only ones
                     var readOnlyJobViewList = new ArrayList<TodoJobView>();
                     list.forEach(job -> {
-                        var jobView = new TodoJobView(job, lang);
+                        var jobView = new TodoJobView(job, environment);
                         jobView.freeze(); // readonly
                         readOnlyJobViewList.add(jobView);
                         pageControlHBox.getChildren().forEach(btn -> {
@@ -600,7 +599,7 @@ public class Controller implements Initializable {
                 if (nFile == null)
                     return;
 
-                ioHandler.exportTodoJobAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()), nFile, lang);
+                ioHandler.exportTodoJobAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()), nFile, environment.getLanguage());
             }
         });
     }
@@ -611,7 +610,7 @@ public class Controller implements Initializable {
             GridPane gPane = new GridPane();
             alert.setTitle(ABOUT_TITLE);
             gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, config.getSavePath())), 0, 1);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, environment.getSavePath())), 0, 1);
             gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
             gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
             alert.getDialogPane().setContent(gPane);
@@ -668,14 +667,14 @@ public class Controller implements Initializable {
             choiceDialog.getItems().add(chnChoice);
             Optional<String> opt = choiceDialog.showAndWait();
             if (opt.isPresent()) {
-                if (opt.get().equals(engChoice) && !lang.equals(Language.ENG)) {
-                    config.setLanguage(Language.ENG.key);
+                if (opt.get().equals(engChoice) && !environment.getLanguage().equals(Language.ENG)) {
+                    environment.setLanguage(Language.ENG);
                 } else {
-                    config.setLanguage(Language.CHN.key);
+                    environment.setLanguage(Language.CHN);
                 }
                 toastInfo("Restart to apply the new configuration");
             }
-            ioHandler.writeConfigAsync(config);
+            ioHandler.writeConfigAsync(new Config(environment));
         });
     }
 }

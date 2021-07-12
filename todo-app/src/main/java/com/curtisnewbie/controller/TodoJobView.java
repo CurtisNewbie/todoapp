@@ -1,7 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.callback.OnEvent;
-import com.curtisnewbie.config.Language;
+import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.entity.TodoJob;
@@ -56,14 +56,17 @@ public class TodoJobView extends HBox {
 
     private OnEvent doneCbRegisteredHandler;
 
+    private final Environment environment;
+
     /**
      * Create a TodoJobView with the given {@code todoJob}
      *
      * @param todoJob
      */
-    public TodoJobView(TodoJob todoJob, Language lang) {
+    public TodoJobView(TodoJob todoJob, Environment environment) {
+        this.environment = environment;
         this.idOfTodoJob = todoJob.getId();
-        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
+        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
         this.doneLabel = new Label();
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.startDateLabel = LabelFactory.getClassicLabel(DateUtil.toMMddUUUUSlash(todoJob.getStartDate()));
@@ -179,7 +182,9 @@ public class TodoJobView extends HBox {
     private void updateGraphicForJobState(boolean isDone) {
         Platform.runLater(() -> {
             this.doneLabel.setGraphic(isDone ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
-            this.nameText.setStrikethrough(isDone);
+            if (environment.isStrikethroughEffectEnabled()) {
+                this.nameText.setStrikethrough(isDone);
+            }
         });
     }
 
