@@ -9,7 +9,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 
@@ -25,10 +24,10 @@ public class DateRangeDialog extends Dialog<DateRange> {
     private final DatePicker startDatePicker;
     private final DatePicker endDatePicker;
     private boolean earliestDateIsShown = false;
+    private boolean latestDateIsShown = false;
 
     /**
-     * Create TodoJobDialog with {@code start} and {@code end} as the default value of the
-     * DatePicker(s)
+     * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
      */
     public DateRangeDialog(LocalDate start, LocalDate end) {
         final DialogPane dialogPane = getDialogPane();
@@ -49,7 +48,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(label, 0, 0);
         this.grid.add(wrapWithPadding(startDatePicker, new Insets(1, 2, 5, 2)), 1, 0);
-        this.grid.add(wrapWithPadding(endDatePicker, new Insets(1, 2, 5, 2)), 1, 1);
+        this.grid.add(wrapWithPadding(endDatePicker, new Insets(1, 2, 5, 2)), 2, 0);
         dialogPane.setContent(grid);
 
         setTitle(ControlResources.getString("Dialog.confirm.title"));
@@ -89,15 +88,34 @@ public class DateRangeDialog extends Dialog<DateRange> {
      * Note that this method only works for once
      */
     public void showEarliestDate(LocalDate earliestDate) {
-        Objects.requireNonNull(earliestDate);
+        LocalDate d = earliestDate == null ? LocalDate.now() : earliestDate;
         if (earliestDateIsShown)
             return;
         earliestDateIsShown = true;
 
-        Button earliestBtn = new Button("Earliest: " + DateUtil.toMMddUUUUSlash(earliestDate));
-        grid.add(wrapWithPadding(earliestBtn, new Insets(1, 2, 5, 2)), 1, 2);
+        Button earliestBtn = new Button("Earliest: " + DateUtil.toMMddUUUUSlash(d));
+        grid.add(wrapWithPadding(earliestBtn, new Insets(1, 0, 5, 2)), 1, 1);
         earliestBtn.setOnAction(e -> {
-            startDatePicker.setValue(earliestDate);
+            startDatePicker.setValue(d);
+        });
+    }
+
+    /**
+     * Show a button which displays the latest startDate that the user can select, clicking on it makes the {@code
+     * endDatePicker} set to this given {@code latest}
+     * <p>
+     * Note that this method only works for once
+     */
+    public void showLatestDate(LocalDate latestDate) {
+        LocalDate d = latestDate == null ? LocalDate.now() : latestDate;
+        if (latestDateIsShown)
+            return;
+        latestDateIsShown = true;
+
+        Button latestBtn = new Button("Latest: " + DateUtil.toMMddUUUUSlash(d));
+        grid.add(wrapWithPadding(latestBtn, new Insets(1, 2, 5, 2)), 2, 1);
+        latestBtn.setOnAction(e -> {
+            endDatePicker.setValue(d);
         });
     }
 }

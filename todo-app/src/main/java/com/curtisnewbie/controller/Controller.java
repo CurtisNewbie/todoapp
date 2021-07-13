@@ -545,9 +545,8 @@ public class Controller implements Initializable {
             LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
             DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
 
-            var d = todoJobMapper.findEarliestDate();
-            LocalDate earliestDate = d != null ? d : LocalDate.now();
-            dateRangeDialog.showEarliestDate(earliestDate);
+            dateRangeDialog.showEarliestDate(todoJobMapper.findEarliestDate());
+            dateRangeDialog.showLatestDate(todoJobMapper.findLatestDate());
             var opt = dateRangeDialog.showAndWait();
             if (opt.isPresent()) {
                 DateRange dr = opt.get();
