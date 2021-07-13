@@ -169,11 +169,13 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         CountdownTimer timer = new CountdownTimer();
         timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ? WHERE id = ?")) {
+                "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ?, actual_end_date = ? WHERE id = ?")) {
             stmt.setString(1, todoJob.getName());
             stmt.setBoolean(2, todoJob.isDone());
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
-            stmt.setInt(4, todoJob.getId());
+            stmt.setDate(4, todoJob.getActualEndDate() != null ?
+                    new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())) : null);
+            stmt.setInt(5, todoJob.getId());
             int res = stmt.executeUpdate();
             timer.stop();
             logger.info(String.format("Update took %.2f milliseconds", timer.getMilliSec()));

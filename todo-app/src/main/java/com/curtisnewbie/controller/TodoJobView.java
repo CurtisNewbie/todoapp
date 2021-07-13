@@ -19,7 +19,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
 import java.time.LocalDate;
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
 
 import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
@@ -101,7 +101,7 @@ public class TodoJobView extends HBox {
             this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
         }
         this.doneCheckBox.setSelected(todoJob.isDone());
-        this.doneCheckBox.setOnAction(this::onDoneCbActionEventHandler);
+        this.doneCheckBox.setOnAction(this::onCheckboxSelected);
         this.getChildren()
                 .addAll(doneLabel,
                         fixedMargin(3),
@@ -122,10 +122,13 @@ public class TodoJobView extends HBox {
      * Set the {@link #expectedEndDate} as well as updating the label
      */
     public void setExpectedEndDate(LocalDate date) {
+        Objects.requireNonNull(date, "Expected End Date should never be null");
         synchronized (mutex) {
             this.expectedEndDate = date;
-            this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
         }
+        Platform.runLater(() -> {
+            this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
+        });
     }
 
     /**
@@ -134,8 +137,15 @@ public class TodoJobView extends HBox {
     public void setActualEndDate(LocalDate date) {
         synchronized (mutex) {
             this.actualEndDate = date;
-            this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
         }
+        Platform.runLater(() -> {
+            if (date != null) {
+                this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
+            } else {
+                this.actualEndDateLabel.setText("");
+                this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
+            }
+        });
     }
 
     /**
@@ -208,7 +218,7 @@ public class TodoJobView extends HBox {
      * @param onEvent
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
-    public void regCheckboxEvntHandler(OnEvent onEvent) {
+    public void registerCheckboxEventHandler(OnEvent onEvent) {
         synchronized (mutex) {
             if (doneCheckboxRegisteredCallback != null)
                 throw new EventHandlerAlreadyRegisteredException();
@@ -216,16 +226,13 @@ public class TodoJobView extends HBox {
         }
     }
 
-    private void onDoneCbActionEventHandler(ActionEvent e) {
+    private void onCheckboxSelected(ActionEvent e) {
         boolean isSelected = isCheckboxSelected();
-        CompletableFuture.supplyAsync(() -> {
-            // this callback cannot be changed, no need to synchronise
-            if (doneCheckboxRegisteredCallback != null)
-                doneCheckboxRegisteredCallback.react();
-            return null;
-        }).thenAccept(nilVal -> {
-            updateGraphicOnJobStatus(isSelected);
-        });
+        setActualEndDate(isSelected ? LocalDate.now() : null);
+        updateGraphicOnJobStatus(isSelected);
+        // this callback cannot be changed, no need to synchronise
+        if (doneCheckboxRegisteredCallback != null)
+            doneCheckboxRegisteredCallback.react();
     }
 
     /** Update graphic based on job's status */

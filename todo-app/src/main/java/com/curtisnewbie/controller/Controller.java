@@ -244,7 +244,7 @@ public class Controller implements Initializable {
      * @param jobView
      */
     private void addTodoJobView(TodoJobView jobView) {
-        jobView.regCheckboxEvntHandler(() -> {
+        jobView.registerCheckboxEventHandler(() -> {
             int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
             if (c > 0)
                 sortListView();
@@ -263,7 +263,7 @@ public class Controller implements Initializable {
     // only used on application startup, or loading read-only todos
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
-            jobView.regCheckboxEvntHandler(() -> {
+            jobView.registerCheckboxEventHandler(() -> {
                 sortListView();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
@@ -401,7 +401,7 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             if (readOnly.get())
                 return;
-            TodoJobDialog dialog = new TodoJobDialog();
+            TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.ADD_TODO_JOB, null);
             dialog.setTitle(ADD_NEW_TODO_TITLE);
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
@@ -426,7 +426,8 @@ public class Controller implements Initializable {
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView jobView = listView.getItems().get(selected);
-                TodoJobDialog dialog = new TodoJobDialog(jobView.getName(), jobView.getExpectedEndDate());
+                TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
+                        jobView.createTodoJobCopy());
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
@@ -436,6 +437,7 @@ public class Controller implements Initializable {
                     if (todoJobMapper.updateById(job) > 0) {
                         jobView.setName(result.get().getName());
                         jobView.setExpectedEndDate(result.get().getExpectedEndDate());
+                        jobView.setActualEndDate(result.get().getActualEndDate());
                         sortListView();
                     } else {
                         toastError("Failed to update to-do, please try again");
