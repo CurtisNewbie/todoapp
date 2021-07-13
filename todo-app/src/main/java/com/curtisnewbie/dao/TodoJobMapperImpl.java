@@ -173,7 +173,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             stmt.setBoolean(2, todoJob.isDone());
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
             stmt.setDate(4, todoJob.getActualEndDate() != null ?
-                    new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())) : null);
+                    new java.sql.Date(DateUtil.startTimeOf(todoJob.getActualEndDate())) : null);
             stmt.setInt(5, todoJob.getId());
             int res = stmt.executeUpdate();
             timer.stop();
