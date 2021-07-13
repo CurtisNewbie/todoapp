@@ -255,7 +255,7 @@ public class Controller implements Initializable {
         });
         Platform.runLater(() -> {
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
+            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
             listView.getItems().add(jobView);
             jobView.requestFocus();
             jobView.requestLayout();
@@ -269,7 +269,7 @@ public class Controller implements Initializable {
                 sortListView();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_FOR_LABELS));
+            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
             listView.getItems().add(jobView);
         });
     }

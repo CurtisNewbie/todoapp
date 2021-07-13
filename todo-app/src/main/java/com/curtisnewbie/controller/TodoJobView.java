@@ -34,7 +34,7 @@ import static com.curtisnewbie.util.MarginFactory.*;
  * @author yongjie.zhuang
  */
 public class TodoJobView extends HBox {
-    public static final int WIDTH_FOR_LABELS = 170;
+    public static final int WIDTH_OTHER_THAN_TEXT = 250;
     private final Object mutex = new Object();
     private final String checkboxName;
     private final Label doneLabel;
