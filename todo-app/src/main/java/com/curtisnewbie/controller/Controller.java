@@ -460,7 +460,9 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0)
-                copyToClipBoard(listView.getItems().get(selected).createTodoJobCopy().getName());
+                copyToClipBoard(
+                        todojobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
+                );
         });
     }
 
