@@ -9,11 +9,7 @@ import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -163,29 +159,25 @@ public class IOHandlerImpl implements IOHandler {
 
 
     private String getDefSavePath() {
-        return getBasePath() + File.separator + DEF_SAVE_NAME;
+        return BASE_PATH + File.separator + DEF_SAVE_NAME;
     }
 
     @Override
     public String getConfPath() {
-        return getBasePath() + File.separator + IOHandlerImpl.CONF_NAME;
+        return BASE_PATH + File.separator + IOHandlerImpl.CONF_NAME;
     }
 
     @Override
     public String readResourceAsString(String relPath) throws IOException {
-        Path p;
-        try {
-            p = Paths.get(this.getClass().getClassLoader().getResource(relPath).toURI());
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(relPath), StandardCharsets.UTF_8)
+        )) {
+            StringBuilder sb = new StringBuilder();
+            String temp;
+            while ((temp = br.readLine()) != null)
+                sb.append(temp).append("\n"); // preserve line feed
+            return sb.toString();
         }
-        if (Files.exists(p)) {
-            return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
-        }
-        throw new FileNotFoundException(relPath);
     }
 
-    private String getBasePath() {
-        return BASE_PATH;
-    }
 }

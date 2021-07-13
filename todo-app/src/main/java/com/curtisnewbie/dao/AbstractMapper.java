@@ -26,9 +26,9 @@ public class AbstractMapper implements Mapper {
             throw new IllegalArgumentException("Script is empty or null, unable to execute it.");
         }
         try (Statement stmt = connection.createStatement();) {
-            stmt.executeUpdate(script);
+            stmt.execute(script);
         } catch (SQLException e) {
-            throw new IllegalStateException(e);
+            throw new IllegalStateException("Unable to run script: " + script, e);
         }
     }
 
