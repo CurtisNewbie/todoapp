@@ -1,6 +1,7 @@
 package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Environment;
+import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
@@ -27,8 +28,9 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
         String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, environment.getLanguage());
         String status = todoJob.isDone() ? done : inProgress;
-        return String.format("[%s] %s-%s '%s'\n",
-                status,
+        int width = environment.getLanguage().equals(Language.ENG) ? 13 : 5;
+        return String.format("%-" + width + "s %s-%s '%s'\n",
+                "[" + status + "]",
                 toMMddUUUUSlash(todoJob.getExpectedEndDate()),
                 todoJob.getActualEndDate() != null ? toMMddUUUUSlash(todoJob.getActualEndDate()) : "__/__/____",
                 formatName(todoJob.getName()));
