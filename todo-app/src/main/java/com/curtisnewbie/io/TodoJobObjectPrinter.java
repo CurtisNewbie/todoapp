@@ -29,7 +29,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, environment.getLanguage());
         String status = todoJob.isDone() ? done : inProgress;
         int width = environment.getLanguage().equals(Language.ENG) ? 13 : 5;
-        return String.format("%-" + width + "s %s-%s '%s'\n",
+        return String.format("%-" + width + "s Expected: %s - Actual: %s '%s'\n",
                 "[" + status + "]",
                 toMMddUUUUSlash(todoJob.getExpectedEndDate()),
                 todoJob.getActualEndDate() != null ? toMMddUUUUSlash(todoJob.getActualEndDate()) : "__/__/____",
