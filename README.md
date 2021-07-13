@@ -11,8 +11,8 @@ JavaFX app for managing TO-DOs. Supports both Windows and Linux platforms. Downl
 - **Add**, **Delete**, **Update**, **Copy**, **Append (into current list)**, **Load (read-only)**, **Backup**, and many more features that you will normally expect.
 - **Configuration via UI or external configuration file**
     - `$HOME/todo-app/settings.json`
-- **Persistence** on disk.
-    - `$HOME/todo-app/save.json`
+- **Persistence** using **SQLite**.
+    - `$HOME/todo-app/todoapp.db`
 
 Note: These external configuration files are created at home.user directory under the folder named `/todo-app`. If you are using Linux, it will be under `/home/somebody/` directory. If you are using Windows, it will be at your `...\users\yourName\` directory.
 
@@ -21,38 +21,19 @@ Note: These external configuration files are created at home.user directory unde
 `"language"` only supports `"chn"` (for Chinese) or `"eng"` (for English, which is the default language).
 
 ```
+E.g.,
+
 {
     "savePath": "/home/zhuangyongj/save.json",
-    "language": "eng"
+    "language": "eng",
+    "strikethroughEffectEnabled":false
 }
-```
-
-### Example of save.json
-
-```
-[
-    {
-        "name": "Do something important",
-        "done": false,
-        "startDate": 1602404024165,
-    },
-    {
-        "name": "Eat an apple",
-        "done": false,
-        "startDate": 1602403968498,
-    },
-    {
-        "name": "Eat a banana",
-        "done": false,
-        "startDate": 1602403963418,
-    }
-]
 ```
 
 ### Example of Exported File In A Human-Readable Form 
 
 ```
-[IN PROGRESS] 31/10/2020 'Eat a banana'
-[IN PROGRESS] 31/10/2020 'Eat an apple'
-[IN PROGRESS] 31/10/2020 'Do something important'
+[IN PROGRESS] 07/12/2021-__/__/____ 'Eat a banana'
+[IN PROGRESS] 07/12/2021-__/__/____ 'Eat an apple'
+[FINISHED]    07/12/2021-07/12/2021 'Do something important'
 ```
