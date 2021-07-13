@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS todojob (
 
 CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, start_date DESC);
 
-INSERT INTO todojob (id, name, is_done, expected_end_date, actual_end_date)
-    SELECT id, name, is_done, start_date, start_date
+INSERT INTO todojob (id, name, is_done, expected_end_date)
+    SELECT id, name, is_done, start_date
     FROM old_todojob;
 
 --DROP TABLE old_todojob;

@@ -215,12 +215,10 @@ public class Controller implements Initializable {
         CompletableFuture.supplyAsync(() -> {
             synchronized (currPageLock) {
                 var jobList = todoJobMapper.findByPage(currPage);
-                if (jobList.isEmpty())
-                    return null;
                 return jobList;
             }
         }).thenAccept((jobList) -> {
-            if (jobList == null)
+            if (jobList.isEmpty())
                 return;
             var jobViewList = new ArrayList<TodoJobView>();
             for (TodoJob j : jobList) {

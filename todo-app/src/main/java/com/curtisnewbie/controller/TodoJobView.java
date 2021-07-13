@@ -94,7 +94,12 @@ public class TodoJobView extends HBox {
         this.expectedEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getExpectedEndDate()));
         this.expectedEndDate = todoJob.getExpectedEndDate();
         this.actualEndDate = todoJob.getActualEndDate();
-        this.actualEndDateLabel = actualEndDate != null ? classicLabel(toMMddUUUUSlash(todoJob.getActualEndDate())) : classicLabel("--/--/----");
+        if (actualEndDate != null) {
+            this.actualEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getActualEndDate()));
+        } else {
+            this.actualEndDateLabel = classicLabel("");
+            this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
+        }
         this.doneCheckBox.setSelected(todoJob.isDone());
         this.doneCheckBox.setOnAction(this::onDoneCbActionEventHandler);
         this.getChildren()

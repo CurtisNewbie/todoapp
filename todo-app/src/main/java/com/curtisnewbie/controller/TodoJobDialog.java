@@ -1,6 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.util.LabelFactory;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -25,9 +26,8 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private final GridPane grid;
     private final Label label;
     private final TextArea textArea;
-    private final DatePicker datePicker;
-    private final String defaultValue;
-    private LocalDate localDate;
+    private final DatePicker expectedEndDatePicker = new DatePicker();
+    private LocalDate expectedEndDate;
 
     /**
      * Create TodoJobDialog with "" as default text and current date as {@code TodoJob}'s createDate
@@ -37,11 +37,11 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     }
 
     /**
-     * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate of the {@code TodoJob}
+     * Create TodoJobDialog with {@code defValue} as default value and {@code date} (in milliseconds) as the createDate
+     * of the {@code TodoJob}
      */
     public TodoJobDialog(String defValue, LocalDate date) {
         final DialogPane dialogPane = getDialogPane();
-        this.datePicker = new DatePicker();
         this.textArea = new TextArea(defValue);
         this.textArea.setMaxWidth(MAX_WIDTH);
         this.textArea.setWrapText(true);
@@ -53,16 +53,18 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         label.setPrefWidth(Region.USE_COMPUTED_SIZE);
         label.textProperty().bind(dialogPane.contentTextProperty());
 
-        this.defaultValue = defValue;
-        this.localDate = date;
-        this.datePicker.setValue(localDate);
+        this.expectedEndDate = date;
+        this.expectedEndDatePicker.setValue(expectedEndDate);
 
         this.grid = new GridPane();
         this.grid.setHgap(10);
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(label, 0, 0);
-        this.grid.add(wrapWithPadding(datePicker, new Insets(1, 2, 5, 2)), 1, 1);
+        this.grid.add(wrapWithPadding(LabelFactory.classicLabel("Expected End Date:"), new Insets(1, 2, 5, 2)),
+                1, 1);
+        this.grid.add(wrapWithPadding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
+                2, 1);
         this.grid.add(textArea, 1, 2);
         dialogPane.setContent(grid);
 
@@ -75,16 +77,16 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         dialogPane.getStyleClass().add("text-input-dialog");
         dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        datePicker.setOnAction(actionEvent -> {
-            localDate = datePicker.getValue();
+        expectedEndDatePicker.setOnAction(actionEvent -> {
+            expectedEndDate = expectedEndDatePicker.getValue();
         });
 
         setResultConverter((dialogButton) -> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
                 var todoJob = new TodoJob(textArea.getText().trim());
-                if (localDate != null) {
-                    todoJob.setExpectedEndDate(localDate);
+                if (expectedEndDate != null) {
+                    todoJob.setExpectedEndDate(expectedEndDate);
                 } else {
                     todoJob.setExpectedEndDate(LocalDate.now());
                 }
