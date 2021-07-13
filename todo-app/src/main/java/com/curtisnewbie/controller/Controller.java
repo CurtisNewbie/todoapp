@@ -234,6 +234,7 @@ public class Controller implements Initializable {
                 jobViewList.forEach(jv -> {
                     addTodoJobView(jv);
                 });
+                listView.requestFocus();
             });
         });
     }
