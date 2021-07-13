@@ -549,7 +549,7 @@ public class Controller implements Initializable {
             GridPane gPane = new GridPane();
             alert.setTitle(ABOUT_TITLE);
             gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, environment.getSavePath())), 0, 1);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
             gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
             gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
             alert.getDialogPane().setContent(gPane);

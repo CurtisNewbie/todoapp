@@ -20,6 +20,7 @@ public final class MapperFactory {
 
     private static final String DB_NAME = "todoapp.db";
     private static final String DIR_NAME = "todo-app";
+    private static final String DB_ABS_PATH;
     private static final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>(Arrays.asList(
             new MigrateV2ScriptMapperPreprocessor(),
             new InitialiseScriptMapperPreprocessor()
@@ -30,10 +31,16 @@ public final class MapperFactory {
         try {
             String baseDir = System.getProperty("user.home") + File.separator + DIR_NAME;
             new File(baseDir).mkdirs();
-            conn = DriverManager.getConnection("jdbc:sqlite:" + baseDir + File.separator + DB_NAME);
+            DB_ABS_PATH = baseDir + File.separator + DB_NAME;
+            conn = DriverManager.getConnection("jdbc:sqlite:" + DB_ABS_PATH);
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    //todo make this configurable
+    public static String getDatabaseAbsolutePath() {
+        return DB_ABS_PATH;
     }
 
     /**
