@@ -51,7 +51,8 @@ public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
             }
             if (needToMigrate) {
                 logger.info("Migrating to V2.1");
-                mapper.runScript(ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT));
+                String script = ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT);
+                mapper.runScript(script);
             }
         } catch (Exception e) {
             throw new IllegalStateException("Unable to migrate to V2.1 DDL", e);
