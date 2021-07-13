@@ -4,7 +4,7 @@ import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
-import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.StrUtil;

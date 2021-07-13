@@ -1,6 +1,5 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.entity.TodoJob;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
 

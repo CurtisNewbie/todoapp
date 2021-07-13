@@ -2,7 +2,7 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
-import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 
 import java.io.File;

@@ -1,5 +1,7 @@
-package com.curtisnewbie.dao;
+package com.curtisnewbie.dao.processor;
 
+import com.curtisnewbie.dao.Mapper;
+import com.curtisnewbie.dao.MapperPreprocessor;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
 

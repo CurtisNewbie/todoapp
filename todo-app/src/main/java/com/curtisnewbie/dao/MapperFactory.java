@@ -1,5 +1,8 @@
 package com.curtisnewbie.dao;
 
+import com.curtisnewbie.dao.processor.InitialiseScriptMapperPreprocessor;
+import com.curtisnewbie.dao.processor.MigrateV2ScriptMapperPreprocessor;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;

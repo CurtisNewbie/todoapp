@@ -1,6 +1,6 @@
 package com.curtisnewbie.controller;
 
-import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.dao.TodoJob;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Insets;

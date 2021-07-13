@@ -4,7 +4,7 @@ import com.curtisnewbie.callback.OnEvent;
 import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
-import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.EventHandlerAlreadyRegisteredException;
 import com.curtisnewbie.util.CheckBoxFactory;
 import com.curtisnewbie.util.ShapeFactory;

@@ -1,6 +1,6 @@
 package com.curtisnewbie.util;
 
-import com.curtisnewbie.entity.TodoJob;
+import com.curtisnewbie.dao.TodoJob;
 
 /**
  * <p>

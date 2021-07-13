@@ -1,7 +1,5 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.entity.TodoJob;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;

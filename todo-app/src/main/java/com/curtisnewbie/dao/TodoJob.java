@@ -1,4 +1,4 @@
-package com.curtisnewbie.entity;
+package com.curtisnewbie.dao;
 
 import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.annotation.JsonGetter;
