@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Preprocessor that runs script to alter table DDL, and migrate data to new tables if necessary
@@ -22,6 +23,7 @@ import java.util.Set;
  */
 public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
 
+    private static final Logger logger = Logger.getLogger(MigrateV2ScriptMapperPreprocessor.class.getName());
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final String MIGRATE_V2_SCRIPT = "migrate_v2.sql";
     private final String TODOJOB_TABLE_NAME = "todojob";
@@ -34,6 +36,7 @@ public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
     public void preprocessMapper(Mapper mapper) {
         Objects.requireNonNull(mapper);
 
+        logger.info("Checking whether we should migrate to V2.0");
         boolean needToMigrate = true;
         try {
             DatabaseMetaData meta = mapper.getDatabaseMetaData();
@@ -47,6 +50,7 @@ public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
                 }
             }
             if (needToMigrate) {
+                logger.info("Migrating to V2.0");
                 mapper.runScript(ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT));
             }
         } catch (Exception e) {

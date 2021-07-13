@@ -6,11 +6,13 @@ import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.dao.MapperFactory;
-import com.curtisnewbie.dao.TodoJobMapper;
 import com.curtisnewbie.dao.TodoJob;
+import com.curtisnewbie.dao.TodoJobMapper;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
+import com.curtisnewbie.io.ObjectPrinter;
+import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -32,7 +34,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
@@ -75,6 +76,7 @@ public class Controller implements Initializable {
 
     private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
+    private final ObjectPrinter<TodoJob> todojobExportObjectPrinter;
 
     @FXML
     private ListView<TodoJobView> listView;
@@ -102,6 +104,9 @@ public class Controller implements Initializable {
 
         // setup environment
         this.environment = new Environment(config);
+
+        // setup todojob's printer
+        this.todojobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
 
         // load text and titles based on configured language
         GITHUB_ABOUT = props.get(APP_GITHUB);
@@ -297,8 +302,8 @@ public class Controller implements Initializable {
         ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
                 .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
                 .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(LOAD_TITLE, this::onReadHandler)
-                .addMenuItem(BACKUP_TITLE, this::onBackupHandler).addMenuItem(EXPORT_TITLE, this::onExportHandler)
-                .addMenuItem(ABOUT_TITLE, this::onAboutHandler).addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
+                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -484,20 +489,6 @@ public class Controller implements Initializable {
         });
     }
 
-    private void onBackupHandler(ActionEvent e) {
-        Platform.runLater(() -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(BACKUP_TODO_TITLE);
-            fileChooser.setInitialFileName("Backup_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".json");
-            fileChooser.getExtensionFilters().add(getJsonExtFilter());
-            File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-            if (nFile == null)
-                return;
-            ioHandler.writeTodoJobAsync(listView.getItems().stream().map(TodoJobView::createTodoJobCopy).collect(Collectors.toList()),
-                    nFile.getAbsolutePath());
-        });
-    }
-
     private void onReadHandler(ActionEvent e) {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
@@ -569,7 +560,9 @@ public class Controller implements Initializable {
                 if (nFile == null)
                     return;
 
-                ioHandler.exportTodoJobAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()), nFile, environment.getLanguage());
+                ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()),
+                        todojobExportObjectPrinter,
+                        nFile);
             }
         });
     }

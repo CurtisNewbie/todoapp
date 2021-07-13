@@ -2,8 +2,6 @@ package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
 import com.curtisnewbie.config.Language;
-import com.curtisnewbie.config.PropertiesLoader;
-import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.CountdownTimer;
@@ -22,8 +20,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
-
 /**
  * @author yongjie.zhuang
  */
@@ -34,15 +30,6 @@ public class IOHandlerImpl implements IOHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
     private static final Logger logger = Logger.getLogger(IOHandlerImpl.class.getName());
-
-    @Override
-    public List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException {
-        File saveFile = new File(savePath);
-        if (!saveFile.exists())
-            return Collections.EMPTY_LIST;
-        else
-            return loadTodoJob(saveFile);
-    }
 
     @Override
     public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
@@ -110,51 +97,18 @@ public class IOHandlerImpl implements IOHandler {
         return config;
     }
 
-    private void writeTodoJob(List<TodoJob> jobs, String savePath) {
-        File saveFile = new File(savePath);
-        try {
-            if (!saveFile.exists()) {
-                saveFile.createNewFile();
-            }
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile, StandardCharsets.UTF_8))) {
-                objectMapper.writeValue(bw, jobs);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
     @Override
-    public void writeTodoJobSync(List<TodoJob> jobs, String savePath) {
-        writeTodoJob(jobs, savePath);
-    }
-
-    @Override
-    public void writeTodoJobAsync(List<TodoJob> jobs, String savePath) {
-        CompletableFuture.runAsync(() -> {
-            writeTodoJob(jobs, savePath);
-        });
-    }
-
-    @Override
-    public void exportTodoJobAsync(List<TodoJob> jobs, File file, Language lang) {
+    public <T> void writeObjectsAsync(List<T> objs, ObjectPrinter<T> objectPrinter, File file) {
         if (file == null)
             return;
         CompletableFuture.runAsync(() -> {
             try {
                 if (!file.exists())
                     file.createNewFile();
-                String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, lang);
-                String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, lang);
+
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
-                    for (TodoJob j : jobs) {
-                        String status = j.isDone() ? done : inProgress;
-                        bw.write(String.format("[%s] %s-%s '%s'\n",
-                                status,
-                                toMMddUUUUSlash(j.getExpectedEndDate()),
-                                j.getActualEndDate() != null ? toMMddUUUUSlash(j.getActualEndDate()) : "__/__/____",
-                                formatName(j.getName())));
+                    for (T t : objs) {
+                        bw.write(objectPrinter.printObject(t));
                     }
                 }
             } catch (IOException e) {
@@ -163,9 +117,6 @@ public class IOHandlerImpl implements IOHandler {
         });
     }
 
-    private static String formatName(String name) {
-        return name.replaceAll("\\n", "\n  ");
-    }
 
     /**
      * Write the default configuration (text) into the file
@@ -218,11 +169,6 @@ public class IOHandlerImpl implements IOHandler {
     @Override
     public String getConfPath() {
         return getBasePath() + File.separator + IOHandlerImpl.CONF_NAME;
-    }
-
-    @Override
-    public boolean fileExists(String path) {
-        return Files.exists(Paths.get(path));
     }
 
     @Override

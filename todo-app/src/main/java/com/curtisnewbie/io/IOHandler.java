@@ -1,7 +1,6 @@
 package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
-import com.curtisnewbie.config.Language;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 
@@ -17,14 +16,6 @@ import java.util.List;
  * @author yongjie.zhuang
  */
 public interface IOHandler {
-
-    /**
-     * Load a list of {@code TodoJob} from disk
-     *
-     * @param savePath path to where the job-list is saved
-     * @return a list of {@code TodoJob}
-     */
-    List<TodoJob> loadTodoJob(String savePath) throws FailureToLoadException;
 
     /**
      * Load a list of {@code TodoJob} from disk
@@ -52,41 +43,18 @@ public interface IOHandler {
     Config readConfig();
 
     /**
-     * Save the job list to file (that can be loaded later on) in a synchronous way
+     * Writer list of objects to file in an asynchronous way
      *
-     * @param jobs     job-list
-     * @param savePath path to where the job-list is saved
+     * @param objs          objects
+     * @param objectPrinter printer of the given objects
+     * @param file          file that the jobs exported to
      */
-    void writeTodoJobSync(List<TodoJob> jobs, String savePath);
-
-    /**
-     * Save the job list to file (that can be loaded later on) in an asynchronous way
-     *
-     * @param jobs     job-list
-     * @param savePath path to where the job-list is saved
-     */
-    void writeTodoJobAsync(List<TodoJob> jobs, String savePath);
-
-    /**
-     * Export job list (in a human-readable form) to file asynchronously
-     *
-     * @param jobs job-list
-     * @param file file that the jobs exported to
-     * @param lang the language to use
-     */
-    void exportTodoJobAsync(List<TodoJob> jobs, File file, Language lang);
+    <T> void writeObjectsAsync(List<T> objs, ObjectPrinter<T> objectPrinter, File file);
 
     /**
      * Get Conf file path
      */
     String getConfPath();
-
-    /**
-     * Check if the file exists
-     *
-     * @param path file path
-     */
-    boolean fileExists(String path);
 
     /**
      * Read file in resources/ folder as string
