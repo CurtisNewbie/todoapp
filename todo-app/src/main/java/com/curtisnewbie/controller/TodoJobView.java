@@ -20,13 +20,15 @@ import javafx.scene.text.Text;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
 import static com.curtisnewbie.util.MarginFactory.*;
 
-// TODO fix the overly complicated or say problematic synchronization, model and view are mixed in a weired way
 
 /**
  * A "view" object representing a to-do job
@@ -35,7 +37,9 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 public class TodoJobView extends HBox {
     public static final int WIDTH_OTHER_THAN_TEXT = 290;
-    private final Object mutex = new Object();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock rlock = readWriteLock.readLock();
+    private final Lock wlock = readWriteLock.writeLock();
     private final String checkboxName;
     private final Label doneLabel;
 
@@ -122,74 +126,83 @@ public class TodoJobView extends HBox {
      * Set the {@link #expectedEndDate} as well as updating the label
      */
     public void setExpectedEndDate(LocalDate date) {
-        Objects.requireNonNull(date, "Expected End Date should never be null");
-        synchronized (mutex) {
+        wlock.lock();
+        try {
+            Objects.requireNonNull(date, "Expected End Date should never be null");
             this.expectedEndDate = date;
+            Platform.runLater(() -> {
+                this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
+            });
+        } finally {
+            wlock.unlock();
         }
-        Platform.runLater(() -> {
-            this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
-        });
     }
 
     /**
      * Set the {@link #actualEndDate} as well as updating the label
      */
     public void setActualEndDate(LocalDate date) {
-        synchronized (mutex) {
+        wlock.lock();
+        try {
             this.actualEndDate = date;
+            Platform.runLater(() -> {
+                if (date != null) {
+                    this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
+                } else {
+                    this.actualEndDateLabel.setText("");
+                    this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
+                }
+            });
+        } finally {
+            wlock.unlock();
         }
-        Platform.runLater(() -> {
-            if (date != null) {
-                this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
-            } else {
-                this.actualEndDateLabel.setText("");
-                this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
-            }
-        });
     }
 
     /**
      * Bind the wrapping width of text
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
-        synchronized (mutex) {
+        wlock.lock();
+        try {
             nameText.wrappingWidthProperty().bind(binding);
+        } finally {
+            wlock.unlock();
         }
     }
 
     public LocalDate getExpectedEndDate() {
-        synchronized (mutex) {
+        rlock.lock();
+        try {
             return this.expectedEndDate;
+        } finally {
+            rlock.unlock();
         }
     }
 
     public LocalDate getActualEndDate() {
-        synchronized (mutex) {
+        rlock.lock();
+        try {
             return this.actualEndDate;
+        } finally {
+            rlock.unlock();
         }
     }
 
     public void setName(String txt) {
-        synchronized (mutex) {
+        wlock.lock();
+        try {
             nameText.setText(txt);
-        }
-    }
-
-    public String getName() {
-        synchronized (mutex) {
-            return nameText.getText();
+        } finally {
+            wlock.unlock();
         }
     }
 
     public boolean isCheckboxSelected() {
-        synchronized (mutex) {
+        rlock.lock();
+        try {
             return doneCheckBox.isSelected();
-        }
-    }
-
-    public void setCheckboxSelected(boolean isSelected) {
-        synchronized (mutex) {
-            doneCheckBox.setSelected(isSelected);
+        } finally {
+            rlock.unlock();
         }
     }
 
@@ -199,15 +212,19 @@ public class TodoJobView extends HBox {
      * @return todoJob
      */
     public TodoJob createTodoJobCopy() {
-        TodoJob copy = new TodoJob();
-        copy.setId(idOfTodoJob);
-        synchronized (mutex) {
+        rlock.lock();
+
+        try {
+            TodoJob copy = new TodoJob();
+            copy.setId(idOfTodoJob);
             copy.setName(nameText.getText());
             copy.setDone(doneCheckBox.isSelected());
             copy.setExpectedEndDate(this.expectedEndDate);
             copy.setActualEndDate(this.actualEndDate);
+            return copy;
+        } finally {
+            rlock.unlock();
         }
-        return copy;
     }
 
     /**
@@ -219,20 +236,29 @@ public class TodoJobView extends HBox {
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
     public void registerCheckboxEventHandler(OnEvent onEvent) {
-        synchronized (mutex) {
+        wlock.lock();
+        try {
             if (doneCheckboxRegisteredCallback != null)
                 throw new EventHandlerAlreadyRegisteredException();
             this.doneCheckboxRegisteredCallback = onEvent;
+        } finally {
+            wlock.unlock();
         }
     }
 
     private void onCheckboxSelected(ActionEvent e) {
-        boolean isSelected = isCheckboxSelected();
-        setActualEndDate(isSelected ? LocalDate.now() : null);
-        updateGraphicOnJobStatus(isSelected);
+        wlock.lock();
+        try {
+            boolean isSelected = isCheckboxSelected();
+            setActualEndDate(isSelected ? LocalDate.now() : null);
+            updateGraphicOnJobStatus(isSelected);
+        } finally {
+            wlock.unlock();
+        }
         // this callback cannot be changed, no need to synchronise
         if (doneCheckboxRegisteredCallback != null)
             doneCheckboxRegisteredCallback.react();
+
     }
 
     /** Update graphic based on job's status */
@@ -247,9 +273,11 @@ public class TodoJobView extends HBox {
 
     /** make the internal checkbox not editable */
     public final void freeze() {
-        synchronized (mutex) {
-            if (!doneCheckBox.isDisable())
-                doneCheckBox.setDisable(true);
+        wlock.lock();
+        try {
+            doneCheckBox.setDisable(true);
+        } finally {
+            wlock.unlock();
         }
     }
 

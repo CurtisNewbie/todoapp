@@ -285,6 +285,7 @@ public class Controller implements Initializable {
      * This method is always executed within Javafx Thread
      * </p>
      */
+    //todo remove this
     private void sortListView() {
         Platform.runLater(() -> {
             listView.getItems().sort((a, b) -> {
