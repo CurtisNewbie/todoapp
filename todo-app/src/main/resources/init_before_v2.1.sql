@@ -1,4 +1,4 @@
--- script before V2.0 (i.e., before 12/JULY/2021)
+-- script before V2.1 (i.e., before 12/JULY/2021)
 CREATE TABLE IF NOT EXISTS todojob (
     id INTEGER PRIMARY KEY AUTOINCREMENT, -- "Primary key"
     name VARCHAR(255) NOT NULL,

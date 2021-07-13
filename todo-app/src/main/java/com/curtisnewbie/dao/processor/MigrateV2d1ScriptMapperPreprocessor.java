@@ -16,16 +16,16 @@ import java.util.logging.Logger;
 /**
  * Preprocessor that runs script to alter table DDL, and migrate data to new tables if necessary
  * <p>
- * This preprocessor is for pom version v2.0
+ * This preprocessor is for pom version v2.1
  * </p>
  *
  * @author yongjie.zhuang
  */
-public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
+public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
 
-    private static final Logger logger = Logger.getLogger(MigrateV2ScriptMapperPreprocessor.class.getName());
+    private static final Logger logger = Logger.getLogger(MigrateV2d1ScriptMapperPreprocessor.class.getName());
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
-    private final String MIGRATE_V2_SCRIPT = "migrate_v2.sql";
+    private final String MIGRATE_V2_SCRIPT = "migrate_v2.1.sql";
     private final String TODOJOB_TABLE_NAME = "todojob";
     private final Set<String> columnsAddedInV2 = new HashSet<>(Arrays.asList(
             "expected_end_date",
@@ -36,7 +36,7 @@ public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
     public void preprocessMapper(Mapper mapper) {
         Objects.requireNonNull(mapper);
 
-        logger.info("Checking whether we should migrate to V2.0");
+        logger.info("Checking whether we should migrate to V2.1");
         boolean needToMigrate = true;
         try {
             DatabaseMetaData meta = mapper.getDatabaseMetaData();
@@ -50,11 +50,11 @@ public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
                 }
             }
             if (needToMigrate) {
-                logger.info("Migrating to V2.0");
+                logger.info("Migrating to V2.1");
                 mapper.runScript(ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT));
             }
         } catch (Exception e) {
-            throw new IllegalStateException("Unable to migrate to V2.0 DDL", e);
+            throw new IllegalStateException("Unable to migrate to V2.1 DDL", e);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.curtisnewbie.dao;
 
 import com.curtisnewbie.dao.processor.InitialiseScriptMapperPreprocessor;
-import com.curtisnewbie.dao.processor.MigrateV2ScriptMapperPreprocessor;
+import com.curtisnewbie.dao.processor.MigrateV2d1ScriptMapperPreprocessor;
 
 import java.io.File;
 import java.sql.Connection;
@@ -22,7 +22,7 @@ public final class MapperFactory {
     private static final String DIR_NAME = "todo-app";
     private static final String DB_ABS_PATH;
     private static final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>(Arrays.asList(
-            new MigrateV2ScriptMapperPreprocessor(),
+            new MigrateV2d1ScriptMapperPreprocessor(),
             new InitialiseScriptMapperPreprocessor()
     ));
     private static final Connection conn;

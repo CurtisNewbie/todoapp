@@ -1,4 +1,4 @@
--- migrate to V2.0 12/JULY/2021
+-- migrate to V2.1 12/JULY/2021
 ALTER TABLE todojob RENAME TO old_todojob;
 
 CREATE TABLE IF NOT EXISTS todojob (
