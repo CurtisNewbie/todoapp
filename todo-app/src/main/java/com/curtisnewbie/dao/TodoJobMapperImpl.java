@@ -35,8 +35,8 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
-                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5).getTime()));
                 return job;
             }
             return null;
@@ -65,8 +65,8 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
-                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5).getTime()));
                 result.add(job);
             }
             timer.stop();
@@ -94,8 +94,8 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
-                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5).getTime()));
                 result.add(job);
             }
             return result;
@@ -120,8 +120,8 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
-                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4)));
-                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5)));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setActualEndDate(DateUtil.localDateOf(rs.getDate(5).getTime()));
                 result.add(job);
             }
             timer.stop();

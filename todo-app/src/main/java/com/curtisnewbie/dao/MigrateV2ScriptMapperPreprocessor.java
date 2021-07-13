@@ -24,8 +24,8 @@ public class MigrateV2ScriptMapperPreprocessor implements MapperPreprocessor {
     private final String MIGRATE_V2_SCRIPT = "migrate_v2.sql";
     private final String TODOJOB_TABLE_NAME = "todojob";
     private final Set<String> columnsAddedInV2 = new HashSet<>(Arrays.asList(
-            "expected_start_date",
-            "actual_finish_date"
+            "expected_end_date",
+            "actual_end_date"
     ));
 
     @Override
