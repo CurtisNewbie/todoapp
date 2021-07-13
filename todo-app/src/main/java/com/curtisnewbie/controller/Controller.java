@@ -251,9 +251,7 @@ public class Controller implements Initializable {
     private void addTodoJobView(TodoJobView jobView) {
         jobView.registerCheckboxEventHandler(() -> {
             int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
-            if (c > 0)
-                sortListView();
-            else
+            if (c <= 0)
                 toastError("Failed to update to-do, please try again");
         });
         Platform.runLater(() -> {
@@ -268,33 +266,9 @@ public class Controller implements Initializable {
     // only used on application startup, or loading read-only todos
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
-            jobView.registerCheckboxEventHandler(() -> {
-                sortListView();
-            });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
             listView.getItems().add(jobView);
-        });
-    }
-
-    /**
-     * <p>
-     * Sort the {@code ListView} based on 1) whether they are finished and 2) the date when they are created
-     * </p>
-     * <p>
-     * This method is always executed within Javafx Thread
-     * </p>
-     */
-    //todo remove this
-    private void sortListView() {
-        Platform.runLater(() -> {
-            listView.getItems().sort((a, b) -> {
-                int res = Boolean.compare(a.isCheckboxSelected(), b.isCheckboxSelected());
-                if (res != 0)
-                    return res;
-                else
-                    return b.getExpectedEndDate().compareTo(a.getExpectedEndDate());
-            });
         });
     }
 
@@ -420,7 +394,6 @@ public class Controller implements Initializable {
                 }
                 newTodo.setId(id);
                 addTodoJobView(new TodoJobView(newTodo, environment));
-                sortListView();
             }
         });
     }
@@ -432,19 +405,19 @@ public class Controller implements Initializable {
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView jobView = listView.getItems().get(selected);
+                TodoJob old = jobView.createTodoJobCopy();
                 TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
                         jobView.createTodoJobCopy());
                 dialog.setTitle(UPDATE_TODO_NAME_TITLE);
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
-                    var job = result.get();
-                    job.setDone(jobView.isCheckboxSelected());
-                    job.setId(jobView.getIdOfTodoJob());
-                    if (todoJobMapper.updateById(job) > 0) {
-                        jobView.setName(result.get().getName());
-                        jobView.setExpectedEndDate(result.get().getExpectedEndDate());
-                        jobView.setActualEndDate(result.get().getActualEndDate());
-                        sortListView();
+                    var updated = result.get();
+                    updated.setDone(old.isDone());
+                    updated.setId(old.getId());
+                    if (todoJobMapper.updateById(updated) > 0) {
+                        jobView.setName(updated.getName());
+                        jobView.setExpectedEndDate(updated.getExpectedEndDate());
+                        jobView.setActualEndDate(updated.getActualEndDate());
                     } else {
                         toastError("Failed to update to-do, please try again");
                     }
@@ -468,7 +441,7 @@ public class Controller implements Initializable {
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
-                            int id = listView.getItems().get(selected).getIdOfTodoJob();
+                            int id = listView.getItems().get(selected).getTodoJobId();
                             if (todoJobMapper.deleteById(id) <= 0) {
                                 toastInfo("Failed to delete to-do, please try again");
                             } else {

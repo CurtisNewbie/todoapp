@@ -20,9 +20,6 @@ import javafx.scene.text.Text;
 
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
@@ -36,17 +33,17 @@ import static com.curtisnewbie.util.MarginFactory.*;
  * @author yongjie.zhuang
  */
 public class TodoJobView extends HBox {
+
     public static final int WIDTH_OTHER_THAN_TEXT = 290;
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock rlock = readWriteLock.readLock();
-    private final Lock wlock = readWriteLock.writeLock();
-    private final String checkboxName;
+
     private final Label doneLabel;
 
+    private final Object mutex = new Object();
+
     /**
-     * The id of the todojob
+     * Model inside this view
      */
-    private final Integer idOfTodoJob;
+    private TodoJob model;
 
     /**
      * The name of this {@code TodoJob}
@@ -54,19 +51,9 @@ public class TodoJobView extends HBox {
     private final Text nameText;
 
     /**
-     * Expected end date
-     */
-    private LocalDate expectedEndDate;
-
-    /**
      * Expected end date in {@link Label}
      */
     private final Label expectedEndDateLabel;
-
-    /**
-     * Actual end date
-     */
-    private LocalDate actualEndDate;
 
     /**
      * Actual end date in {@link Label}
@@ -90,15 +77,15 @@ public class TodoJobView extends HBox {
      * @param todoJob
      */
     public TodoJobView(TodoJob todoJob, Environment environment) {
+        Objects.requireNonNull(todoJob);
+        Objects.requireNonNull(environment);
+
         this.environment = environment;
-        this.idOfTodoJob = todoJob.getId();
-        this.checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
+        this.model = new TodoJob(todoJob);
         this.doneLabel = new Label();
         this.nameText = TextFactory.getClassicText(todoJob.getName());
         this.expectedEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getExpectedEndDate()));
-        this.expectedEndDate = todoJob.getExpectedEndDate();
-        this.actualEndDate = todoJob.getActualEndDate();
-        if (actualEndDate != null) {
+        if (this.model.getActualEndDate() != null) {
             this.actualEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getActualEndDate()));
         } else {
             this.actualEndDateLabel = classicLabel("");
@@ -106,6 +93,8 @@ public class TodoJobView extends HBox {
         }
         this.doneCheckBox.setSelected(todoJob.isDone());
         this.doneCheckBox.setOnAction(this::onCheckboxSelected);
+        String checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
+        Objects.requireNonNull(checkboxName);
         this.getChildren()
                 .addAll(doneLabel,
                         fixedMargin(3),
@@ -122,29 +111,20 @@ public class TodoJobView extends HBox {
         this.requestFocus();
     }
 
-    /**
-     * Set the {@link #expectedEndDate} as well as updating the label
-     */
     public void setExpectedEndDate(LocalDate date) {
-        wlock.lock();
-        try {
-            Objects.requireNonNull(date, "Expected End Date should never be null");
-            this.expectedEndDate = date;
+        Objects.requireNonNull(date, "Expected End Date should never be null");
+
+        synchronized (model) {
+            this.model.setExpectedEndDate(date);
             Platform.runLater(() -> {
                 this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
             });
-        } finally {
-            wlock.unlock();
         }
     }
 
-    /**
-     * Set the {@link #actualEndDate} as well as updating the label
-     */
     public void setActualEndDate(LocalDate date) {
-        wlock.lock();
-        try {
-            this.actualEndDate = date;
+        synchronized (model) {
+            this.model.setActualEndDate(date);
             Platform.runLater(() -> {
                 if (date != null) {
                     this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
@@ -153,8 +133,6 @@ public class TodoJobView extends HBox {
                     this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
                 }
             });
-        } finally {
-            wlock.unlock();
         }
     }
 
@@ -162,47 +140,23 @@ public class TodoJobView extends HBox {
      * Bind the wrapping width of text
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
-        wlock.lock();
-        try {
+        synchronized (mutex) {
             nameText.wrappingWidthProperty().bind(binding);
-        } finally {
-            wlock.unlock();
         }
     }
 
-    public LocalDate getExpectedEndDate() {
-        rlock.lock();
-        try {
-            return this.expectedEndDate;
-        } finally {
-            rlock.unlock();
+    public void setName(String name) {
+        synchronized (model) {
+            this.model.setName(name);
+            Platform.runLater(() -> {
+                nameText.setText(name);
+            });
         }
     }
 
-    public LocalDate getActualEndDate() {
-        rlock.lock();
-        try {
-            return this.actualEndDate;
-        } finally {
-            rlock.unlock();
-        }
-    }
-
-    public void setName(String txt) {
-        wlock.lock();
-        try {
-            nameText.setText(txt);
-        } finally {
-            wlock.unlock();
-        }
-    }
-
-    public boolean isCheckboxSelected() {
-        rlock.lock();
-        try {
-            return doneCheckBox.isSelected();
-        } finally {
-            rlock.unlock();
+    public boolean isDone() {
+        synchronized (model) {
+            return this.model.isDone();
         }
     }
 
@@ -212,18 +166,8 @@ public class TodoJobView extends HBox {
      * @return todoJob
      */
     public TodoJob createTodoJobCopy() {
-        rlock.lock();
-
-        try {
-            TodoJob copy = new TodoJob();
-            copy.setId(idOfTodoJob);
-            copy.setName(nameText.getText());
-            copy.setDone(doneCheckBox.isSelected());
-            copy.setExpectedEndDate(this.expectedEndDate);
-            copy.setActualEndDate(this.actualEndDate);
-            return copy;
-        } finally {
-            rlock.unlock();
+        synchronized (model) {
+            return new TodoJob(model);
         }
     }
 
@@ -236,29 +180,22 @@ public class TodoJobView extends HBox {
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
     public void registerCheckboxEventHandler(OnEvent onEvent) {
-        wlock.lock();
-        try {
+        synchronized (mutex) {
             if (doneCheckboxRegisteredCallback != null)
                 throw new EventHandlerAlreadyRegisteredException();
             this.doneCheckboxRegisteredCallback = onEvent;
-        } finally {
-            wlock.unlock();
         }
     }
 
     private void onCheckboxSelected(ActionEvent e) {
-        wlock.lock();
-        try {
-            boolean isSelected = isCheckboxSelected();
-            setActualEndDate(isSelected ? LocalDate.now() : null);
-            updateGraphicOnJobStatus(isSelected);
-        } finally {
-            wlock.unlock();
+        synchronized (model) {
+            final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
+            setActualEndDate(isTaskDone ? LocalDate.now() : null);
+            updateGraphicOnJobStatus(isTaskDone);
         }
         // this callback cannot be changed, no need to synchronise
         if (doneCheckboxRegisteredCallback != null)
             doneCheckboxRegisteredCallback.react();
-
     }
 
     /** Update graphic based on job's status */
@@ -273,15 +210,14 @@ public class TodoJobView extends HBox {
 
     /** make the internal checkbox not editable */
     public final void freeze() {
-        wlock.lock();
-        try {
+        Platform.runLater(() -> {
             doneCheckBox.setDisable(true);
-        } finally {
-            wlock.unlock();
-        }
+        });
     }
 
-    public Integer getIdOfTodoJob() {
-        return idOfTodoJob;
+    public Integer getTodoJobId() {
+        synchronized (model) {
+            return model.getId();
+        }
     }
 }
