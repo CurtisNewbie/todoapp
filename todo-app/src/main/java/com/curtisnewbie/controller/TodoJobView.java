@@ -21,6 +21,7 @@ import javafx.scene.text.Text;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
 import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
@@ -84,9 +85,9 @@ public class TodoJobView extends HBox {
         this.model = new TodoJob(todoJob);
         this.doneLabel = new Label();
         this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.expectedEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getExpectedEndDate()));
+        this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(todoJob.getExpectedEndDate()));
         if (this.model.getActualEndDate() != null) {
-            this.actualEndDateLabel = classicLabel(toMMddUUUUSlash(todoJob.getActualEndDate()));
+            this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(todoJob.getActualEndDate()));
         } else {
             this.actualEndDateLabel = classicLabel("");
             this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());
@@ -117,7 +118,7 @@ public class TodoJobView extends HBox {
         synchronized (model) {
             this.model.setExpectedEndDate(date);
             Platform.runLater(() -> {
-                this.expectedEndDateLabel.setText(toMMddUUUUSlash(date));
+                this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
             });
         }
     }
@@ -127,7 +128,7 @@ public class TodoJobView extends HBox {
             this.model.setActualEndDate(date);
             Platform.runLater(() -> {
                 if (date != null) {
-                    this.actualEndDateLabel.setText(toMMddUUUUSlash(date));
+                    this.actualEndDateLabel.setText(toDDmmUUUUSlash(date));
                 } else {
                     this.actualEndDateLabel.setText("");
                     this.actualEndDateLabel.prefWidthProperty().bind(this.expectedEndDateLabel.widthProperty());

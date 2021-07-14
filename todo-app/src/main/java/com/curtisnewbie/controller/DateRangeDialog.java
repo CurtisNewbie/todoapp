@@ -93,7 +93,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
             return;
         earliestDateIsShown = true;
 
-        Button earliestBtn = new Button("Earliest: " + DateUtil.toMMddUUUUSlash(d));
+        Button earliestBtn = new Button("Earliest: " + DateUtil.toDDmmUUUUSlash(d));
         grid.add(wrapWithPadding(earliestBtn, new Insets(1, 0, 5, 2)), 1, 1);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(d);
@@ -112,7 +112,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
             return;
         latestDateIsShown = true;
 
-        Button latestBtn = new Button("Latest: " + DateUtil.toMMddUUUUSlash(d));
+        Button latestBtn = new Button("Latest: " + DateUtil.toDDmmUUUUSlash(d));
         grid.add(wrapWithPadding(latestBtn, new Insets(1, 2, 5, 2)), 2, 1);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(d);

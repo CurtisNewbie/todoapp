@@ -6,6 +6,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 
+import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
 import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 
 /**
@@ -31,8 +32,8 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         int width = environment.getLanguage().equals(Language.ENG) ? 13 : 5;
         return String.format("%-" + width + "s Expected: %s - Actual: %s '%s'\n",
                 "[" + status + "]",
-                toMMddUUUUSlash(todoJob.getExpectedEndDate()),
-                todoJob.getActualEndDate() != null ? toMMddUUUUSlash(todoJob.getActualEndDate()) : "__/__/____",
+                toDDmmUUUUSlash(todoJob.getExpectedEndDate()),
+                todoJob.getActualEndDate() != null ? toDDmmUUUUSlash(todoJob.getActualEndDate()) : "__/__/____",
                 formatName(todoJob.getName()));
     }
 
