@@ -21,14 +21,14 @@ public class SimpleScriptRunner implements ScriptRunner {
         if (script == null || script.isEmpty())
             return;
 
-        String[] seg = script.split("\\n");
+        String[] lines = script.split("\\n");
         StringBuilder sb = new StringBuilder();
-        for (String s : seg) {
-            s = extractNonCommentedPart(s.trim());
-            if (s.isEmpty())
+        for (String line : lines) {
+            line = removeComment(line.trim());
+            if (line.isEmpty())
                 continue;
             else
-                sb.append(SPACE).append(s);
+                sb.append(SPACE).append(line);
         }
 
         String[] commands = sb.toString().split(";");
@@ -44,7 +44,7 @@ public class SimpleScriptRunner implements ScriptRunner {
         }
     }
 
-    String extractNonCommentedPart(String s) {
+    String removeComment(String s) {
         int index = s.indexOf(COMMENT_PREFIX);
         if (index == -1)
             return s;
