@@ -158,9 +158,21 @@ public class Controller implements Initializable {
                 nextPageBtn, MarginFactory.fixedMargin(10));
 
         // load the first page
-        CompletableFuture.runAsync(
-                this::loadCurrPage
-        );
+        CompletableFuture.runAsync(() -> {
+            if (todoJobMapper.hasRecord()) {
+                this.loadCurrPage();
+            } else {
+                TodoJob welcomeTodo = new TodoJob();
+                welcomeTodo.setName("Welcome using this TODO app! :D");
+                welcomeTodo.setExpectedEndDate(LocalDate.now());
+                welcomeTodo.setDone(false);
+                Integer id = todoJobMapper.insert(welcomeTodo);
+                if (id != 0) {
+                    welcomeTodo.setId(id);
+                    addTodoJobView(new TodoJobView(welcomeTodo, environment));
+                }
+            }
+        });
     }
 
     private void loadNextPage() {
