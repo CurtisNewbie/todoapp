@@ -406,6 +406,7 @@ public class Controller implements Initializable {
                 newTodo.setId(id);
                 addTodoJobView(new TodoJobView(newTodo, environment));
             }
+            loadCurrPage();
         });
     }
 
@@ -434,6 +435,7 @@ public class Controller implements Initializable {
                     }
                 }
             }
+            loadCurrPage();
         });
     }
 
@@ -465,6 +467,7 @@ public class Controller implements Initializable {
                             }
                         });
             }
+            loadCurrPage();
         });
     }
 
