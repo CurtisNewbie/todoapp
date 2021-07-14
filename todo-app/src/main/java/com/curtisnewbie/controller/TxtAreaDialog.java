@@ -1,5 +1,6 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.util.DialogUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -73,7 +74,7 @@ public class TxtAreaDialog extends Dialog<String> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             return data == ButtonBar.ButtonData.OK_DONE ? textArea.getText() : null;
         });
-
+        DialogUtil.disableHeader(this);
     }
 
     static Label createContentLabel(String text) {

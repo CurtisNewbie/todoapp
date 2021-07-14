@@ -1,6 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.util.DateUtil;
+import com.curtisnewbie.util.DialogUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -69,6 +70,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
                 return null;
             }
         });
+        DialogUtil.disableHeader(this);
     }
 
     static javafx.scene.control.Label createContentLabel(String text) {

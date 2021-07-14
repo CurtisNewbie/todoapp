@@ -1,6 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.dao.TodoJob;
+import com.curtisnewbie.util.DialogUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -79,6 +80,8 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         registerDatePickerEventListener();
         // setup result converter
         setupResultConverter();
+
+        DialogUtil.disableHeader(this);
     }
 
     static Label createContentLabel(String text) {

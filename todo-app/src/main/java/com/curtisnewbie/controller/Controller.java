@@ -83,6 +83,10 @@ public class Controller implements Initializable {
     @FXML
     private HBox pageControlHBox;
 
+    private final Object mutex = new Object();
+
+    private volatile Dialog<?> aboutDialog;
+
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
 
@@ -544,16 +548,22 @@ public class Controller implements Initializable {
     }
 
     private void onAboutHandler(ActionEvent e) {
+        if (aboutDialog == null) {
+            synchronized (mutex) {
+                aboutDialog = new Alert(Alert.AlertType.INFORMATION);
+                GridPane gPane = new GridPane();
+                aboutDialog.setTitle(ABOUT_TITLE);
+                gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
+                gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
+                gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
+                gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
+                aboutDialog.getDialogPane().setContent(gPane);
+                DialogUtil.disableHeader(aboutDialog);
+            }
+        }
+
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            GridPane gPane = new GridPane();
-            alert.setTitle(ABOUT_TITLE);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
-            gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
-            gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
-            alert.getDialogPane().setContent(gPane);
-            alert.show();
+            aboutDialog.show();
         });
     }
 
