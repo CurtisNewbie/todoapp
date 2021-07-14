@@ -29,7 +29,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private final DialogType type;
     private Label contextLabel;
     private TextArea textArea;
-    private DatePicker expectedEndDatePicker = new DatePicker();
+    private DatePicker expectedEndDatePicker;
     private LocalDate expectedEndDate;
     private DatePicker actualEndDatePicker;
     private LocalDate actualEndDate;
@@ -51,6 +51,9 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         if (type == DialogType.UPDATE_TODO_JOB && !optionalTodoJob.isPresent())
             throw new IllegalArgumentException("Parameter todoJob is mandatory when updating an existing record");
 
+        this.expectedEndDatePicker = new DatePicker();
+        this.expectedEndDatePicker.setConverter(new LocalDateStringConverter());
+
         final DialogPane dialogPane = getDialogPane();
         setupContentLabel(dialogPane);
 
@@ -66,6 +69,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
             // if we are updating an todojob & the actualEndDate is present
             if (shouldDisplayActualEndDatePicker()) {
                 this.actualEndDatePicker = new DatePicker();
+                this.actualEndDatePicker.setConverter(new LocalDateStringConverter());
                 this.actualEndDate = optionalTodoJob.get().getActualEndDate();
                 this.actualEndDatePicker.setValue(actualEndDate);
             }

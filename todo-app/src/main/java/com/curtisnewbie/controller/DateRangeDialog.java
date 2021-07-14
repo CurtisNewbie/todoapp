@@ -33,7 +33,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
     public DateRangeDialog(LocalDate start, LocalDate end) {
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();
+        this.startDatePicker.setConverter(new LocalDateStringConverter());
         this.endDatePicker = new DatePicker();
+        this.endDatePicker.setConverter(new LocalDateStringConverter());
 
         // -- label
         label = createContentLabel(dialogPane.getContentText());
