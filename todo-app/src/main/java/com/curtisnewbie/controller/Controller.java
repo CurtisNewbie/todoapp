@@ -341,21 +341,26 @@ public class Controller implements Initializable {
     }
 
     private void toastInfo(String msg) {
-        Platform.runLater(() -> {
-            var alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setResizable(true);
-            Label label = new Label(msg);
-            alert.getDialogPane().setContent(label);
-            alert.show();
-        });
+        Objects.requireNonNull(msg);
+        _toast(msg, Alert.AlertType.INFORMATION);
     }
 
     private void toastError(String msg) {
+        Objects.requireNonNull(msg);
+        msg = "ERROR: " + msg;
+        _toast(msg, Alert.AlertType.ERROR);
+    }
+
+    private void _toast(String msg, Alert.AlertType type) {
+        Objects.requireNonNull(msg);
+        Objects.requireNonNull(type);
+
         Platform.runLater(() -> {
-            var alert = new Alert(Alert.AlertType.ERROR);
+            var alert = new Alert(type);
             alert.setResizable(true);
             Label label = new Label(msg);
             alert.getDialogPane().setContent(label);
+            DialogUtil.disableHeader(alert);
             alert.show();
         });
     }
