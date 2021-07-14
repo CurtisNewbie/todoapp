@@ -448,6 +448,7 @@ public class Controller implements Initializable {
             if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setContentText(DELETE_TITLE);
+                DialogUtil.disableHeader(alert);
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
