@@ -56,7 +56,6 @@ public class Controller implements Initializable {
     private static final int PADDING = 55;
 
     private final String CHOOSE_LANGUAGE_TITLE;
-    private final String BACKUP_TODO_TITLE;
     private final String APPEND_TODO_TITLE;
     private final String READ_TODO_TITLE;
     private final String EXPORT_TODO_TITLE;
@@ -66,9 +65,9 @@ public class Controller implements Initializable {
     private final String UPDATE_TODO_NAME_TITLE;
     private final String ADD_TITLE;
     private final String DELETE_TITLE;
+    private final String DELETE_CONFIRM_TEXT;
     private final String UPDATE_TITLE;
     private final String COPY_TITLE;
-    private final String BACKUP_TITLE;
     private final String EXPORT_TITLE;
     private final String APPEND_TITLE;
     private final String ABOUT_TITLE;
@@ -120,7 +119,6 @@ public class Controller implements Initializable {
         AUTHOR_ABOUT = props.getCommonProperty(APP_AUTHOR);
         CHOOSE_LANGUAGE_TITLE = props.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY);
         EXPORT_TODO_TITLE = props.getLocalizedProperty(TITLE_EXPORT_TODO_KEY);
-        BACKUP_TODO_TITLE = props.getLocalizedProperty(TITLE_BACKUP_TODO_KEY);
         APPEND_TODO_TITLE = props.getLocalizedProperty(TITLE_APPEND_TODO_KEY);
         READ_TODO_TITLE = props.getLocalizedProperty(TITLE_READ_TODO_KEY);
         SAVE_PATH_TITLE = props.getLocalizedProperty(TITLE_SAVE_PATH_KEY);
@@ -131,11 +129,11 @@ public class Controller implements Initializable {
         DELETE_TITLE = props.getLocalizedProperty(TITLE_DELETE_KEY);
         UPDATE_TITLE = props.getLocalizedProperty(TITLE_UPDATE_KEY);
         COPY_TITLE = props.getLocalizedProperty(TITLE_COPY_KEY);
-        BACKUP_TITLE = props.getLocalizedProperty(TITLE_BACKUP_KEY);
         EXPORT_TITLE = props.getLocalizedProperty(TITLE_EXPORT_KEY);
         APPEND_TITLE = props.getLocalizedProperty(TITLE_APPEND_KEY);
         LOAD_TITLE = props.getLocalizedProperty(TITLE_LOAD_KEY);
         ABOUT_TITLE = props.getLocalizedProperty(TITLE_ABOUT_KEY);
+        DELETE_CONFIRM_TEXT = props.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY);
     }
 
     @Override
@@ -450,7 +448,8 @@ public class Controller implements Initializable {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(DELETE_TITLE);
+                alert.setTitle(DELETE_TITLE);
+                alert.setContentText(DELETE_CONFIRM_TEXT);
                 DialogUtil.disableHeader(alert);
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)

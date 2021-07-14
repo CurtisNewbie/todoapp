@@ -20,6 +20,7 @@ public final class PropertyConstants {
     public static final String TEXT_IN_PROGRESS_KEY = "text.in.progress";
     public static final String TEXT_SAVE_ON_CLOSE_KEY = "text.save.choice";
     public static final String TEXT_SAVED_KEY = "text.saved";
+    public static final String TEXT_DELETE_CONFIRM_KEY = "text.delete.confirm";
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";
