@@ -33,7 +33,7 @@ E.g.,
 ### Example of Exported File In A Human-Readable Form 
 
 ```
-[IN PROGRESS] 07/12/2021-__/__/____ 'Eat a banana'
-[IN PROGRESS] 07/12/2021-__/__/____ 'Eat an apple'
-[FINISHED]    07/12/2021-07/12/2021 'Do something important'
+[IN PROGRESS] Expected: 14/07/2021 - Actual: __/__/____ 'Eat a banana'
+[IN PROGRESS] Expected: 14/07/2021 - Actual: __/__/____ 'Eat an apple'
+[FINISHED]    Expected: 14/07/2021 - Actual: 14/07/2021 'Do something important'
 ```
