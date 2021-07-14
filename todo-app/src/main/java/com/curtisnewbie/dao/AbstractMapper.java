@@ -5,8 +5,6 @@ import com.curtisnewbie.util.StrUtil;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.logging.Logger;
 
 /**
  * Abstract implementation of Mapper
@@ -15,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class AbstractMapper implements Mapper {
 
-    private static final Logger logger = Logger.getLogger(AbstractMapper.class.getName());
+    private final ScriptRunner scriptRunner = new SimpleScriptRunner();
     protected final Connection connection;
 
     public AbstractMapper(Connection connection) {
@@ -27,11 +25,10 @@ public class AbstractMapper implements Mapper {
         if (StrUtil.isEmpty(script)) {
             throw new IllegalArgumentException("Script is empty or null, unable to execute it.");
         }
-        logger.info("Execute script: \n" + script + "\n");
-        try (Statement stmt = connection.createStatement();) {
-            stmt.execute(script);
+        try {
+            scriptRunner.runScript(connection, script);
         } catch (SQLException e) {
-            throw new IllegalStateException("Unable to run script: " + script, e);
+            throw new IllegalStateException(e);
         }
     }
 
