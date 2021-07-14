@@ -40,6 +40,18 @@ public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
         boolean needToMigrate = true;
         try {
             DatabaseMetaData meta = mapper.getDatabaseMetaData();
+            // check do we have the table at all
+            boolean hasTable = false;
+            ResultSet tables = meta.getTables(null, null, TODOJOB_TABLE_NAME, null);
+            while (tables.next()) {
+                String tableName = tables.getString(3);
+                if (tableName.equals(TODOJOB_TABLE_NAME)) {
+                    hasTable = true;
+                }
+            }
+            if (!hasTable)
+                return;
+
             ResultSet columns = meta.getColumns(null, null, TODOJOB_TABLE_NAME, null);
             while (columns.next()) {
                 String colName = columns.getString(4);
