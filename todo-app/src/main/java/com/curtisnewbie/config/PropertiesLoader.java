@@ -2,8 +2,9 @@ package com.curtisnewbie.config;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * <p>
@@ -12,66 +13,53 @@ import java.util.Properties;
  *
  * @author yongjie.zhuang
  */
-public class PropertiesLoader {
+public final class PropertiesLoader {
 
-    private static final String PROPERTIES_FILE = "application.properties";
+    private static final String COMMON_PROPERTIES = "application.properties";
     private static final PropertiesLoader INSTANCE = new PropertiesLoader();
 
-    private final Properties properties;
+    private Properties commonProp = new Properties();
+    private ResourceBundle localizedProp;
 
     private PropertiesLoader() {
-        this.properties = new Properties();
         try {
-            this.properties
-                    .load(new InputStreamReader(PropertiesLoader.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE), "UTF-8"));
+            this.commonProp.load(
+                    new InputStreamReader(PropertiesLoader.class.getClassLoader().getResourceAsStream(COMMON_PROPERTIES),
+                            "UTF-8")
+            );
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 
     /**
-     * Get property
+     * Load Resource bundle
+     *
+     * @param bundleBaseName bundle's base name
+     * @param locale         locale to be used
+     */
+    public void loadResourceBundle(String bundleBaseName, Locale locale) {
+        this.localizedProp = ResourceBundle.getBundle(bundleBaseName, locale);
+    }
+
+    /**
+     * Get common property
      *
      * @param key key
      * @return value (which may be null)
      */
-    public String get(String key) {
-        return properties.getProperty(key);
+    public String getCommonProperty(String key) {
+        return commonProp.getProperty(key);
     }
 
     /**
-     * Get property
+     * Get localized property
      *
-     * @param keySeg array of strings that will be concatenated as a single key
+     * @param key key for language-related properties
      * @return value (which may be null)
      */
-    private String _get(String... keySeg) {
-        if (keySeg.length == 0)
-            return null;
-        StringBuilder sb = new StringBuilder();
-        Arrays.stream(keySeg).forEach(e -> sb.append(e));
-        return properties.getProperty(sb.toString());
-    }
-
-    /**
-     * Get property
-     *
-     * @param key  key for language-related properties
-     * @param lang language
-     * @return value (which may be null)
-     */
-    public String get(String key, Language lang) {
-        return _get(key, lang.key);
-    }
-
-    /**
-     * Get property as boolean
-     */
-    public boolean getBool(String key) {
-        String v = get(key);
-        if (v == null)
-            throw new IllegalStateException(key + " not found");
-        return Boolean.valueOf(v);
+    public String getLocalizedProperty(String key) {
+        return localizedProp.getString(key);
     }
 
     /**

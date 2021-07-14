@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
-import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
 import static com.curtisnewbie.util.MarginFactory.*;
@@ -94,7 +93,7 @@ public class TodoJobView extends HBox {
         }
         this.doneCheckBox.setSelected(todoJob.isDone());
         this.doneCheckBox.setOnAction(this::onCheckboxSelected);
-        String checkboxName = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
+        String checkboxName = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
         Objects.requireNonNull(checkboxName);
         this.getChildren()
                 .addAll(doneLabel,

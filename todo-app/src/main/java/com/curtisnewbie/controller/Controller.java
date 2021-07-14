@@ -51,6 +51,8 @@ import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
  */
 public class Controller implements Initializable {
 
+    private static final Logger logger = Logger.getLogger(Controller.class.getName());
+
     private static final int PADDING = 55;
 
     private final String CHOOSE_LANGUAGE_TITLE;
@@ -97,42 +99,43 @@ public class Controller implements Initializable {
     private int currPage = 1;
     private Object currPageLock = new Object();
     private Label currPageLabel = LabelFactory.classicLabel("1");
-    private static final Logger logger = Logger.getLogger(Controller.class.getName());
+
 
     public Controller() {
         // read configuration from file
         Config config = ioHandler.readConfig();
 
-        // get properties loader, who has already loaded all properties
-        PropertiesLoader props = PropertiesLoader.getInstance();
-
         // setup environment
         this.environment = new Environment(config);
+
+        // get properties loader singleton
+        PropertiesLoader props = PropertiesLoader.getInstance();
+        props.loadResourceBundle("text", environment.getLanguage().locale);
 
         // setup todojob's printer
         this.todojobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
 
         // load text and titles based on configured language
-        GITHUB_ABOUT = props.get(APP_GITHUB);
-        AUTHOR_ABOUT = props.get(APP_AUTHOR);
-        CHOOSE_LANGUAGE_TITLE = props.get(TITLE_CHOOSE_LANGUAGE_PREFIX, environment.getLanguage());
-        EXPORT_TODO_TITLE = props.get(TITLE_EXPORT_TODO_PREFIX, environment.getLanguage());
-        BACKUP_TODO_TITLE = props.get(TITLE_BACKUP_TODO_PREFIX, environment.getLanguage());
-        APPEND_TODO_TITLE = props.get(TITLE_APPEND_TODO_PREFIX, environment.getLanguage());
-        READ_TODO_TITLE = props.get(TITLE_READ_TODO_PREFIX, environment.getLanguage());
-        SAVE_PATH_TITLE = props.get(TITLE_SAVE_PATH_PREFIX, environment.getLanguage());
-        CONFIG_PATH_TITLE = props.get(TITLE_CONFIG_PATH_PREFIX, environment.getLanguage());
-        ADD_NEW_TODO_TITLE = props.get(TITLE_ADD_NEW_TODO_PREFIX, environment.getLanguage());
-        UPDATE_TODO_NAME_TITLE = props.get(TITLE_UPDATE_TODO_NAME_PREFIX, environment.getLanguage());
-        ADD_TITLE = props.get(TITLE_ADD_PREFIX, environment.getLanguage());
-        DELETE_TITLE = props.get(TITLE_DELETE_PREFIX, environment.getLanguage());
-        UPDATE_TITLE = props.get(TITLE_UPDATE_PREFIX, environment.getLanguage());
-        COPY_TITLE = props.get(TITLE_COPY_PREFIX, environment.getLanguage());
-        BACKUP_TITLE = props.get(TITLE_BACKUP_PREFIX, environment.getLanguage());
-        EXPORT_TITLE = props.get(TITLE_EXPORT_PREFIX, environment.getLanguage());
-        APPEND_TITLE = props.get(TITLE_APPEND_PREFIX, environment.getLanguage());
-        LOAD_TITLE = props.get(TITLE_LOAD_PREFIX, environment.getLanguage());
-        ABOUT_TITLE = props.get(TITLE_ABOUT_PREFIX, environment.getLanguage());
+        GITHUB_ABOUT = props.getCommonProperty(APP_GITHUB);
+        AUTHOR_ABOUT = props.getCommonProperty(APP_AUTHOR);
+        CHOOSE_LANGUAGE_TITLE = props.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY);
+        EXPORT_TODO_TITLE = props.getLocalizedProperty(TITLE_EXPORT_TODO_KEY);
+        BACKUP_TODO_TITLE = props.getLocalizedProperty(TITLE_BACKUP_TODO_KEY);
+        APPEND_TODO_TITLE = props.getLocalizedProperty(TITLE_APPEND_TODO_KEY);
+        READ_TODO_TITLE = props.getLocalizedProperty(TITLE_READ_TODO_KEY);
+        SAVE_PATH_TITLE = props.getLocalizedProperty(TITLE_SAVE_PATH_KEY);
+        CONFIG_PATH_TITLE = props.getLocalizedProperty(TITLE_CONFIG_PATH_KEY);
+        ADD_NEW_TODO_TITLE = props.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY);
+        UPDATE_TODO_NAME_TITLE = props.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY);
+        ADD_TITLE = props.getLocalizedProperty(TITLE_ADD_KEY);
+        DELETE_TITLE = props.getLocalizedProperty(TITLE_DELETE_KEY);
+        UPDATE_TITLE = props.getLocalizedProperty(TITLE_UPDATE_KEY);
+        COPY_TITLE = props.getLocalizedProperty(TITLE_COPY_KEY);
+        BACKUP_TITLE = props.getLocalizedProperty(TITLE_BACKUP_KEY);
+        EXPORT_TITLE = props.getLocalizedProperty(TITLE_EXPORT_KEY);
+        APPEND_TITLE = props.getLocalizedProperty(TITLE_APPEND_KEY);
+        LOAD_TITLE = props.getLocalizedProperty(TITLE_LOAD_KEY);
+        ABOUT_TITLE = props.getLocalizedProperty(TITLE_ABOUT_KEY);
     }
 
     @Override

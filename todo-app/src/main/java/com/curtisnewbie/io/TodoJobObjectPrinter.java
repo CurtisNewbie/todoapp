@@ -7,7 +7,6 @@ import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
-import static com.curtisnewbie.util.DateUtil.toMMddUUUUSlash;
 
 /**
  * ObjectPrinter for {@link TodoJob}
@@ -26,8 +25,8 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
 
     @Override
     public String printObject(TodoJob todoJob) {
-        String done = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_DONE_PREFIX, environment.getLanguage());
-        String inProgress = PropertiesLoader.getInstance().get(PropertyConstants.TEXT_IN_PROGRESS_PREFIX, environment.getLanguage());
+        String done = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
+        String inProgress = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_IN_PROGRESS_KEY);
         String status = todoJob.isDone() ? done : inProgress;
         int width = environment.getLanguage().equals(Language.ENG) ? 13 : 5;
         return String.format("%-" + width + "s Expected: %s - Actual: %s '%s'\n",

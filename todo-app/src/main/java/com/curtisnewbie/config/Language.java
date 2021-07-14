@@ -1,5 +1,7 @@
 package com.curtisnewbie.config;
 
+import java.util.Locale;
+
 /**
  * <p>
  * Languages-related constants
@@ -10,18 +12,20 @@ package com.curtisnewbie.config;
 public enum Language {
 
     /** Chinese */
-    CHN("chn"),
+    CHN("chn", Locale.CHINESE),
 
     /** English */
-    ENG("eng"),
+    ENG("eng", Locale.ENGLISH),
 
     /** Default */
-    DEFAULT("eng");
+    DEFAULT("eng", Locale.ENGLISH);
 
     public final String key;
+    public final Locale locale;
 
-    Language(String key) {
+    Language(String key, Locale locale) {
         this.key = key;
+        this.locale = locale;
     }
 
     public static Language parseLang(String langStr) {
