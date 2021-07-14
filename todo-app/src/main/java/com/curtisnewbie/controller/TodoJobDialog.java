@@ -69,6 +69,9 @@ public class TodoJobDialog extends Dialog<TodoJob> {
                 this.actualEndDate = optionalTodoJob.get().getActualEndDate();
                 this.actualEndDatePicker.setValue(actualEndDate);
             }
+        } else {
+            this.expectedEndDate = LocalDate.now();
+            this.expectedEndDatePicker.setValue(expectedEndDate);
         }
 
         // setup grid
