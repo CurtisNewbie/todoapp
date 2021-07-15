@@ -19,6 +19,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Objects;
 
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
@@ -35,7 +36,7 @@ import static com.curtisnewbie.util.MarginFactory.*;
 public class TodoJobView extends HBox {
 
     private static final String EMPTY_DATE_PLACE_HOLDER = "__ / __ /____";
-    public static final int WIDTH_OTHER_THAN_TEXT = 290;
+    public static final int WIDTH_OTHER_THAN_TEXT = 380;
 
     private final Label doneLabel;
 
@@ -62,6 +63,11 @@ public class TodoJobView extends HBox {
     private final Label actualEndDateLabel;
 
     /**
+     * Label that displays how much time left before the expected end date
+     */
+    private final Label timeLeftLabel = classicLabel(null);
+
+    /**
      * Whether the {@code TodoJob} is finished
      */
     private final CheckBox doneCheckBox = CheckBoxFactory.getClassicCheckBox();
@@ -84,14 +90,16 @@ public class TodoJobView extends HBox {
         this.environment = environment;
         this.model = new TodoJob(todoJob);
         this.doneLabel = new Label();
-        this.nameText = TextFactory.getClassicText(todoJob.getName());
-        this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(todoJob.getExpectedEndDate()));
+        this.nameText = TextFactory.getClassicText(model.getName());
+        this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getExpectedEndDate()));
         if (this.model.getActualEndDate() != null) {
-            this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(todoJob.getActualEndDate()));
+            this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
         } else {
             this.actualEndDateLabel = classicLabel(EMPTY_DATE_PLACE_HOLDER);
         }
-        this.doneCheckBox.setSelected(todoJob.isDone());
+        // update the displayed days between expectedEndDate and now
+        updateTimeLeftLabel(periodToTimeString(Period.between(LocalDate.now(), model.getExpectedEndDate())));
+        this.doneCheckBox.setSelected(model.isDone());
         this.doneCheckBox.setOnAction(this::onCheckboxSelected);
         String checkboxName = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
         Objects.requireNonNull(checkboxName);
@@ -103,11 +111,14 @@ public class TodoJobView extends HBox {
                         actualEndDateLabel,
                         fixedMargin(20),
                         wrapWithCommonPadding(nameText),
+                        fixedMargin(2),
+                        timeLeftLabel,
+                        fixedMargin(2),
                         expandingMargin(),
                         leftPaddedLabel(checkboxName),
                         doneCheckBox);
         HBox.setHgrow(this, Priority.SOMETIMES);
-        updateGraphicOnJobStatus(todoJob.isDone());
+        updateGraphicOnJobStatus(model.isDone());
         this.requestFocus();
     }
 
@@ -118,6 +129,7 @@ public class TodoJobView extends HBox {
             this.model.setExpectedEndDate(date);
             Platform.runLater(() -> {
                 this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
+                updateTimeLeftLabel(periodToTimeString(Period.between(LocalDate.now(), model.getExpectedEndDate())));
             });
         }
     }
@@ -218,5 +230,39 @@ public class TodoJobView extends HBox {
         synchronized (model) {
             return model.getId();
         }
+    }
+
+    private void updateTimeLeftLabel(String timeStr) {
+        Objects.requireNonNull(timeStr);
+        Platform.runLater(() -> {
+            this.timeLeftLabel.setText(String.format("%s left", timeStr.trim()));
+        });
+    }
+
+    private String periodToTimeString(Period period) {
+        int d = period.getDays();
+        int m = period.getMonths();
+        int y = period.getYears();
+
+        // only display positive values
+        if (d < 0 || m < 0 || y < 0) {
+            return "0 days";
+        }
+        // 0 days left
+        if (d == 0 && m == 0 && y == 0) {
+            return "0 days";
+        }
+
+        String s = "";
+        if (d > 0) {
+            s += d + " days ";
+        }
+        if (m > 0) {
+            s += m + " months ";
+        }
+        if (y > 0) {
+            s += y + " years";
+        }
+        return s;
     }
 }
