@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=TODO-App
+Comment=Application for managing todos
+Exec=java -jar /home/zhuangyongj/exec/todo-app-2.1.jar
+Terminal=false
+Type=Application
+Icon=/home/zhuangyongj/git/todoapp/todo-app/src/main/resources/icon.png
