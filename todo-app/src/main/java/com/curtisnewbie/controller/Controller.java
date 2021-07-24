@@ -310,6 +310,8 @@ public class Controller implements Initializable {
                     if (readOnly.get())
                         return;
                     redo();
+                } else if (e.getCode().equals(KeyCode.C)) {
+                    copySelected();
                 }
             } else {
                 if (e.getCode().equals(KeyCode.DELETE)) {
@@ -477,6 +479,10 @@ public class Controller implements Initializable {
     }
 
     private void onCopyHandler(ActionEvent e) {
+        copySelected();
+    }
+
+    private void copySelected() {
         Platform.runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0)
