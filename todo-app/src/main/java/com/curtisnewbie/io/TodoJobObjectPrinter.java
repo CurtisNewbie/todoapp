@@ -15,6 +15,9 @@ import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
  */
 public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
 
+    private static final int ENG_WIDTH = 13;
+    private static final int CN_WIDTH = 5;
+
     private PropertiesLoader propertiesLoader;
     private Environment environment;
 
@@ -25,10 +28,10 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
 
     @Override
     public String printObject(TodoJob todoJob) {
-        String done = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
-        String inProgress = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_IN_PROGRESS_KEY);
+        String done = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
+        String inProgress = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_IN_PROGRESS_KEY);
         String status = todoJob.isDone() ? done : inProgress;
-        int width = environment.getLanguage().equals(Language.ENG) ? 13 : 5;
+        int width = environment.getLanguage().equals(Language.ENG) ? ENG_WIDTH : CN_WIDTH;
         return String.format("%-" + width + "s Expected: %s - Actual: %s \n\t%s\n",
                 "[" + status + "]",
                 toDDmmUUUUSlash(todoJob.getExpectedEndDate()),

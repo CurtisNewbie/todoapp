@@ -54,22 +54,21 @@ public class Controller implements Initializable {
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     private static final int PADDING = 55;
-
     private final String GITHUB_ABOUT;
     private final String AUTHOR_ABOUT;
 
     private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
     private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
+    private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
+    private final RedoStack redoStack = new RedoStack();
+    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     @FXML
     private ListView<TodoJobView> listView;
     @FXML
     private HBox pageControlHBox;
 
-    private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
-    private final RedoStack redoStack = new RedoStack();
-    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /** record whether it's the first time that the current page being loaded */
     private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
@@ -244,8 +243,8 @@ public class Controller implements Initializable {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), this::onDeleteHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::onUpdateHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::onCopyHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_APPEND_KEY), this::onAppendHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_LOAD_KEY), this::onReadHandler)
+//                .addMenuItem(properties.getLocalizedProperty(TITLE_APPEND_KEY), this::onAppendHandler)
+//                .addMenuItem(properties.getLocalizedProperty(TITLE_LOAD_KEY), this::onReadHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::onExportHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler);

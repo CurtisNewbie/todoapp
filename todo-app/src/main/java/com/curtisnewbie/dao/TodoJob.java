@@ -85,4 +85,15 @@ public class TodoJob {
         else
             this.expectedEndDate = LocalDate.ofInstant(new Date(actualEndDate).toInstant(), ZoneId.systemDefault());
     }
+
+    @Override
+    public String toString() {
+        return "TodoJob{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", done=" + done +
+                ", expectedEndDate=" + expectedEndDate +
+                ", actualEndDate=" + actualEndDate +
+                '}';
+    }
 }
