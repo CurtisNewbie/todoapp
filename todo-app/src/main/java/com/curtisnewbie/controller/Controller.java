@@ -493,34 +493,41 @@ public class Controller implements Initializable {
     }
 
     private void onExportHandler(ActionEvent e) {
-        Platform.runLater(() -> {
-            if (listView.getItems().isEmpty())
-                return;
-
-            // 1. pick date range
-            LocalDate now = LocalDate.now();
-            int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
-            LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
-            DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
-
-            dateRangeDialog.showEarliestDate(todoJobMapper.findEarliestDate());
-            dateRangeDialog.showLatestDate(todoJobMapper.findLatestDate());
-            var opt = dateRangeDialog.showAndWait();
-            if (opt.isPresent()) {
-                DateRange dr = opt.get();
-                // 2. choose where to export
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
-                fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
-                fileChooser.getExtensionFilters().add(getTxtExtFilter());
-                File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                if (nFile == null)
+        CompletableFuture.supplyAsync(() -> {
+            LocalDate earliestDate = todoJobMapper.findEarliestDate();
+            LocalDate latestDate = todoJobMapper.findLatestDate();
+            return new Pair(earliestDate, latestDate);
+        }).thenAccept(p -> {
+            Pair<LocalDate, LocalDate> pair = (Pair<LocalDate, LocalDate>) p;
+            Platform.runLater(() -> {
+                if (listView.getItems().isEmpty())
                     return;
 
-                ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()),
-                        todoJobExportObjectPrinter,
-                        nFile);
-            }
+                // 1. pick date range
+                LocalDate now = LocalDate.now();
+                int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
+                LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
+                DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
+
+                dateRangeDialog.showEarliestDate(pair.getLeft());
+                dateRangeDialog.showLatestDate(pair.getRight());
+                var opt = dateRangeDialog.showAndWait();
+                if (opt.isPresent()) {
+                    DateRange dr = opt.get();
+                    // 2. choose where to export
+                    FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
+                    fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
+                    fileChooser.getExtensionFilters().add(getTxtExtFilter());
+                    File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                    if (nFile == null)
+                        return;
+
+                    ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()),
+                            todoJobExportObjectPrinter,
+                            nFile);
+                }
+            });
         });
     }
 
