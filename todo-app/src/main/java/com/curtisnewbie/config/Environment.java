@@ -2,6 +2,9 @@ package com.curtisnewbie.config;
 
 /**
  * Environment Configuration
+ * <p>
+ * This class is thread safe
+ * </p>
  *
  * @author yongjie.zhuang
  */

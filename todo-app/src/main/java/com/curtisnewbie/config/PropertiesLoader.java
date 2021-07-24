@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <p>
@@ -15,11 +16,12 @@ import java.util.ResourceBundle;
  */
 public final class PropertiesLoader {
 
+    private static final String BASE_BUNDLE_NAME = "text";
     private static final String COMMON_PROPERTIES = "application.properties";
     private static final PropertiesLoader INSTANCE = new PropertiesLoader();
 
     private Properties commonProp = new Properties();
-    private ResourceBundle localizedProp;
+    private final AtomicReference<ResourceBundle> localizedPropBundleRef = new AtomicReference<>();
 
     private PropertiesLoader() {
         try {
@@ -33,13 +35,12 @@ public final class PropertiesLoader {
     }
 
     /**
-     * Load Resource bundle
+     * Reload resource bundle, change to the specified locale
      *
-     * @param bundleBaseName bundle's base name
-     * @param locale         locale to be used
+     * @param locale locale to be used
      */
-    public void loadResourceBundle(String bundleBaseName, Locale locale) {
-        this.localizedProp = ResourceBundle.getBundle(bundleBaseName, locale);
+    public void changeToLocale(Locale locale) {
+        this.localizedPropBundleRef.set(ResourceBundle.getBundle(BASE_BUNDLE_NAME, locale));
     }
 
     /**
@@ -59,7 +60,7 @@ public final class PropertiesLoader {
      * @return value (which may be null)
      */
     public String getLocalizedProperty(String key) {
-        return localizedProp.getString(key);
+        return localizedPropBundleRef.get().getString(key);
     }
 
     /**

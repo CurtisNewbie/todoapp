@@ -105,7 +105,7 @@ public class Controller implements Initializable {
 
         // get properties loader singleton
         PropertiesLoader props = PropertiesLoader.getInstance();
-        props.loadResourceBundle("text", environment.getLanguage().locale);
+        props.changeToLocale(environment.getLanguage().locale);
 
         // setup todojob's printer
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
@@ -636,6 +636,8 @@ public class Controller implements Initializable {
                 } else {
                     environment.setLanguage(Language.CHN);
                 }
+                // reload resource bundle for the updated locale
+                PropertiesLoader.getInstance().changeToLocale(environment.getLanguage().locale);
                 toastInfo("Restart to apply the new configuration");
             }
             ioHandler.writeConfigAsync(new Config(environment));
