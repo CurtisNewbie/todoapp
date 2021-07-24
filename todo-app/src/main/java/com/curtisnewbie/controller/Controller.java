@@ -77,28 +77,24 @@ public class Controller implements Initializable {
 
     private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
-    private final ObjectPrinter<TodoJob> todojobExportObjectPrinter;
+    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     @FXML
     private ListView<TodoJobView> listView;
     @FXML
     private HBox pageControlHBox;
 
-    private final Object mutex = new Object();
-
-    private volatile Dialog<?> aboutDialog;
-
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
 
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
+    /** current page, should only be updated in Fx's UI thread */
+    private static volatile int volatileCurrPage = 1;
 
-    /** current page, need to be synchronised using {@link #currPageLock} */
-    private int currPage = 1;
-    private Object currPageLock = new Object();
-    private Label currPageLabel = LabelFactory.classicLabel("1");
-
+    // todo: move these view objects to somewhere if possible, leave them in a controller doesn't look right
+    // ------ view objects -------
+    private final Label currPageLabel = LabelFactory.classicLabel("1");
 
     public Controller() {
         // read configuration from file
@@ -112,7 +108,7 @@ public class Controller implements Initializable {
         props.loadResourceBundle("text", environment.getLanguage().locale);
 
         // setup todojob's printer
-        this.todojobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
+        this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
 
         // load text and titles based on configured language
         GITHUB_ABOUT = props.getCommonProperty(APP_GITHUB);
@@ -145,11 +141,11 @@ public class Controller implements Initializable {
         // registers event handlers for paging
         Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
         prevPageBtn.setOnAction(e -> {
-            loadPrevPage();
+            loadPrevPageAsync();
         });
         Button nextPageBtn = ButtonFactory.getArrowRightBtn();
         nextPageBtn.setOnAction(e -> {
-            loadNextPage();
+            loadNextPageAsync();
         });
         pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
         pageControlHBox.getChildren().addAll(LabelFactory.classicLabel("Page:"), MarginFactory.fixedMargin(10),
@@ -160,7 +156,7 @@ public class Controller implements Initializable {
         // load the first page
         CompletableFuture.runAsync(() -> {
             if (todoJobMapper.hasRecord()) {
-                this.loadCurrPage();
+                this.reloadCurrPageAsync();
             } else {
                 TodoJob welcomeTodo = new TodoJob();
                 welcomeTodo.setName("Welcome using this TODO app! :D");
@@ -175,26 +171,24 @@ public class Controller implements Initializable {
         });
     }
 
-    private void loadNextPage() {
+    /**
+     * Load next page asynchronously
+     */
+    private void loadNextPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            synchronized (currPageLock) {
-                var jobList = todoJobMapper.findByPage(currPage + 1);
-                if (jobList.isEmpty())
-                    return null;
-                currPage += 1;
-                Platform.runLater(() -> {
-                    currPageLabel.setText(String.valueOf(currPage));
-                });
-                return jobList;
-            }
+            return todoJobMapper.findByPage(volatileCurrPage + 1);
         }).thenAccept((jobList) -> {
-            if (jobList == null)
+            // it's the last page
+            if (jobList.isEmpty())
                 return;
-            var jobViewList = new ArrayList<TodoJobView>();
-            for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, environment));
-            }
+
             Platform.runLater(() -> {
+                volatileCurrPage += 1;
+                currPageLabel.setText(String.valueOf(volatileCurrPage));
+                var jobViewList = new ArrayList<TodoJobView>();
+                for (TodoJob j : jobList) {
+                    jobViewList.add(new TodoJobView(j, environment));
+                }
                 listView.getItems().clear();
                 jobViewList.forEach(jv -> {
                     addTodoJobView(jv);
@@ -203,55 +197,52 @@ public class Controller implements Initializable {
         });
     }
 
-    private void loadPrevPage() {
+    /**
+     * Load previous page asynchronously
+     */
+    private void loadPrevPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            synchronized (currPageLock) {
-                if (currPage <= 1)
-                    return null;
-                var jobList = todoJobMapper.findByPage(currPage - 1);
-                if (jobList.isEmpty())
-                    return null;
-                currPage -= 1;
-                Platform.runLater(() -> {
-                    currPageLabel.setText(String.valueOf(currPage));
-                });
-                return jobList;
-            }
-        }).thenAccept((jobList) -> {
-            if (jobList == null)
-                return;
-            var jobViewList = new ArrayList<TodoJobView>();
-            for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, environment));
-            }
-            Platform.runLater(() -> {
-                listView.getItems().clear();
-                jobViewList.forEach(jv -> {
-                    addTodoJobView(jv);
-                });
-            });
-        });
-    }
-
-    private void loadCurrPage() {
-        CompletableFuture.supplyAsync(() -> {
-            synchronized (currPageLock) {
-                var jobList = todoJobMapper.findByPage(currPage);
-                return jobList;
-            }
+            if (volatileCurrPage <= 1)
+                return null;
+            return todoJobMapper.findByPage(volatileCurrPage - 1);
         }).thenAccept((jobList) -> {
             if (jobList.isEmpty())
                 return;
-            var jobViewList = new ArrayList<TodoJobView>();
-            for (TodoJob j : jobList) {
-                jobViewList.add(new TodoJobView(j, environment));
-            }
+
             Platform.runLater(() -> {
+                volatileCurrPage -= 1;
+                currPageLabel.setText(String.valueOf(volatileCurrPage));
+                var jobViewList = new ArrayList<TodoJobView>();
+                for (TodoJob j : jobList) {
+                    jobViewList.add(new TodoJobView(j, environment));
+                }
                 listView.getItems().clear();
                 jobViewList.forEach(jv -> {
                     addTodoJobView(jv);
                 });
-                listView.requestFocus();
+            });
+        });
+    }
+
+    /**
+     * Reload current page asynchronously
+     */
+    private void reloadCurrPageAsync() {
+        CompletableFuture.supplyAsync(() -> {
+            return todoJobMapper.findByPage(volatileCurrPage);
+        }).thenAccept((jobList) -> {
+            if (jobList.isEmpty())
+                return;
+
+            Platform.runLater(() -> {
+                var jobViewList = new ArrayList<TodoJobView>();
+                for (TodoJob j : jobList) {
+                    jobViewList.add(new TodoJobView(j, environment));
+                }
+                listView.getItems().clear();
+                jobViewList.forEach(jv -> {
+                    addTodoJobView(jv);
+                });
             });
         });
     }
@@ -328,7 +319,7 @@ public class Controller implements Initializable {
                 } else if (e.getCode().equals(KeyCode.F5)) {
                     if (readOnly.get())
                         return;
-                    loadCurrPage();
+                    reloadCurrPageAsync();
                 }
             }
         });
@@ -420,7 +411,7 @@ public class Controller implements Initializable {
                 newTodo.setId(id);
                 addTodoJobView(new TodoJobView(newTodo, environment));
             }
-            loadCurrPage();
+            reloadCurrPageAsync();
         });
     }
 
@@ -449,7 +440,7 @@ public class Controller implements Initializable {
                     }
                 }
             }
-            loadCurrPage();
+            reloadCurrPageAsync();
         });
     }
 
@@ -481,7 +472,7 @@ public class Controller implements Initializable {
                             }
                         });
             }
-            loadCurrPage();
+            reloadCurrPageAsync();
         });
     }
 
@@ -490,7 +481,7 @@ public class Controller implements Initializable {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0)
                 copyToClipBoard(
-                        todojobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
+                        todoJobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
                 );
         });
     }
@@ -527,10 +518,8 @@ public class Controller implements Initializable {
                         pageControlHBox.getChildren().forEach(btn -> {
                             btn.setDisable(true);
                         });
-                        synchronized (currPageLock) {
-                            currPage = 1;
-                            currPageLabel.setText(String.valueOf(1));
-                        }
+                        volatileCurrPage = 1;
+                        currPageLabel.setText(String.valueOf(volatileCurrPage));
                     });
                     _batchAddTodoJobViews(readOnlyJobViewList);
                     App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
@@ -566,28 +555,23 @@ public class Controller implements Initializable {
                     return;
 
                 ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()),
-                        todojobExportObjectPrinter,
+                        todoJobExportObjectPrinter,
                         nFile);
             }
         });
     }
 
     private void onAboutHandler(ActionEvent e) {
-        if (aboutDialog == null) {
-            synchronized (mutex) {
-                aboutDialog = new Alert(Alert.AlertType.INFORMATION);
-                GridPane gPane = new GridPane();
-                aboutDialog.setTitle(ABOUT_TITLE);
-                gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-                gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
-                gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
-                gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
-                aboutDialog.getDialogPane().setContent(gPane);
-                DialogUtil.disableHeader(aboutDialog);
-            }
-        }
-
         Platform.runLater(() -> {
+            Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
+            GridPane gPane = new GridPane();
+            aboutDialog.setTitle(ABOUT_TITLE);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
+            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
+            gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
+            gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
+            aboutDialog.getDialogPane().setContent(gPane);
+            DialogUtil.disableHeader(aboutDialog);
             aboutDialog.show();
         });
     }
@@ -600,8 +584,10 @@ public class Controller implements Initializable {
             fileChooser.setTitle(APPEND_TODO_TITLE);
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
-            if (nFile == null || !nFile.exists())
+            if (nFile == null || !nFile.exists()) {
+                logger.info("No file selected, abort operation");
                 return;
+            }
 
             CompletableFuture.supplyAsync(() -> {
                 try {
@@ -621,10 +607,8 @@ public class Controller implements Initializable {
             }).thenAccept((todoCount) -> {
                 toastInfo(String.format("Loaded %d TO-DOs", todoCount));
                 if (todoCount > 0) {
-                    synchronized (currPageLock) {
-                        currPage = 1;
-                    }
-                    loadNextPage();
+                    volatileCurrPage = 1;
+                    loadNextPageAsync();
                 }
             });
         });

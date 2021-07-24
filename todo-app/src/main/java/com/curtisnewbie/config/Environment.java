@@ -37,19 +37,19 @@ public class Environment {
         return savePath;
     }
 
-    public Language getLanguage() {
+    public synchronized Language getLanguage() {
         return language;
     }
 
-    public void setLanguage(Language language) {
+    public synchronized void setLanguage(Language language) {
         this.language = language;
     }
 
-    public boolean isStrikethroughEffectEnabled() {
+    public synchronized boolean isStrikethroughEffectEnabled() {
         return strikethroughEffectEnabled;
     }
 
-    public void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
+    public synchronized void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
         this.strikethroughEffectEnabled = strikethroughEffectEnabled;
     }
 
