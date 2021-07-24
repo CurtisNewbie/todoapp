@@ -55,25 +55,8 @@ public class Controller implements Initializable {
 
     private static final int PADDING = 55;
 
-    private final String CHOOSE_LANGUAGE_TITLE;
-    private final String APPEND_TODO_TITLE;
-    private final String READ_TODO_TITLE;
-    private final String EXPORT_TODO_TITLE;
-    private final String CONFIG_PATH_TITLE;
-    private final String SAVE_PATH_TITLE;
-    private final String ADD_NEW_TODO_TITLE;
-    private final String UPDATE_TODO_NAME_TITLE;
-    private final String ADD_TITLE;
-    private final String DELETE_TITLE;
-    private final String DELETE_CONFIRM_TEXT;
-    private final String UPDATE_TITLE;
-    private final String COPY_TITLE;
-    private final String EXPORT_TITLE;
-    private final String APPEND_TITLE;
-    private final String ABOUT_TITLE;
     private final String GITHUB_ABOUT;
     private final String AUTHOR_ABOUT;
-    private final String LOAD_TITLE;
 
     private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
@@ -86,7 +69,10 @@ public class Controller implements Initializable {
 
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
+    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
+    /** record whether it's the first time that the current page being loaded */
+    private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
     /** current page, should only be updated in Fx's UI thread */
@@ -104,71 +90,26 @@ public class Controller implements Initializable {
         this.environment = new Environment(config);
 
         // get properties loader singleton
-        PropertiesLoader props = PropertiesLoader.getInstance();
-        props.changeToLocale(environment.getLanguage().locale);
+        properties.changeToLocale(environment.getLanguage().locale);
 
         // setup todojob's printer
-        this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(props, environment);
+        this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
         // load text and titles based on configured language
-        GITHUB_ABOUT = props.getCommonProperty(APP_GITHUB);
-        AUTHOR_ABOUT = props.getCommonProperty(APP_AUTHOR);
-        CHOOSE_LANGUAGE_TITLE = props.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY);
-        EXPORT_TODO_TITLE = props.getLocalizedProperty(TITLE_EXPORT_TODO_KEY);
-        APPEND_TODO_TITLE = props.getLocalizedProperty(TITLE_APPEND_TODO_KEY);
-        READ_TODO_TITLE = props.getLocalizedProperty(TITLE_READ_TODO_KEY);
-        SAVE_PATH_TITLE = props.getLocalizedProperty(TITLE_SAVE_PATH_KEY);
-        CONFIG_PATH_TITLE = props.getLocalizedProperty(TITLE_CONFIG_PATH_KEY);
-        ADD_NEW_TODO_TITLE = props.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY);
-        UPDATE_TODO_NAME_TITLE = props.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY);
-        ADD_TITLE = props.getLocalizedProperty(TITLE_ADD_KEY);
-        DELETE_TITLE = props.getLocalizedProperty(TITLE_DELETE_KEY);
-        UPDATE_TITLE = props.getLocalizedProperty(TITLE_UPDATE_KEY);
-        COPY_TITLE = props.getLocalizedProperty(TITLE_COPY_KEY);
-        EXPORT_TITLE = props.getLocalizedProperty(TITLE_EXPORT_KEY);
-        APPEND_TITLE = props.getLocalizedProperty(TITLE_APPEND_KEY);
-        LOAD_TITLE = props.getLocalizedProperty(TITLE_LOAD_KEY);
-        ABOUT_TITLE = props.getLocalizedProperty(TITLE_ABOUT_KEY);
-        DELETE_CONFIRM_TEXT = props.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY);
+        GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
+        AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // register a ContextMenu for the ListView
-        listView.setContextMenu(createCtxMenu());
-        // register ctrl+? key event handler for ListView
-        registerCtrlKeyHandler(listView);
-        // registers event handlers for paging
-        Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
-        prevPageBtn.setOnAction(e -> {
-            loadPrevPageAsync();
-        });
-        Button nextPageBtn = ButtonFactory.getArrowRightBtn();
-        nextPageBtn.setOnAction(e -> {
-            loadNextPageAsync();
-        });
-        pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel("Page:"), MarginFactory.fixedMargin(10),
-                currPageLabel, MarginFactory.fixedMargin(10),
-                prevPageBtn, MarginFactory.fixedMargin(10),
-                nextPageBtn, MarginFactory.fixedMargin(10));
-
+        registerContextMenu();
+        // register key pressed event handler for ListView
+        registerKeyPressedEventHandler();
+        // setup control panel for pagination
+        setupPageControlPanel();
         // load the first page
-        CompletableFuture.runAsync(() -> {
-            if (todoJobMapper.hasRecord()) {
-                this.reloadCurrPageAsync();
-            } else {
-                TodoJob welcomeTodo = new TodoJob();
-                welcomeTodo.setName("Welcome using this TODO app! :D");
-                welcomeTodo.setExpectedEndDate(LocalDate.now());
-                welcomeTodo.setDone(false);
-                Integer id = todoJobMapper.insert(welcomeTodo);
-                if (id != 0) {
-                    welcomeTodo.setId(id);
-                    addTodoJobView(new TodoJobView(welcomeTodo, environment));
-                }
-            }
-        });
+        this.reloadCurrPageAsync();
     }
 
     /**
@@ -231,8 +172,22 @@ public class Controller implements Initializable {
         CompletableFuture.supplyAsync(() -> {
             return todoJobMapper.findByPage(volatileCurrPage);
         }).thenAccept((jobList) -> {
-            if (jobList.isEmpty())
+            // empty page
+            if (jobList.isEmpty()) {
+                // check if it's the first time loading current page
+                if (firstTimeLoadingCurrPage.compareAndSet(true, false)) {
+                    TodoJob welcomeTodo = new TodoJob();
+                    welcomeTodo.setName("Welcome using this TODO app! :D");
+                    welcomeTodo.setExpectedEndDate(LocalDate.now());
+                    welcomeTodo.setDone(false);
+                    Integer id = todoJobMapper.insert(welcomeTodo);
+                    if (id != 0) {
+                        welcomeTodo.setId(id);
+                        addTodoJobView(new TodoJobView(welcomeTodo, environment));
+                    }
+                }
                 return;
+            }
 
             Platform.runLater(() -> {
                 var jobViewList = new ArrayList<TodoJobView>();
@@ -285,11 +240,15 @@ public class Controller implements Initializable {
 
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
-        ctxMenu.addMenuItem(ADD_TITLE, this::onAddHandler).addMenuItem(DELETE_TITLE, this::onDeleteHandler)
-                .addMenuItem(UPDATE_TITLE, this::onUpdateHandler).addMenuItem(COPY_TITLE, this::onCopyHandler)
-                .addMenuItem(APPEND_TITLE, this::onAppendHandler).addMenuItem(LOAD_TITLE, this::onReadHandler)
-                .addMenuItem(EXPORT_TITLE, this::onExportHandler).addMenuItem(ABOUT_TITLE, this::onAboutHandler)
-                .addMenuItem(CHOOSE_LANGUAGE_TITLE, this::onLanguageHandler);
+        ctxMenu.addMenuItem(properties.getLocalizedProperty(TITLE_ADD_KEY), this::onAddHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), this::onDeleteHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::onUpdateHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::onCopyHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_APPEND_KEY), this::onAppendHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_LOAD_KEY), this::onReadHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::onExportHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler);
         return ctxMenu;
     }
 
@@ -300,11 +259,9 @@ public class Controller implements Initializable {
      * <p>
      * E.g., Ctrl+z, triggers {@link #redo()} for redoing previous action if possible
      * </p>
-     *
-     * @param lv
      */
-    private void registerCtrlKeyHandler(ListView<TodoJobView> lv) {
-        lv.setOnKeyPressed(e -> {
+    private void registerKeyPressedEventHandler() {
+        listView.setOnKeyPressed(e -> {
             if (e.isControlDown()) {
                 if (e.getCode().equals(KeyCode.Z)) {
                     if (readOnly.get())
@@ -400,7 +357,7 @@ public class Controller implements Initializable {
             if (readOnly.get())
                 return;
             TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.ADD_TODO_JOB, null);
-            dialog.setTitle(ADD_NEW_TODO_TITLE);
+            dialog.setTitle(properties.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 TodoJob newTodo = result.get();
@@ -427,7 +384,7 @@ public class Controller implements Initializable {
                 TodoJob old = jobView.createTodoJobCopy();
                 TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
                         jobView.createTodoJobCopy());
-                dialog.setTitle(UPDATE_TODO_NAME_TITLE);
+                dialog.setTitle(properties.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY));
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
                     var updated = result.get();
@@ -457,8 +414,8 @@ public class Controller implements Initializable {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle(DELETE_TITLE);
-                alert.setContentText(DELETE_CONFIRM_TEXT);
+                alert.setTitle(properties.getLocalizedProperty(TITLE_DELETE_KEY));
+                alert.setContentText(properties.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY));
                 DialogUtil.disableHeader(alert);
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
@@ -495,7 +452,7 @@ public class Controller implements Initializable {
     private void onReadHandler(ActionEvent e) {
         Platform.runLater(() -> {
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(READ_TODO_TITLE);
+            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_READ_TODO_KEY));
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists())
@@ -553,7 +510,7 @@ public class Controller implements Initializable {
                 DateRange dr = opt.get();
                 // 2. choose where to export
                 FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle(EXPORT_TODO_TITLE);
+                fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
                 fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
                 fileChooser.getExtensionFilters().add(getTxtExtFilter());
                 File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
@@ -571,9 +528,13 @@ public class Controller implements Initializable {
         Platform.runLater(() -> {
             Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
             GridPane gPane = new GridPane();
-            aboutDialog.setTitle(ABOUT_TITLE);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", CONFIG_PATH_TITLE, ioHandler.getConfPath())), 0, 0);
-            gPane.add(getClassicTextWithPadding(String.format("%s: '%s'", SAVE_PATH_TITLE, MapperFactory.getDatabaseAbsolutePath())), 0, 1);
+            aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
+            gPane.add(getClassicTextWithPadding(
+                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath())),
+                    0, 0);
+            gPane.add(getClassicTextWithPadding(
+                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), MapperFactory.getDatabaseAbsolutePath())),
+                    0, 1);
             gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
             gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
             aboutDialog.getDialogPane().setContent(gPane);
@@ -587,7 +548,7 @@ public class Controller implements Initializable {
             if (readOnly.get())
                 return;
             FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(APPEND_TODO_TITLE);
+            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_APPEND_TODO_KEY));
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists()) {
@@ -625,10 +586,11 @@ public class Controller implements Initializable {
         String chnChoice = "中文";
         Platform.runLater(() -> {
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
-            choiceDialog.setTitle(CHOOSE_LANGUAGE_TITLE);
+            choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY));
             choiceDialog.setSelectedItem(engChoice);
             choiceDialog.getItems().add(engChoice);
             choiceDialog.getItems().add(chnChoice);
+            DialogUtil.disableHeader(choiceDialog);
             Optional<String> opt = choiceDialog.showAndWait();
             if (opt.isPresent()) {
                 if (opt.get().equals(engChoice) && !environment.getLanguage().equals(Language.ENG)) {
@@ -637,11 +599,37 @@ public class Controller implements Initializable {
                     environment.setLanguage(Language.CHN);
                 }
                 // reload resource bundle for the updated locale
-                PropertiesLoader.getInstance().changeToLocale(environment.getLanguage().locale);
-                toastInfo("Restart to apply the new configuration");
+                properties.changeToLocale(environment.getLanguage().locale);
+                // reload current page
+                reloadCurrPageAsync();
+                // override the previous menu
+                registerContextMenu();
             }
             ioHandler.writeConfigAsync(new Config(environment));
         });
+    }
+
+    private void registerContextMenu() {
+        Platform.runLater(() -> {
+            listView.setContextMenu(createCtxMenu());
+        });
+    }
+
+    private void setupPageControlPanel() {
+        // registers event handlers for paging
+        Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
+        prevPageBtn.setOnAction(e -> {
+            loadPrevPageAsync();
+        });
+        Button nextPageBtn = ButtonFactory.getArrowRightBtn();
+        nextPageBtn.setOnAction(e -> {
+            loadNextPageAsync();
+        });
+        pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
+        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel("Page:"), MarginFactory.fixedMargin(10),
+                currPageLabel, MarginFactory.fixedMargin(10),
+                prevPageBtn, MarginFactory.fixedMargin(10),
+                nextPageBtn, MarginFactory.fixedMargin(10));
     }
 }
 

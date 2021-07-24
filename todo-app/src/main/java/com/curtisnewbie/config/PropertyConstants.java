@@ -21,6 +21,7 @@ public final class PropertyConstants {
     public static final String TEXT_SAVE_ON_CLOSE_KEY = "text.save.choice";
     public static final String TEXT_SAVED_KEY = "text.saved";
     public static final String TEXT_DELETE_CONFIRM_KEY = "text.delete.confirm";
+    public static final String TEXT_LANGUAGE_KEY = "text.lang";
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";

@@ -27,4 +27,11 @@ public class CnvCtxMenu extends ContextMenu {
         this.getItems().add(menuItem);
         return this;
     }
+
+    /**
+     * Remove all {@MenuItem} registered
+     */
+    public void clearMenuItems() {
+        this.getItems().clear();
+    }
 }

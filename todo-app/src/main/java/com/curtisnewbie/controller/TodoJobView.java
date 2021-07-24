@@ -84,6 +84,7 @@ public class TodoJobView extends HBox {
 
     /** Environment configuration */
     private final Environment environment;
+    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -108,7 +109,7 @@ public class TodoJobView extends HBox {
         updateTimeLeftLabel(model.getExpectedEndDate());
         this.doneCheckBox.setSelected(model.isDone());
         this.doneCheckBox.setOnAction(this::onDoneCheckBoxSelected);
-        String checkboxName = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
+        String checkboxName = properties.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
         Objects.requireNonNull(checkboxName);
         this.getChildren()
                 .addAll(doneLabel,
