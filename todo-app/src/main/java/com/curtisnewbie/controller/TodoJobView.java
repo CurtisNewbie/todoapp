@@ -215,6 +215,7 @@ public class TodoJobView extends HBox {
         final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
         model.setDone(isTaskDone);
         setActualEndDate(isTaskDone ? LocalDate.now() : null);
+        updateTimeLeftLabel(isTaskDone ? LocalDate.now() : model.getExpectedEndDate());
         updateGraphicOnJobStatus(isTaskDone);
         if (doneCheckboxRegisteredCallback != null)
             doneCheckboxRegisteredCallback.react();
