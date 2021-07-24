@@ -243,7 +243,7 @@ public class TodoJobView extends HBox {
     private void updateTimeLeftLabel(LocalDate expectedEndDate) {
         Period p = Period.between(LocalDate.now(), expectedEndDate);
         String timeLeft = periodToTimeString(p);
-        this.timeLeftLabel.setText(String.format("%s left", timeLeft.trim()));
+        this.timeLeftLabel.setText(timeLeft.trim());
     }
 
     /** Convert period to a 'x days, x months, x years' format string **/

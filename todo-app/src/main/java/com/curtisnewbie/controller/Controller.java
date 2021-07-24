@@ -393,12 +393,13 @@ public class Controller implements Initializable {
                         jobView.setName(updated.getName());
                         jobView.setExpectedEndDate(updated.getExpectedEndDate());
                         jobView.setActualEndDate(updated.getActualEndDate());
+                        // reload current page only when it's actually updated
+                        reloadCurrPageAsync();
                     } else {
                         toastError("Failed to update to-do, please try again");
                     }
                 }
             }
-            reloadCurrPageAsync();
         });
     }
 
