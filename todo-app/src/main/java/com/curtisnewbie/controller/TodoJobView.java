@@ -20,6 +20,7 @@ import javafx.scene.text.Text;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ConcurrentModificationException;
 import java.util.Objects;
 
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
@@ -30,6 +31,14 @@ import static com.curtisnewbie.util.MarginFactory.*;
 
 /**
  * A "view" object representing a to-do job
+ * <p>
+ * This view should only be invoked inside {@link Platform#runLater(Runnable)}, as long as it's confined inside the UI
+ * thread, it's thread-safe, otherwise it's not because no synchronization is used.
+ * </p>
+ * <p>
+ * Notice that this class do check if current thread is FX's UI thread, if not, a {@link ConcurrentModificationException
+ * } may be thrown
+ * </p>
  *
  * @author yongjie.zhuang
  */
@@ -39,8 +48,6 @@ public class TodoJobView extends HBox {
     public static final int WIDTH_OTHER_THAN_TEXT = 380;
 
     private final Label doneLabel;
-
-    private final Object mutex = new Object();
 
     /**
      * Model inside this view
@@ -73,7 +80,7 @@ public class TodoJobView extends HBox {
     private final CheckBox doneCheckBox = CheckBoxFactory.getClassicCheckBox();
 
     /** Registered callback for {@link #doneCheckBox} */
-    private volatile OnEvent doneCheckboxRegisteredCallback;
+    private OnEvent doneCheckboxRegisteredCallback;
 
     /** Environment configuration */
     private final Environment environment;
@@ -98,9 +105,9 @@ public class TodoJobView extends HBox {
             this.actualEndDateLabel = classicLabel(EMPTY_DATE_PLACE_HOLDER);
         }
         // update the displayed days between expectedEndDate and now
-        updateTimeLeftLabel(periodToTimeString(Period.between(LocalDate.now(), model.getExpectedEndDate())));
+        updateTimeLeftLabel(model.getExpectedEndDate());
         this.doneCheckBox.setSelected(model.isDone());
-        this.doneCheckBox.setOnAction(this::onCheckboxSelected);
+        this.doneCheckBox.setOnAction(this::onDoneCheckBoxSelected);
         String checkboxName = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
         Objects.requireNonNull(checkboxName);
         this.getChildren()
@@ -122,28 +129,30 @@ public class TodoJobView extends HBox {
         this.requestFocus();
     }
 
+    /**
+     * Set the expectedEndDate being displayed
+     *
+     * @param date nullable LocalDate
+     */
     public void setExpectedEndDate(LocalDate date) {
         Objects.requireNonNull(date, "Expected End Date should never be null");
-
-        synchronized (model) {
-            this.model.setExpectedEndDate(date);
-            Platform.runLater(() -> {
-                this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
-                updateTimeLeftLabel(periodToTimeString(Period.between(LocalDate.now(), model.getExpectedEndDate())));
-            });
-        }
+        this.model.setExpectedEndDate(date);
+        this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
+        updateTimeLeftLabel(model.getExpectedEndDate());
     }
 
+    /**
+     * Set the actualEndDate being displayed
+     *
+     * @param date nullable LocalDate
+     */
     public void setActualEndDate(LocalDate date) {
-        synchronized (model) {
-            this.model.setActualEndDate(date);
-            Platform.runLater(() -> {
-                if (date != null) {
-                    this.actualEndDateLabel.setText(toDDmmUUUUSlash(date));
-                } else {
-                    this.actualEndDateLabel.setText(EMPTY_DATE_PLACE_HOLDER);
-                }
-            });
+        checkThreadConfinement();
+        this.model.setActualEndDate(date);
+        if (date != null) {
+            this.actualEndDateLabel.setText(toDDmmUUUUSlash(date));
+        } else {
+            this.actualEndDateLabel.setText(EMPTY_DATE_PLACE_HOLDER);
         }
     }
 
@@ -151,24 +160,19 @@ public class TodoJobView extends HBox {
      * Bind the wrapping width of text
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
-        synchronized (mutex) {
-            nameText.wrappingWidthProperty().bind(binding);
-        }
+        checkThreadConfinement();
+        Objects.requireNonNull(binding);
+        nameText.wrappingWidthProperty().bind(binding);
     }
 
+    /**
+     * Set the text/name being displayed
+     */
     public void setName(String name) {
-        synchronized (model) {
-            this.model.setName(name);
-            Platform.runLater(() -> {
-                nameText.setText(name);
-            });
-        }
-    }
-
-    public boolean isDone() {
-        synchronized (model) {
-            return this.model.isDone();
-        }
+        checkThreadConfinement();
+        Objects.requireNonNull(name);
+        this.model.setName(name);
+        nameText.setText(name);
     }
 
     /**
@@ -177,9 +181,8 @@ public class TodoJobView extends HBox {
      * @return todoJob
      */
     public TodoJob createTodoJobCopy() {
-        synchronized (model) {
-            return new TodoJob(model);
-        }
+        checkThreadConfinement();
+        return new TodoJob(model);
     }
 
     /**
@@ -191,54 +194,50 @@ public class TodoJobView extends HBox {
      * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
     public void registerCheckboxEventHandler(OnEvent onEvent) {
-        synchronized (mutex) {
-            if (doneCheckboxRegisteredCallback != null)
-                throw new EventHandlerAlreadyRegisteredException();
-            this.doneCheckboxRegisteredCallback = onEvent;
-        }
+        checkThreadConfinement();
+        Objects.requireNonNull(onEvent);
+        if (doneCheckboxRegisteredCallback != null)
+            throw new EventHandlerAlreadyRegisteredException();
+        this.doneCheckboxRegisteredCallback = onEvent;
     }
 
-    private void onCheckboxSelected(ActionEvent e) {
-        synchronized (model) {
-            final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
-            model.setDone(isTaskDone);
-            setActualEndDate(isTaskDone ? LocalDate.now() : null);
-            updateGraphicOnJobStatus(isTaskDone);
-            if (doneCheckboxRegisteredCallback != null)
-                doneCheckboxRegisteredCallback.react();
-        }
+    private void onDoneCheckBoxSelected(ActionEvent e) {
+        checkThreadConfinement();
+        final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
+        model.setDone(isTaskDone);
+        setActualEndDate(isTaskDone ? LocalDate.now() : null);
+        updateGraphicOnJobStatus(isTaskDone);
+        if (doneCheckboxRegisteredCallback != null)
+            doneCheckboxRegisteredCallback.react();
     }
 
     /** Update graphic based on job's status */
     private void updateGraphicOnJobStatus(boolean isJobFinished) {
-        Platform.runLater(() -> {
-            this.doneLabel.setGraphic(isJobFinished ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
-            if (environment.isStrikethroughEffectEnabled()) {
-                this.nameText.setStrikethrough(isJobFinished);
-            }
-        });
-    }
-
-    /** make the internal checkbox not editable */
-    public final void freeze() {
-        Platform.runLater(() -> {
-            doneCheckBox.setDisable(true);
-        });
-    }
-
-    public Integer getTodoJobId() {
-        synchronized (model) {
-            return model.getId();
+        this.doneLabel.setGraphic(isJobFinished ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
+        if (environment.isStrikethroughEffectEnabled()) {
+            this.nameText.setStrikethrough(isJobFinished);
         }
     }
 
-    private void updateTimeLeftLabel(String timeStr) {
-        Objects.requireNonNull(timeStr);
-        Platform.runLater(() -> {
-            this.timeLeftLabel.setText(String.format("%s left", timeStr.trim()));
-        });
+    /** make the internal checkbox not editable */
+    public void freeze() {
+        checkThreadConfinement();
+        doneCheckBox.setDisable(true);
     }
 
+    /** Get todojob's id, may be null */
+    public Integer getTodoJobId() {
+        checkThreadConfinement();
+        return model.getId();
+    }
+
+    private void updateTimeLeftLabel(LocalDate expectedEndDate) {
+        Period p = Period.between(LocalDate.now(), expectedEndDate);
+        String timeLeft = periodToTimeString(p);
+        this.timeLeftLabel.setText(String.format("%s left", timeLeft.trim()));
+    }
+
+    /** Convert period to a 'x days, x months, x years' format string **/
     private String periodToTimeString(Period period) {
         int d = period.getDays();
         int m = period.getMonths();
@@ -264,5 +263,15 @@ public class TodoJobView extends HBox {
             s += y + " years";
         }
         return s;
+    }
+
+    /**
+     * Check if the current thread is FX's UI thread
+     *
+     * @throws ConcurrentModificationException if current thread is not FX's UI thread
+     */
+    private void checkThreadConfinement() {
+        if (!Platform.isFxApplicationThread())
+            throw new ConcurrentModificationException(TodoJobView.class.getName() + " should only be used inside UI thread");
     }
 }

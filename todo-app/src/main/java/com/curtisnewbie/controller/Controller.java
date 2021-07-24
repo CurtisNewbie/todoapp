@@ -267,12 +267,12 @@ public class Controller implements Initializable {
      * @param jobView
      */
     private void addTodoJobView(TodoJobView jobView) {
-        jobView.registerCheckboxEventHandler(() -> {
-            int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
-            if (c <= 0)
-                toastError("Failed to update to-do, please try again");
-        });
         Platform.runLater(() -> {
+            jobView.registerCheckboxEventHandler(() -> {
+                int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
+                if (c <= 0)
+                    toastError("Failed to update to-do, please try again");
+            });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
             listView.getItems().add(jobView);
@@ -284,9 +284,11 @@ public class Controller implements Initializable {
     // only used on application startup, or loading read-only todos
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
-            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
-            listView.getItems().add(jobView);
+            Platform.runLater(() -> {
+                jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
+                jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
+                listView.getItems().add(jobView);
+            });
         });
     }
 
