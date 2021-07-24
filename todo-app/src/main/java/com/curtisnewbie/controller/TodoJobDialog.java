@@ -1,5 +1,7 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.DialogUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
@@ -34,6 +36,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private DatePicker actualEndDatePicker;
     private LocalDate actualEndDate;
     private Optional<TodoJob> optionalTodoJob;
+    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**
      * Create a TodoJobDialog for creating new to-do or updating existing to-do
@@ -117,13 +120,15 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(contextLabel, 0, 0);
-        this.grid.add(wrapWithPadding(classicLabel("Expected End Date:"), new Insets(1, 2, 5, 2)),
+        String expectedEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_EXPECTED_END_DATE_KEY);
+        this.grid.add(wrapWithPadding(classicLabel(expectedEndDateText + ":"), new Insets(1, 2, 5, 2)),
                 1, 1);
         this.grid.add(wrapWithPadding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
                 2, 1);
 
         if (shouldDisplayActualEndDatePicker()) {
-            this.grid.add(wrapWithPadding(classicLabel("Actual End Date:"), new Insets(1, 2, 5, 2)),
+            String actualEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_ACTUAL_END_DATE_KEY);
+            this.grid.add(wrapWithPadding(classicLabel(actualEndDateText + ":"), new Insets(1, 2, 5, 2)),
                     1, 2);
             this.grid.add(wrapWithPadding(actualEndDatePicker, new Insets(1, 2, 5, 2)),
                     2, 2);

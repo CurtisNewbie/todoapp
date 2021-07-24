@@ -1,5 +1,7 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.DialogUtil;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
@@ -10,6 +12,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 
@@ -26,6 +29,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
     private final DatePicker endDatePicker;
     private boolean earliestDateIsShown = false;
     private boolean latestDateIsShown = false;
+    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**
      * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
@@ -97,7 +101,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
             return;
         earliestDateIsShown = true;
 
-        Button earliestBtn = new Button("Earliest: " + DateUtil.toDDmmUUUUSlash(d));
+        String earliestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
+        Objects.requireNonNull(earliestStr);
+        Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
         grid.add(wrapWithPadding(earliestBtn, new Insets(1, 0, 5, 2)), 1, 1);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(d);
@@ -116,7 +122,9 @@ public class DateRangeDialog extends Dialog<DateRange> {
             return;
         latestDateIsShown = true;
 
-        Button latestBtn = new Button("Latest: " + DateUtil.toDDmmUUUUSlash(d));
+        String latestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
+        Objects.requireNonNull(latestStr);
+        Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
         grid.add(wrapWithPadding(latestBtn, new Insets(1, 2, 5, 2)), 2, 1);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(d);

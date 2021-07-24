@@ -22,6 +22,13 @@ public final class PropertyConstants {
     public static final String TEXT_SAVED_KEY = "text.saved";
     public static final String TEXT_DELETE_CONFIRM_KEY = "text.delete.confirm";
     public static final String TEXT_LANGUAGE_KEY = "text.lang";
+    public static final String TEXT_MONTHS_KEY = "text.months";
+    public static final String TEXT_YEARS_KEY = "text.years";
+    public static final String TEXT_DAYS_KEY = "text.days";
+    public static final String TEXT_LATEST_KEY = "text.latest";
+    public static final String TEXT_EARLIEST_KEY = "text.earliest";
+    public static final String TEXT_EXPECTED_END_DATE_KEY = "text.expected-end-date";
+    public static final String TEXT_ACTUAL_END_DATE_KEY = "text.actual-end-date";
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";

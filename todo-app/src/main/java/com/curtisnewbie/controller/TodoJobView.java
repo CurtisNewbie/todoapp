@@ -23,6 +23,7 @@ import java.time.Period;
 import java.util.ConcurrentModificationException;
 import java.util.Objects;
 
+import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
@@ -47,6 +48,9 @@ public class TodoJobView extends HBox {
     private static final String EMPTY_DATE_PLACE_HOLDER = "__ / __ /____";
     public static final int WIDTH_OTHER_THAN_TEXT = 380;
 
+    /**
+     * Label for displaying whether to-do is finished
+     */
     private final Label doneLabel;
 
     /**
@@ -85,6 +89,10 @@ public class TodoJobView extends HBox {
     /** Environment configuration */
     private final Environment environment;
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
+
+    private final String DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
+    private final String MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
+    private final String YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -246,22 +254,22 @@ public class TodoJobView extends HBox {
 
         // only display positive values
         if (d < 0 || m < 0 || y < 0) {
-            return "0 days";
+            return "0 " + DAYS;
         }
         // 0 days left
         if (d == 0 && m == 0 && y == 0) {
-            return "0 days";
+            return "0 " + DAYS;
         }
 
         String s = "";
         if (d > 0) {
-            s += d + " days ";
+            s += d + " " + DAYS + " ";
         }
         if (m > 0) {
-            s += m + " months ";
+            s += m + " " + MONTHS + " ";
         }
         if (y > 0) {
-            s += y + " years";
+            s += y + " " + YEARS;
         }
         return s;
     }
