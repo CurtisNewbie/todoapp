@@ -37,14 +37,14 @@ public class SimpleScriptRunner implements ScriptRunner {
         }
     }
 
-    void doExecute(Connection connection, String command) throws SQLException {
+    private void doExecute(Connection connection, String command) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
             logger.info("Do execute: \n" + command + "\n");
             stmt.execute(command);
         }
     }
 
-    String removeComment(String s) {
+    private String removeComment(String s) {
         int index = s.indexOf(COMMENT_PREFIX);
         if (index == -1)
             return s;
