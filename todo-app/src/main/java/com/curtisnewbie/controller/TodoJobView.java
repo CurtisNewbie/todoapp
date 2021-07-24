@@ -45,7 +45,6 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 public class TodoJobView extends HBox {
 
-    private static final String EMPTY_DATE_PLACE_HOLDER = "__ / __ /____";
     public static final int WIDTH_OTHER_THAN_TEXT = 380;
 
     /**
@@ -111,8 +110,11 @@ public class TodoJobView extends HBox {
         if (this.model.getActualEndDate() != null) {
             this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
         } else {
-            this.actualEndDateLabel = classicLabel(EMPTY_DATE_PLACE_HOLDER);
+            this.actualEndDateLabel = classicLabel("");
         }
+        this.expectedEndDateLabel.setMinWidth(85);
+        this.actualEndDateLabel.setMinWidth(85);
+
         // update the displayed days between expectedEndDate and now
         updateTimeLeftLabel(model.getExpectedEndDate());
         this.doneCheckBox.setSelected(model.isDone());
@@ -161,7 +163,7 @@ public class TodoJobView extends HBox {
         if (date != null) {
             this.actualEndDateLabel.setText(toDDmmUUUUSlash(date));
         } else {
-            this.actualEndDateLabel.setText(EMPTY_DATE_PLACE_HOLDER);
+            this.actualEndDateLabel.setText("");
         }
     }
 
