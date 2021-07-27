@@ -45,7 +45,7 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 public class TodoJobView extends HBox {
 
-    public static final int WIDTH_OTHER_THAN_TEXT = 360;
+    public static final int WIDTH_OTHER_THAN_TEXT = 410;
 
     /**
      * Label for displaying whether to-do is finished
@@ -92,6 +92,8 @@ public class TodoJobView extends HBox {
     private final String DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
     private final String MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
     private final String YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
+    private final String DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
+
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -266,10 +268,10 @@ public class TodoJobView extends HBox {
         int m = period.getMonths();
         int y = period.getYears();
 
-        boolean isNegative = false;
+        boolean isDelayed = false;
         // only display positive values
         if (d < 0 || m < 0 || y < 0) {
-            isNegative = true;
+            isDelayed = true;
         }
         // 0 days left
         if (d == 0 && m == 0 && y == 0) {
@@ -284,7 +286,7 @@ public class TodoJobView extends HBox {
         } else if (d != 0) {
             s += Math.abs(d) + " " + DAYS + " ";
         }
-        return isNegative ? "- " + s : s;
+        return isDelayed ? DELAYED_TEXT + " " + s : s;
     }
 
     /**

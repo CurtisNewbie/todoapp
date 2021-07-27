@@ -29,6 +29,7 @@ public final class PropertyConstants {
     public static final String TEXT_EARLIEST_KEY = "text.earliest";
     public static final String TEXT_EXPECTED_END_DATE_KEY = "text.expected-end-date";
     public static final String TEXT_ACTUAL_END_DATE_KEY = "text.actual-end-date";
+    public static final String TEXT_DELAYED_KEY = "text.delayed";
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";

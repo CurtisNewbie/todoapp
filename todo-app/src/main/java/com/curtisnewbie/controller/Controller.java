@@ -53,7 +53,7 @@ public class Controller implements Initializable {
 
     private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
-    private static final int PADDING = 55;
+    private static final int LISTVIEW_PADDING = 55;
     private final String GITHUB_ABOUT;
     private final String AUTHOR_ABOUT;
 
@@ -218,8 +218,9 @@ public class Controller implements Initializable {
                 if (c <= 0)
                     toastError("Failed to update to-do, please try again");
             });
-            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
+            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
+            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
+                    .subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
             listView.getItems().add(jobView);
             jobView.requestFocus();
             jobView.requestLayout();
@@ -230,8 +231,8 @@ public class Controller implements Initializable {
     private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
         jobViews.forEach(jobView -> {
             Platform.runLater(() -> {
-                jobView.prefWidthProperty().bind(listView.widthProperty().subtract(PADDING));
-                jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
+                jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
+                jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING).subtract(TodoJobView.WIDTH_OTHER_THAN_TEXT));
                 listView.getItems().add(jobView);
             });
         });
