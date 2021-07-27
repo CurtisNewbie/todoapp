@@ -45,7 +45,7 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 public class TodoJobView extends HBox {
 
-    public static final int WIDTH_OTHER_THAN_TEXT = 380;
+    public static final int WIDTH_OTHER_THAN_TEXT = 360;
 
     /**
      * Label for displaying whether to-do is finished
@@ -116,7 +116,8 @@ public class TodoJobView extends HBox {
         this.actualEndDateLabel.setMinWidth(85);
 
         // update the displayed days between expectedEndDate and now
-        updateTimeLeftLabel(model.getExpectedEndDate());
+        if (!model.isDone())
+            updateTimeLeftLabel(model.getExpectedEndDate());
         this.doneCheckBox.setSelected(model.isDone());
         this.doneCheckBox.setOnAction(this::onDoneCheckBoxSelected);
         String checkboxName = properties.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
@@ -149,7 +150,10 @@ public class TodoJobView extends HBox {
         Objects.requireNonNull(date, "Expected End Date should never be null");
         this.model.setExpectedEndDate(date);
         this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
-        updateTimeLeftLabel(model.getExpectedEndDate());
+        if (!this.model.isDone())
+            updateTimeLeftLabel(model.getExpectedEndDate());
+        else
+            emptyTimeLeftLabel();
     }
 
     /**
@@ -217,7 +221,10 @@ public class TodoJobView extends HBox {
         final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
         model.setDone(isTaskDone);
         setActualEndDate(isTaskDone ? LocalDate.now() : null);
-        updateTimeLeftLabel(isTaskDone ? LocalDate.now() : model.getExpectedEndDate());
+        if (isTaskDone)
+            emptyTimeLeftLabel();
+        else
+            updateTimeLeftLabel(model.getExpectedEndDate());
         updateGraphicOnJobStatus(isTaskDone);
         if (doneCheckboxRegisteredCallback != null)
             doneCheckboxRegisteredCallback.react();
@@ -249,15 +256,20 @@ public class TodoJobView extends HBox {
         this.timeLeftLabel.setText(timeLeft.trim());
     }
 
+    private void emptyTimeLeftLabel() {
+        this.timeLeftLabel.setText("");
+    }
+
     /** Convert period to a 'x days, x months, x years' format string **/
     private String periodToTimeString(Period period) {
         int d = period.getDays();
         int m = period.getMonths();
         int y = period.getYears();
 
+        boolean isNegative = false;
         // only display positive values
         if (d < 0 || m < 0 || y < 0) {
-            return "0 " + DAYS;
+            isNegative = true;
         }
         // 0 days left
         if (d == 0 && m == 0 && y == 0) {
@@ -265,16 +277,14 @@ public class TodoJobView extends HBox {
         }
 
         String s = "";
-        if (d > 0) {
-            s += d + " " + DAYS + " ";
+        if (y != 0) {
+            s += Math.abs(y) + " " + YEARS;
+        } else if (m != 0) {
+            s += Math.abs(m) + " " + MONTHS + " ";
+        } else if (d != 0) {
+            s += Math.abs(d) + " " + DAYS + " ";
         }
-        if (m > 0) {
-            s += m + " " + MONTHS + " ";
-        }
-        if (y > 0) {
-            s += y + " " + YEARS;
-        }
-        return s;
+        return isNegative ? "- " + s : s;
     }
 
     /**
