@@ -14,6 +14,8 @@ public final class PropertyConstants {
 
     public static final String APP_GITHUB = "app.github";
     public static final String APP_AUTHOR = "app.author";
+    // ------------------ localised config -----------
+    public static final String TODO_VIEW_TEXT_WRAP_WIDTH_KEY = "todo.view.text-wrap-width";
 
     // ------------------ text ------------------
     public static final String TEXT_DONE_KEY = "text.done";
@@ -30,6 +32,10 @@ public final class PropertyConstants {
     public static final String TEXT_EXPECTED_END_DATE_KEY = "text.expected-end-date";
     public static final String TEXT_ACTUAL_END_DATE_KEY = "text.actual-end-date";
     public static final String TEXT_DELAYED_KEY = "text.delayed";
+    public static final String TEXT_AHEAD_KEY = "text.ahead";
+    public static final String TEXT_ON_TIME_KEY = "text.on-time";
+    public static final String TEXT_TODAY_KEY = "text.today";
+
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";

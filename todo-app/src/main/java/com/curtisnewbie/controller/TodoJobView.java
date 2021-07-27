@@ -45,8 +45,6 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 public class TodoJobView extends HBox {
 
-    public static final int WIDTH_OTHER_THAN_TEXT = 410;
-
     /**
      * Label for displaying whether to-do is finished
      */
@@ -93,6 +91,9 @@ public class TodoJobView extends HBox {
     private final String MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
     private final String YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
     private final String DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
+    private final String AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
+    private final String ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
+    private final String TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
 
 
     /**
@@ -117,9 +118,9 @@ public class TodoJobView extends HBox {
         this.expectedEndDateLabel.setMinWidth(85);
         this.actualEndDateLabel.setMinWidth(85);
 
-        // update the displayed days between expectedEndDate and now
-        if (!model.isDone())
-            updateTimeLeftLabel(model.getExpectedEndDate());
+        // update the timeLeftLabel
+        updateTimeLeftLabel();
+
         this.doneCheckBox.setSelected(model.isDone());
         this.doneCheckBox.setOnAction(this::onDoneCheckBoxSelected);
         String checkboxName = properties.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
@@ -153,7 +154,7 @@ public class TodoJobView extends HBox {
         this.model.setExpectedEndDate(date);
         this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
         if (!this.model.isDone())
-            updateTimeLeftLabel(model.getExpectedEndDate());
+            updateTimeLeftLabel();
         else
             emptyTimeLeftLabel();
     }
@@ -226,7 +227,7 @@ public class TodoJobView extends HBox {
         if (isTaskDone)
             emptyTimeLeftLabel();
         else
-            updateTimeLeftLabel(model.getExpectedEndDate());
+            updateTimeLeftLabel();
         updateGraphicOnJobStatus(isTaskDone);
         if (doneCheckboxRegisteredCallback != null)
             doneCheckboxRegisteredCallback.react();
@@ -252,18 +253,12 @@ public class TodoJobView extends HBox {
         return model.getId();
     }
 
-    private void updateTimeLeftLabel(LocalDate expectedEndDate) {
-        Period p = Period.between(LocalDate.now(), expectedEndDate);
-        String timeLeft = periodToTimeString(p);
-        this.timeLeftLabel.setText(timeLeft.trim());
-    }
+    private void updateTimeLeftLabel() {
+        boolean isDone = model.isDone();
+        LocalDate begin = isDone ? model.getActualEndDate() : LocalDate.now();
+        LocalDate end = model.getExpectedEndDate();
+        Period period = Period.between(begin, end);
 
-    private void emptyTimeLeftLabel() {
-        this.timeLeftLabel.setText("");
-    }
-
-    /** Convert period to a 'x days, x months, x years' format string **/
-    private String periodToTimeString(Period period) {
         int d = period.getDays();
         int m = period.getMonths();
         int y = period.getYears();
@@ -275,9 +270,14 @@ public class TodoJobView extends HBox {
         }
         // 0 days left
         if (d == 0 && m == 0 && y == 0) {
-            return "0 " + DAYS;
+            if (isDone) // finished, display nothing
+                this.timeLeftLabel.setText(ON_TIME_TEXT);
+            else  // not yet finished, display 0 days
+                this.timeLeftLabel.setText(TODAY_TEXT);
+            return;
         }
 
+        // either it's delayed, or its' finished ahead of time
         String s = "";
         if (y != 0) {
             s += Math.abs(y) + " " + YEARS;
@@ -286,7 +286,16 @@ public class TodoJobView extends HBox {
         } else if (d != 0) {
             s += Math.abs(d) + " " + DAYS + " ";
         }
-        return isDelayed ? DELAYED_TEXT + " " + s : s;
+        // only display 'ahead' text when we indeed finished the task
+        if (model.isDone() && !isDelayed) {
+            s = s + " (" + AHEAD_TEXT + ")";
+        } else
+            s = isDelayed ? s + " (" + DELAYED_TEXT + ")" : s;
+        this.timeLeftLabel.setText(s);
+    }
+
+    private void emptyTimeLeftLabel() {
+        this.timeLeftLabel.setText("");
     }
 
     /**
