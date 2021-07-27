@@ -217,6 +217,7 @@ public class Controller implements Initializable {
                 int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
                 if (c <= 0)
                     toastError("Failed to update to-do, please try again");
+                reloadCurrPageAsync();
             });
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
