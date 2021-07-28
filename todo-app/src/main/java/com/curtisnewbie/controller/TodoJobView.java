@@ -1,11 +1,9 @@
 package com.curtisnewbie.controller;
 
-import com.curtisnewbie.callback.OnEvent;
 import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
-import com.curtisnewbie.exception.EventHandlerAlreadyRegisteredException;
 import com.curtisnewbie.util.CheckBoxFactory;
 import com.curtisnewbie.util.ShapeFactory;
 import com.curtisnewbie.util.TextFactory;
@@ -18,6 +16,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ConcurrentModificationException;
@@ -80,8 +81,10 @@ public class TodoJobView extends HBox {
      */
     private final CheckBox doneCheckBox = CheckBoxFactory.getClassicCheckBox();
 
-    /** Registered callback for {@link #doneCheckBox} */
-    private OnEvent doneCheckboxRegisteredCallback;
+    /**
+     * Property change listener support
+     */
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     /** Environment configuration */
     private final Environment environment;
@@ -94,7 +97,6 @@ public class TodoJobView extends HBox {
     private final String AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
     private final String ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
     private final String TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
-
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
@@ -204,22 +206,18 @@ public class TodoJobView extends HBox {
     }
 
     /**
+     * Register a {@link PropertyChangeListener} for a model's change
      * <p>
-     * Register an event handler for the "done" check box
+     * The event value object (e.g., {@link PropertyChangeEvent#getNewValue()}) is {@link TodoJob}
      * </p>
-     *
-     * @param onEvent
-     * @throws EventHandlerAlreadyRegisteredException if this method is invoked for multiple times for the same object
      */
-    public void registerCheckboxEventHandler(OnEvent onEvent) {
-        checkThreadConfinement();
-        Objects.requireNonNull(onEvent);
-        if (doneCheckboxRegisteredCallback != null)
-            throw new EventHandlerAlreadyRegisteredException();
-        this.doneCheckboxRegisteredCallback = onEvent;
+    public void onModelChange(PropertyChangeListener pcl) {
+        pcs.addPropertyChangeListener(Event.MODEL_CHANGE.getValue(), pcl);
     }
 
     private void onDoneCheckBoxSelected(ActionEvent e) {
+        TodoJob oldModel = createTodoJobCopy();
+
         checkThreadConfinement();
         final boolean isTaskDone = ((CheckBox) e.getTarget()).isSelected();
         model.setDone(isTaskDone);
@@ -229,8 +227,8 @@ public class TodoJobView extends HBox {
         else
             updateTimeLeftLabel();
         updateGraphicOnJobStatus(isTaskDone);
-        if (doneCheckboxRegisteredCallback != null)
-            doneCheckboxRegisteredCallback.react();
+
+        pcs.firePropertyChange(Event.MODEL_CHANGE.getValue(), oldModel, model);
     }
 
     /** Update graphic based on job's status */
@@ -306,5 +304,21 @@ public class TodoJobView extends HBox {
     private void checkThreadConfinement() {
         if (!Platform.isFxApplicationThread())
             throw new ConcurrentModificationException(TodoJobView.class.getName() + " should only be used inside UI thread");
+    }
+
+    private enum Event {
+
+        /** Event for model's change */
+        MODEL_CHANGE("model");
+
+        private final String s;
+
+        Event(String s) {
+            this.s = s;
+        }
+
+        public String getValue() {
+            return s;
+        }
     }
 }

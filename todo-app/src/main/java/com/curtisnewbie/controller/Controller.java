@@ -213,12 +213,12 @@ public class Controller implements Initializable {
      */
     private void addTodoJobView(TodoJobView jobView) {
         Platform.runLater(() -> {
-            jobView.registerCheckboxEventHandler(() -> {
-                int c = todoJobMapper.updateById(jobView.createTodoJobCopy());
+            jobView.onModelChange((evt -> {
+                int c = todoJobMapper.updateById((TodoJob) evt.getNewValue());
                 if (c <= 0)
                     toastError("Failed to update to-do, please try again");
                 reloadCurrPageAsync();
-            });
+            }));
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
                     .subtract(Integer.parseInt(properties.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
