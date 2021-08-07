@@ -64,22 +64,26 @@ public class Controller implements Initializable {
     private final RedoStack redoStack = new RedoStack();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
+    @FxThreadConfinement
     @FXML
     private ListView<TodoJobView> listView;
+
+    @FxThreadConfinement
     @FXML
     private HBox pageControlHBox;
 
+    @FxThreadConfinement
+    private final Label currPageLabel = LabelFactory.classicLabel("1");
+
+    /** current page */
+    @FxThreadConfinement
+    private static volatile int volatileCurrPage = 1;
 
     /** record whether it's the first time that the current page being loaded */
     private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
+
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
-    /** current page, should only be updated in Fx's UI thread */
-    private static volatile int volatileCurrPage = 1;
-
-    // todo: move these view objects to somewhere if possible, leave them in a controller doesn't look right
-    // ------ view objects -------
-    private final Label currPageLabel = LabelFactory.classicLabel("1");
 
     public Controller() {
         // read configuration from file
