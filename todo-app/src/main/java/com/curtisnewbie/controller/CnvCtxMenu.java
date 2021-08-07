@@ -1,5 +1,6 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.util.FxThreadConfinement;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -12,6 +13,7 @@ import javafx.scene.control.MenuItem;
  *
  * @author yongjie.zhuang
  */
+@FxThreadConfinement
 public class CnvCtxMenu extends ContextMenu {
 
     /**

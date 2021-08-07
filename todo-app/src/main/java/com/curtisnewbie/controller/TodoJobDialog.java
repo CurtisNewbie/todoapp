@@ -4,6 +4,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.DialogUtil;
+import com.curtisnewbie.util.FxThreadConfinement;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -24,6 +25,7 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
  *
  * @author yongjie.zhuang
  */
+@FxThreadConfinement
 public class TodoJobDialog extends Dialog<TodoJob> {
 
     public static final double MAX_WIDTH = 350;
