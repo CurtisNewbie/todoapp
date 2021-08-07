@@ -54,7 +54,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
-                        "ORDER BY is_done ASC, expected_end_date DESC LIMIT ? OFFSET ?");) {
+                        "ORDER BY is_done ASC, actual_end_date DESC, expected_end_date ASC LIMIT ? OFFSET ?");) {
             stmt.setInt(1, limit);
             stmt.setInt(2, (page - 1) * limit);
             ResultSet rs = stmt.executeQuery();

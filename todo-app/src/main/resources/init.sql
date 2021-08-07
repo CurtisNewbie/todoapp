@@ -6,4 +6,6 @@ CREATE TABLE IF NOT EXISTS todojob (
     actual_end_date DATE -- "the actual finish data"
 );
 
-CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, expected_end_date DESC);
+-- 07/AUG/2021 remove index
+--CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, expected_end_date DESC);
+DROP INDEX IF EXISTS sort_idx;
