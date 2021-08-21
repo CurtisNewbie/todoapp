@@ -672,7 +672,7 @@ public class Controller implements Initializable {
             loadNextPageAsync();
         });
         pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
+        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_PAGE)),
                 MarginFactory.fixedMargin(10),
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
