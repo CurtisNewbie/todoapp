@@ -195,10 +195,11 @@ public class Controller implements Initializable {
         CompletableFuture.supplyAsync(() -> {
             return todoJobMapper.findByPage(searchedText, volatileCurrPage);
         }).thenAccept((jobList) -> {
+            boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
             // empty page
             if (jobList.isEmpty()) {
                 // check if it's the first time loading current page
-                if (firstTimeLoadingCurrPage.compareAndSet(true, false)) {
+                if (isFirstTimeLoading) {
                     TodoJob welcomeTodo = new TodoJob();
                     welcomeTodo.setName("Welcome using this TODO app! :D");
                     welcomeTodo.setExpectedEndDate(LocalDate.now());
