@@ -666,7 +666,8 @@ public class Controller implements Initializable {
             loadNextPageAsync();
         });
         pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel("Page:"), MarginFactory.fixedMargin(10),
+        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
+                MarginFactory.fixedMargin(10),
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
                 nextPageBtn, MarginFactory.fixedMargin(10));
@@ -694,7 +695,7 @@ public class Controller implements Initializable {
         searchHBox.setAlignment(Pos.BASELINE_RIGHT);
         searchHBox.getChildren().addAll(
                 MarginFactory.fixedMargin(20),
-                LabelFactory.classicLabel("Search:"),
+                LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
                 MarginFactory.fixedMargin(10),
                 tf,
                 MarginFactory.expandingMargin(),
