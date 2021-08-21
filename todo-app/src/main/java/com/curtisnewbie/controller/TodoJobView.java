@@ -235,7 +235,13 @@ public class TodoJobView extends HBox {
 
     /** Update graphic based on job's status */
     private void updateGraphicOnJobStatus(boolean isJobFinished) {
-        this.doneLabel.setGraphic(isJobFinished ? ShapeFactory.greenCircle() : ShapeFactory.redCircle());
+        if (isJobFinished)
+            this.doneLabel.setGraphic(ShapeFactory.greenCircle());
+        else if (isDelayed())
+            this.doneLabel.setGraphic(ShapeFactory.redCircle());
+        else
+            this.doneLabel.setGraphic(ShapeFactory.orangeCircle());
+
         if (environment.isStrikethroughEffectEnabled()) {
             this.nameText.setStrikethrough(isJobFinished);
         }
@@ -251,6 +257,17 @@ public class TodoJobView extends HBox {
     public Integer getTodoJobId() {
         checkThreadConfinement();
         return model.getId();
+    }
+
+    private boolean isDelayed() {
+        boolean isDone = model.isDone();
+        if (isDone)
+            return false;
+
+        LocalDate begin = isDone ? model.getActualEndDate() : LocalDate.now();
+        LocalDate end = model.getExpectedEndDate();
+
+        return Period.between(begin, end).isNegative();
     }
 
     private void updateTimeLeftLabel() {
