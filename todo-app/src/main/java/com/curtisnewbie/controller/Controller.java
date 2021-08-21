@@ -76,9 +76,10 @@ public class Controller implements Initializable {
     @FxThreadConfinement
     @FXML
     private HBox searchHBox;
-
     @FxThreadConfinement
     private volatile String searchedText = "";
+    @FxThreadConfinement
+    private TextField searchTextField = new TextField();
 
     @FxThreadConfinement
     private final Label currPageLabel = LabelFactory.classicLabel("1");
@@ -302,6 +303,10 @@ public class Controller implements Initializable {
                     redo();
                 } else if (e.getCode().equals(KeyCode.C)) {
                     copySelected();
+                } else if (e.getCode().equals(KeyCode.F)) {
+                    Platform.runLater(() -> {
+                        searchTextField.requestFocus();
+                    });
                 }
             } else {
                 if (e.getCode().equals(KeyCode.DELETE)) {
@@ -675,10 +680,9 @@ public class Controller implements Initializable {
     }
 
     private void setupSearchBox() {
-        TextField tf = new TextField();
-        tf.prefWidthProperty().bind(listView.widthProperty().subtract(200));
-        tf.setOnKeyReleased(e -> {
-            String changed = tf.getText();
+        searchTextField.prefWidthProperty().bind(listView.widthProperty().subtract(200));
+        searchTextField.setOnKeyReleased(e -> {
+            String changed = searchTextField.getText();
             if (!Objects.equals(searchedText, changed))
                 searchedText = changed;
 
@@ -689,7 +693,7 @@ public class Controller implements Initializable {
         Button closeBtn = ButtonFactory.getCloseBtn();
         closeBtn.setOnAction(e -> {
             this.searchedText = "";
-            tf.clear();
+            searchTextField.clear();
             reloadCurrPageAsync();
         });
 
@@ -698,7 +702,7 @@ public class Controller implements Initializable {
                 MarginFactory.fixedMargin(20),
                 LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
                 MarginFactory.fixedMargin(10),
-                tf,
+                searchTextField,
                 MarginFactory.expandingMargin(),
                 MarginFactory.fixedMargin(10),
                 closeBtn
