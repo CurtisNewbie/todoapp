@@ -23,6 +23,8 @@ public interface TodoJobMapper extends Mapper {
 
     List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);
 
+    List<TodoJob> findBetweenDates(String name, LocalDate startDate, LocalDate endDate);
+
     LocalDate findEarliestDate();
 
     LocalDate findLatestDate();

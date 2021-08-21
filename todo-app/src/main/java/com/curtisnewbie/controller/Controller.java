@@ -556,7 +556,7 @@ public class Controller implements Initializable {
                     if (nFile == null)
                         return;
 
-                    ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(dr.getStart(), dr.getEnd()),
+                    ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(searchedText, dr.getStart(), dr.getEnd()),
                             todoJobExportObjectPrinter,
                             nFile);
                 }
