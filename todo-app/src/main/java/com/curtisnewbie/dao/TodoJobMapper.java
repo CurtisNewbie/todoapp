@@ -15,6 +15,10 @@ public interface TodoJobMapper extends Mapper {
 
     List<TodoJob> findByPage(int page);
 
+    List<TodoJob> findByPage(String name, int page);
+
+    List<TodoJob> findByPage(String name, int page, int limit);
+
     List<TodoJob> findAll();
 
     List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate);

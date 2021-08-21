@@ -2,6 +2,7 @@ package com.curtisnewbie.dao;
 
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
+import com.curtisnewbie.util.StrUtil;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -79,6 +80,50 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     @Override
     public List<TodoJob> findByPage(int page) {
         return findByPage(page, DEFAULT_PAGE_LIMIT);
+    }
+
+    @Override
+    public List<TodoJob> findByPage(String name, int page) {
+        return findByPage(name, page, DEFAULT_PAGE_LIMIT);
+    }
+
+    @Override
+    public List<TodoJob> findByPage(String name, int page, int limit) {
+        if (StrUtil.isEmpty(name))
+            return findByPage(page);
+
+        if (limit <= 0)
+            throw new IllegalArgumentException("limit must be greater than 0");
+        if (page <= 0)
+            throw new IllegalArgumentException("page must be greater than 0");
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
+                        "WHERE name LIKE ? " +
+                        "ORDER BY is_done ASC, actual_end_date DESC, expected_end_date ASC LIMIT ? OFFSET ?");) {
+
+            stmt.setString(1, "%" + name + "%");
+            stmt.setInt(2, limit);
+            stmt.setInt(3, (page - 1) * limit);
+            ResultSet rs = stmt.executeQuery();
+            List<TodoJob> result = new ArrayList<>();
+            while (rs.next()) {
+                var job = new TodoJob();
+                job.setId(rs.getInt(1));
+                job.setName(rs.getString(2));
+                job.setDone(rs.getBoolean(3));
+                job.setExpectedEndDate(DateUtil.localDateOf(rs.getDate(4).getTime()));
+                job.setActualEndDate(rs.getDate(5) != null ? DateUtil.localDateOf(rs.getDate(5).getTime()) : null);
+                result.add(job);
+            }
+            timer.stop();
+            logger.info(String.format("Found: %d records, took: %.2f milliseconds\n", result.size(), timer.getMilliSec()));
+            return result;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+
     }
 
     @Override

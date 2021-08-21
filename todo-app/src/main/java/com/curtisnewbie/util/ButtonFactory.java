@@ -48,4 +48,13 @@ public final class ButtonFactory {
         btn.setGraphic(imgView);
         return btn;
     }
+
+    public static final Button getCloseBtn() {
+        var btn = getRectBtn();
+        var imgView = new ImageView(ImageUtil.CLOSE_ICON);
+        imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
+        imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
+        btn.setGraphic(imgView);
+        return btn;
+    }
 }

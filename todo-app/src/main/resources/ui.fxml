@@ -6,13 +6,15 @@
 <BorderPane
         xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
         fx:controller="com.curtisnewbie.controller.Controller">
-    <center>
-        <ListView fx:id="listView">
-        </ListView>
-
-    </center>
-    <bottom>
-        <HBox fx:id="pageControlHBox"></HBox>
-    </bottom>
+  <top>
+    <HBox fx:id="searchHBox"></HBox>
+  </top>
+  <center>
+    <ListView fx:id="listView">
+    </ListView>
+  </center>
+  <bottom>
+    <HBox fx:id="pageControlHBox"></HBox>
+  </bottom>
 
 </BorderPane>

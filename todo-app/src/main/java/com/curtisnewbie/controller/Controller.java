@@ -72,6 +72,14 @@ public class Controller implements Initializable {
     @FXML
     private HBox pageControlHBox;
 
+    // todo create a separate component for 'searchBox' for maintainability
+    @FxThreadConfinement
+    @FXML
+    private HBox searchHBox;
+
+    @FxThreadConfinement
+    private volatile String searchedText = "";
+
     @FxThreadConfinement
     private final Label currPageLabel = LabelFactory.classicLabel("1");
 
@@ -111,6 +119,8 @@ public class Controller implements Initializable {
         registerKeyPressedEventHandler();
         // setup control panel for pagination
         setupPageControlPanel();
+        // setup search box
+        setupSearchBox();
         // load the first page
         this.reloadCurrPageAsync();
     }
@@ -120,7 +130,7 @@ public class Controller implements Initializable {
      */
     private void loadNextPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(volatileCurrPage + 1);
+            return todoJobMapper.findByPage(searchedText, volatileCurrPage + 1);
         }).thenAccept((jobList) -> {
             // it's the last page
             if (jobList.isEmpty())
@@ -138,6 +148,11 @@ public class Controller implements Initializable {
                     addTodoJobView(jv);
                 });
             });
+        }).handle((v, e) -> {
+            if (e != null) {
+                e.printStackTrace();
+            }
+            return null;
         });
     }
 
@@ -148,9 +163,9 @@ public class Controller implements Initializable {
         CompletableFuture.supplyAsync(() -> {
             if (volatileCurrPage <= 1)
                 return null;
-            return todoJobMapper.findByPage(volatileCurrPage - 1);
+            return todoJobMapper.findByPage(searchedText, volatileCurrPage - 1);
         }).thenAccept((jobList) -> {
-            if (jobList.isEmpty())
+            if (jobList == null || jobList.isEmpty())
                 return;
 
             Platform.runLater(() -> {
@@ -165,6 +180,11 @@ public class Controller implements Initializable {
                     addTodoJobView(jv);
                 });
             });
+        }).handle((v, e) -> {
+            if (e != null) {
+                e.printStackTrace();
+            }
+            return null;
         });
     }
 
@@ -173,7 +193,7 @@ public class Controller implements Initializable {
      */
     private void reloadCurrPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(volatileCurrPage);
+            return todoJobMapper.findByPage(searchedText, volatileCurrPage);
         }).thenAccept((jobList) -> {
             // empty page
             if (jobList.isEmpty()) {
@@ -189,6 +209,9 @@ public class Controller implements Initializable {
                         addTodoJobView(new TodoJobView(welcomeTodo, environment));
                     }
                 }
+                Platform.runLater(() -> {
+                    this.listView.getItems().clear();
+                });
                 return;
             }
 
@@ -202,6 +225,11 @@ public class Controller implements Initializable {
                     addTodoJobView(jv);
                 });
             });
+        }).handle((v, e) -> {
+            if (e != null) {
+                e.printStackTrace();
+            }
+            return null;
         });
     }
 
@@ -227,8 +255,6 @@ public class Controller implements Initializable {
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
                     .subtract(Integer.parseInt(properties.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
             listView.getItems().add(jobView);
-            jobView.requestFocus();
-            jobView.requestLayout();
         });
     }
 
@@ -644,6 +670,37 @@ public class Controller implements Initializable {
                 currPageLabel, MarginFactory.fixedMargin(10),
                 prevPageBtn, MarginFactory.fixedMargin(10),
                 nextPageBtn, MarginFactory.fixedMargin(10));
+    }
+
+    private void setupSearchBox() {
+        TextField tf = new TextField();
+        tf.prefWidthProperty().bind(listView.widthProperty().subtract(200));
+        tf.setOnKeyReleased(e -> {
+            String changed = tf.getText();
+            if (!Objects.equals(searchedText, changed))
+                searchedText = changed;
+
+            if (e.getCode().equals(KeyCode.ENTER))
+                reloadCurrPageAsync();
+        });
+
+        Button closeBtn = ButtonFactory.getCloseBtn();
+        closeBtn.setOnAction(e -> {
+            this.searchedText = "";
+            tf.clear();
+            reloadCurrPageAsync();
+        });
+
+        searchHBox.setAlignment(Pos.BASELINE_RIGHT);
+        searchHBox.getChildren().addAll(
+                MarginFactory.fixedMargin(20),
+                LabelFactory.classicLabel("Search:"),
+                MarginFactory.fixedMargin(10),
+                tf,
+                MarginFactory.expandingMargin(),
+                MarginFactory.fixedMargin(10),
+                closeBtn
+        );
     }
 }
 
