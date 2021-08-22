@@ -680,7 +680,7 @@ public class Controller implements Initializable {
     }
 
     private void setupSearchBox() {
-        searchTextField.prefWidthProperty().bind(listView.widthProperty().subtract(200));
+        searchTextField.prefWidthProperty().bind(listView.widthProperty().subtract(150));
         searchTextField.setOnKeyReleased(e -> {
             String changed = searchTextField.getText();
             if (!Objects.equals(searchedText, changed))
@@ -690,12 +690,13 @@ public class Controller implements Initializable {
                 reloadCurrPageAsync();
         });
 
-        Button closeBtn = ButtonFactory.getCloseBtn();
-        closeBtn.setOnAction(e -> {
-            this.searchedText = "";
-            searchTextField.clear();
-            reloadCurrPageAsync();
-        });
+        // todo this looks ugly :(
+//        Button closeBtn = ButtonFactory.getCloseBtn();
+//        closeBtn.setOnAction(e -> {
+//            this.searchedText = "";
+//            searchTextField.clear();
+//            reloadCurrPageAsync();
+//        });
 
         searchHBox.setAlignment(Pos.BASELINE_RIGHT);
         searchHBox.getChildren().addAll(
@@ -704,8 +705,8 @@ public class Controller implements Initializable {
                 MarginFactory.fixedMargin(10),
                 searchTextField,
                 MarginFactory.expandingMargin(),
-                MarginFactory.fixedMargin(10),
-                closeBtn
+                MarginFactory.fixedMargin(10)
+//                closeBtn
         );
     }
 }
