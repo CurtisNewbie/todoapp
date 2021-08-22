@@ -26,6 +26,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.net.URL;
@@ -33,7 +34,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
@@ -49,9 +49,8 @@ import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 public class Controller implements Initializable {
-
-    private static final Logger logger = Logger.getLogger(Controller.class.getName());
 
     private static final int LISTVIEW_PADDING = 55;
     private final String GITHUB_ABOUT;
@@ -598,7 +597,7 @@ public class Controller implements Initializable {
             fileChooser.getExtensionFilters().add(getJsonExtFilter());
             File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
             if (nFile == null || !nFile.exists()) {
-                logger.info("No file selected, abort operation");
+                log.info("No file selected, abort operation");
                 return;
             }
 

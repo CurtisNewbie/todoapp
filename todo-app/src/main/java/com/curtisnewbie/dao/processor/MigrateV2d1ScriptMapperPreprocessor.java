@@ -4,6 +4,7 @@ import com.curtisnewbie.dao.Mapper;
 import com.curtisnewbie.dao.MapperPreprocessor;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -11,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Preprocessor that runs script to alter table DDL, and migrate data to new tables if necessary
@@ -21,9 +21,9 @@ import java.util.logging.Logger;
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
 
-    private static final Logger logger = Logger.getLogger(MigrateV2d1ScriptMapperPreprocessor.class.getName());
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final String MIGRATE_V2_SCRIPT = "migrate_v2.1.sql";
     private final String TODOJOB_TABLE_NAME = "todojob";
@@ -36,7 +36,7 @@ public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
     public void preprocessMapper(Mapper mapper) {
         Objects.requireNonNull(mapper);
 
-        logger.info("Checking whether we should migrate to V2.1");
+        log.info("Checking whether we should migrate to V2.1");
         boolean needToMigrate = true;
         try {
             DatabaseMetaData meta = mapper.getDatabaseMetaData();
@@ -62,7 +62,7 @@ public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
                 }
             }
             if (needToMigrate) {
-                logger.info("Migrating to V2.1");
+                log.info("Migrating to V2.1");
                 String script = ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT);
                 mapper.runScript(script);
             }

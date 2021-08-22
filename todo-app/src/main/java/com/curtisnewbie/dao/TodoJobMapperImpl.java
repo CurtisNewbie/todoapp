@@ -3,20 +3,20 @@ package com.curtisnewbie.dao;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * @author yongjie.zhuang
  */
+@Slf4j
 public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMapper {
 
-    private static final Logger logger = Logger.getLogger(TodoJobMapperImpl.class.getName());
     private static final int DEFAULT_PAGE_LIMIT = 30;
 
     public TodoJobMapperImpl(Connection connection) {
@@ -70,7 +70,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 result.add(job);
             }
             timer.stop();
-            logger.info(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
+            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -118,7 +118,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 result.add(job);
             }
             timer.stop();
-            logger.info(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
+            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -169,7 +169,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 result.add(job);
             }
             timer.stop();
-            logger.info(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
+            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -202,7 +202,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 result.add(job);
             }
             timer.stop();
-            logger.info(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
+            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -217,7 +217,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
             if (rs.next()) {
                 timer.stop();
-                logger.info(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
+                log.debug(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
             return null;
@@ -255,7 +255,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             stmt.setInt(5, todoJob.getId());
             int res = stmt.executeUpdate();
             timer.stop();
-            logger.info(String.format("Update took %.2f milliseconds", timer.getMilliSec()));
+            log.debug(String.format("Update took %.2f milliseconds", timer.getMilliSec()));
             return res;
         } catch (SQLException e) {
             throw new IllegalStateException(e);

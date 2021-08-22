@@ -1,18 +1,19 @@
 package com.curtisnewbie.dao;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Logger;
 
 /**
  * Simple implementation of {@link ScriptRunner}
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 public class SimpleScriptRunner implements ScriptRunner {
 
-    private static final Logger logger = Logger.getLogger(SimpleScriptRunner.class.getName());
     private final String COMMENT_PREFIX = "--";
     private final String SPACE = " ";
 
@@ -39,7 +40,7 @@ public class SimpleScriptRunner implements ScriptRunner {
 
     private void doExecute(Connection connection, String command) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            logger.info("Do execute: \n" + command + "\n");
+            log.info("Do execute: \n" + command + "\n");
             stmt.execute(command);
         }
     }

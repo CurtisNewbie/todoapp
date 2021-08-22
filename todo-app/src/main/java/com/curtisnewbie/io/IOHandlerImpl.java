@@ -7,6 +7,7 @@ import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -14,18 +15,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 
 /**
  * @author yongjie.zhuang
  */
+@Slf4j
 public class IOHandlerImpl implements IOHandler {
     private static final String DIR_NAME = "todo-app";
     private static final String CONF_NAME = "settings.json";
     private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
-    private static final Logger logger = Logger.getLogger(IOHandlerImpl.class.getName());
 
     @Override
     public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
@@ -48,12 +48,11 @@ public class IOHandlerImpl implements IOHandler {
                     else
                         list = Arrays.asList(objectMapper.readValue(json, TodoJob[].class));
                     timer.stop();
-                    logger.info(String.format("Loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec()));
+                    log.debug(String.format("Loaded %d records, took %.2f milliseconds\n", list.size(), timer.getMilliSec()));
                     return list;
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
             throw new FailureToLoadException(e);
         }
     }
@@ -68,8 +67,8 @@ public class IOHandlerImpl implements IOHandler {
                 conf.createNewFile();
                 writeDefaultConfIntoFile(conf);
             } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
+                log.error("Unable to generate configuration file", e);
+                throw new IllegalStateException(e);
             }
         }
     }
@@ -87,7 +86,7 @@ public class IOHandlerImpl implements IOHandler {
                 // overwrite the file if exception is caught
                 config = writeDefaultConfIntoFile(conf);
             } catch (IOException ioException) {
-                throw new RuntimeException(ioException); // unrecoverable exception
+                throw new IllegalStateException(ioException); // unrecoverable exception
             }
         }
         return config;
@@ -108,7 +107,7 @@ public class IOHandlerImpl implements IOHandler {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Unable to write objects", e);
             }
         });
     }
@@ -138,7 +137,7 @@ public class IOHandlerImpl implements IOHandler {
                     file.createNewFile();
                 writeConfig(config, file);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Unable to write config", e);
             }
         });
     }
