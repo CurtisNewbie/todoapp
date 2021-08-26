@@ -44,6 +44,16 @@ public final class PropertiesLoader {
     }
 
     /**
+     * Reload resource bundle, change to the specified locale
+     *
+     * @param locale locale to be used
+     */
+    public void changeToLocale(Locale locale, OnLoaded e) {
+        this.changeToLocale(locale);
+        e.loaded();
+    }
+
+    /**
      * Get common property
      *
      * @param key key
@@ -68,5 +78,9 @@ public final class PropertiesLoader {
      */
     public static PropertiesLoader getInstance() {
         return INSTANCE;
+    }
+
+    public interface OnLoaded {
+        void loaded();
     }
 }

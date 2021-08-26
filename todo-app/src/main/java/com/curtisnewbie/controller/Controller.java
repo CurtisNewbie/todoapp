@@ -57,7 +57,7 @@ public class Controller {
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
-    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
+    private ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     @FxThreadConfinement
     private ListView<TodoJobView> listView = new ListView<>();
@@ -66,18 +66,19 @@ public class Controller {
     private static volatile int volatileCurrPage = 1;
 
     @FxThreadConfinement
-    private final SearchBar searchBar;
+    private SearchBar searchBar;
 
     @FxThreadConfinement
-    private final PaginationBar paginationBar;
+    private PaginationBar paginationBar;
+
+    @FxThreadConfinement
+    private final BorderPane parent;
 
     /** record whether it's the first time that the current page being loaded */
     private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
 
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
-
-    private final BorderPane parent;
 
     public Controller(BorderPane parent) {
         this.parent = parent;
@@ -89,27 +90,25 @@ public class Controller {
         this.environment = new Environment(config);
 
         // load locale-specific resource bundle
-        properties.changeToLocale(environment.getLanguage().locale);
+        properties.changeToLocale(environment.getLanguage().locale, () -> {
+            // setup todojob's printer
+            this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
-        // setup todojob's printer
-        this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
+            // load text and titles based on configured language
+            GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
+            AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
+        });
 
-        // load text and titles based on configured language
-        GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
-        AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
-
-        this.searchBar = new SearchBar();
-        this.paginationBar = new PaginationBar();
-
+        // setup control panel for pagination
+        setupPaginationBar();
+        // setup search bar
+        setupSearchBar();
+        // layout the components on borderpane
         layoutComponents();
         // register a ContextMenu for the ListView
         registerContextMenu();
         // register key pressed event handler for ListView
         registerKeyPressedEventHandler();
-        // setup control panel for pagination
-        setupPaginationBar();
-        // setup search bar
-        setupSearchBar();
         // load the first page
         this.reloadCurrPageAsync();
     }
@@ -601,11 +600,15 @@ public class Controller {
                     environment.setLanguage(Language.CHN);
                 }
                 // reload resource bundle for the updated locale
-                properties.changeToLocale(environment.getLanguage().locale);
-                // reload current page
-                reloadCurrPageAsync();
-                // override the previous menu
-                registerContextMenu();
+                properties.changeToLocale(environment.getLanguage().locale, () -> {
+                    reloadCurrPageAsync();
+                    // override the previous menu
+                    registerContextMenu();
+                    // override the previous pagination bar and search bar
+                    setupPaginationBar();
+                    setupSearchBar();
+                    layoutComponents();
+                });
             }
             ioHandler.writeConfigAsync(new Config(environment));
         });
@@ -618,6 +621,7 @@ public class Controller {
     }
 
     private void setupPaginationBar() {
+        paginationBar = new PaginationBar();
         paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
         });
@@ -627,6 +631,7 @@ public class Controller {
     }
 
     private void setupSearchBar() {
+        searchBar = new SearchBar();
         searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(150));
         searchBar.onSearchTextFieldEnterPressed(this::reloadCurrPageAsync);
     }
