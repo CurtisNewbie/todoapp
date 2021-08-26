@@ -639,7 +639,16 @@ public class Controller {
     private void setupSearchBar() {
         searchBar = new SearchBar();
         searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(150));
-        searchBar.onSearchTextFieldEnterPressed(this::reloadCurrPageAsync);
+        searchBar.onSearchTextFieldEnterPressed(() -> {
+            Platform.runLater(() -> {
+                if (searchBar.isSearchTextChanged()) {
+                    searchBar.setSearchTextChanged(false);
+                    volatileCurrPage = 1;
+                    paginationBar.setCurrPage(volatileCurrPage);
+                }
+                reloadCurrPageAsync();
+            });
+        });
     }
 }
 

@@ -28,9 +28,16 @@ public class SearchBar extends HBox {
     private final TextField searchTextField = new TextField();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
+    private boolean searchTextChanged = false;
+    private String prevSearchText = "";
 
     public SearchBar() {
         searchTextField.setOnKeyReleased(e -> {
+            if (!Objects.equals(e.getText(), prevSearchText)) {
+                searchTextChanged = true;
+                prevSearchText = e.getText();
+            }
+
             if (e.getCode().equals(KeyCode.ENTER)) {
                 for (Runnable r : onSearchTextFieldEnterPressed) {
                     r.run();
@@ -70,4 +77,11 @@ public class SearchBar extends HBox {
         return searchTextField;
     }
 
+    public boolean isSearchTextChanged() {
+        return searchTextChanged;
+    }
+
+    public void setSearchTextChanged(boolean searchTextChanged) {
+        this.searchTextChanged = searchTextChanged;
+    }
 }
