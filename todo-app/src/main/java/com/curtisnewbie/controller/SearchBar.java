@@ -2,6 +2,7 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.FxThreadUtil;
 import com.curtisnewbie.util.LabelFactory;
 import com.curtisnewbie.util.MarginFactory;
 import javafx.beans.property.DoubleProperty;
@@ -52,6 +53,7 @@ public class SearchBar extends HBox {
      * Get searchTextField's {@code prefWidthProperty()}
      */
     public DoubleProperty searchTextFieldPrefWidthProperty() {
+        FxThreadUtil.checkThreadConfinement();
         return searchTextField.prefWidthProperty();
     }
 
@@ -59,6 +61,7 @@ public class SearchBar extends HBox {
      * Set runnable called when 'Enter' key is pressed for searchTextField
      */
     public void onSearchTextFieldEnterPressed(Runnable runnable) {
+        FxThreadUtil.checkThreadConfinement();
         Objects.requireNonNull(runnable);
         this.onSearchTextFieldEnterPressed.add(runnable);
     }

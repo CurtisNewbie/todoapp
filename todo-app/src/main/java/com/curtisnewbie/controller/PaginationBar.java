@@ -1,10 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.config.PropertiesLoader;
-import com.curtisnewbie.util.ButtonFactory;
-import com.curtisnewbie.util.FxThreadConfinement;
-import com.curtisnewbie.util.LabelFactory;
-import com.curtisnewbie.util.MarginFactory;
+import com.curtisnewbie.util.*;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -45,6 +42,7 @@ public class PaginationBar extends HBox {
     }
 
     public void setCurrPage(int page) {
+        FxThreadUtil.checkThreadConfinement();
         currPageLabel.setText(String.valueOf(page));
     }
 }

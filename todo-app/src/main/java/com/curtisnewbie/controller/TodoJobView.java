@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
+import static com.curtisnewbie.util.FxThreadUtil.checkThreadConfinement;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
 import static com.curtisnewbie.util.MarginFactory.*;
@@ -313,16 +314,6 @@ public class TodoJobView extends HBox {
 
     private void emptyTimeLeftLabel() {
         this.timeLeftLabel.setText("");
-    }
-
-    /**
-     * Check if the current thread is FX's UI thread
-     *
-     * @throws ConcurrentModificationException if current thread is not FX's UI thread
-     */
-    private void checkThreadConfinement() {
-        if (!Platform.isFxApplicationThread())
-            throw new ConcurrentModificationException(TodoJobView.class.getName() + " should only be used inside UI thread");
     }
 
     private enum Event {
