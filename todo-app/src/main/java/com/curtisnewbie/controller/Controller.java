@@ -16,14 +16,12 @@ import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,31 +49,27 @@ import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
 public class Controller {
 
     private static final int LISTVIEW_PADDING = 55;
-    private final String GITHUB_ABOUT;
-    private final String AUTHOR_ABOUT;
+    private String GITHUB_ABOUT;
+    private String AUTHOR_ABOUT;
 
     private final Environment environment;
     private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
-    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
+    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     @FxThreadConfinement
     private ListView<TodoJobView> listView = new ListView<>();
 
     @FxThreadConfinement
-    private HBox pageControlHBox = new HBox();
+    private static volatile int volatileCurrPage = 1;
 
     @FxThreadConfinement
     private final SearchBar searchBar;
 
     @FxThreadConfinement
-    private final Label currPageLabel = LabelFactory.classicLabel("1");
-
-    /** current page */
-    @FxThreadConfinement
-    private static volatile int volatileCurrPage = 1;
+    private final PaginationBar paginationBar;
 
     /** record whether it's the first time that the current page being loaded */
     private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
@@ -94,7 +88,7 @@ public class Controller {
         // setup environment
         this.environment = new Environment(config);
 
-        // get properties loader singleton
+        // load locale-specific resource bundle
         properties.changeToLocale(environment.getLanguage().locale);
 
         // setup todojob's printer
@@ -105,6 +99,7 @@ public class Controller {
         AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
 
         this.searchBar = new SearchBar();
+        this.paginationBar = new PaginationBar();
 
         layoutComponents();
         // register a ContextMenu for the ListView
@@ -112,7 +107,7 @@ public class Controller {
         // register key pressed event handler for ListView
         registerKeyPressedEventHandler();
         // setup control panel for pagination
-        setupPageControlPanel();
+        setupPaginationBar();
         // setup search bar
         setupSearchBar();
         // load the first page
@@ -121,7 +116,7 @@ public class Controller {
 
     private void layoutComponents() {
         parent.setTop(searchBar);
-        parent.setBottom(pageControlHBox);
+        parent.setBottom(paginationBar);
         parent.setCenter(listView);
     }
 
@@ -142,7 +137,7 @@ public class Controller {
 
             Platform.runLater(() -> {
                 volatileCurrPage += 1;
-                currPageLabel.setText(String.valueOf(volatileCurrPage));
+                paginationBar.setCurrPage(volatileCurrPage);
                 var jobViewList = new ArrayList<TodoJobView>();
                 for (TodoJob j : jobList) {
                     jobViewList.add(new TodoJobView(j, environment));
@@ -174,7 +169,7 @@ public class Controller {
 
             Platform.runLater(() -> {
                 volatileCurrPage -= 1;
-                currPageLabel.setText(String.valueOf(volatileCurrPage));
+                paginationBar.setCurrPage(volatileCurrPage);
                 var jobViewList = new ArrayList<TodoJobView>();
                 for (TodoJob j : jobList) {
                     jobViewList.add(new TodoJobView(j, environment));
@@ -491,49 +486,6 @@ public class Controller {
         });
     }
 
-    private void onReadHandler(ActionEvent e) {
-        Platform.runLater(() -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_READ_TODO_KEY));
-            fileChooser.getExtensionFilters().add(getJsonExtFilter());
-            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
-            if (nFile == null || !nFile.exists())
-                return;
-            CompletableFuture.supplyAsync(() -> {
-                try {
-                    return ioHandler.loadTodoJob(nFile);
-                } catch (FailureToLoadException exception) {
-                    exception.printStackTrace();
-                    return null;
-                }
-            }).thenAccept((list) -> {
-                if (list == null)
-                    return;
-                Platform.runLater(() -> {
-                    // clean all todoJobView
-                    listView.getItems().clear();
-                    // readonly
-                    readOnly.set(true);
-                    // load the read-only ones
-                    var readOnlyJobViewList = new ArrayList<TodoJobView>();
-                    list.forEach(job -> {
-                        var jobView = new TodoJobView(job, environment);
-                        jobView.freeze(); // readonly
-                        readOnlyJobViewList.add(jobView);
-                        pageControlHBox.getChildren().forEach(btn -> {
-                            btn.setDisable(true);
-                        });
-                        volatileCurrPage = 1;
-                        currPageLabel.setText(String.valueOf(volatileCurrPage));
-                    });
-                    _batchAddTodoJobViews(readOnlyJobViewList);
-                    App.setTitle(App.STARTUP_TITLE + " " + "[Read-only Mode]");
-                    toastInfo(String.format("Loaded %d TO-DOs (read-only)", list.size()));
-                });
-            });
-        });
-    }
-
     private void onExportHandler(ActionEvent e) {
         CompletableFuture.supplyAsync(() -> {
             LocalDate earliestDate = todoJobMapper.findEarliestDate();
@@ -665,22 +617,13 @@ public class Controller {
         });
     }
 
-    private void setupPageControlPanel() {
-        // registers event handlers for paging
-        Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
-        prevPageBtn.setOnAction(e -> {
+    private void setupPaginationBar() {
+        paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
         });
-        Button nextPageBtn = ButtonFactory.getArrowRightBtn();
-        nextPageBtn.setOnAction(e -> {
+        paginationBar.getNextPageBtn().setOnAction(e -> {
             loadNextPageAsync();
         });
-        pageControlHBox.setAlignment(Pos.BASELINE_RIGHT);
-        pageControlHBox.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_PAGE)),
-                MarginFactory.fixedMargin(10),
-                currPageLabel, MarginFactory.fixedMargin(10),
-                prevPageBtn, MarginFactory.fixedMargin(10),
-                nextPageBtn, MarginFactory.fixedMargin(10));
     }
 
     private void setupSearchBar() {
