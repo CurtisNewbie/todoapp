@@ -67,13 +67,8 @@ public class Controller {
     @FxThreadConfinement
     private HBox pageControlHBox = new HBox();
 
-    // todo create a separate component for 'searchBox' for maintainability
     @FxThreadConfinement
-    private HBox searchHBox = new HBox();
-    @FxThreadConfinement
-    private volatile String searchedText = "";
-    @FxThreadConfinement
-    private TextField searchTextField = new TextField();
+    private final SearchBar searchBar;
 
     @FxThreadConfinement
     private final Label currPageLabel = LabelFactory.classicLabel("1");
@@ -109,6 +104,8 @@ public class Controller {
         GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
         AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
 
+        this.searchBar = new SearchBar();
+
         layoutComponents();
         // register a ContextMenu for the ListView
         registerContextMenu();
@@ -116,14 +113,14 @@ public class Controller {
         registerKeyPressedEventHandler();
         // setup control panel for pagination
         setupPageControlPanel();
-        // setup search box
-        setupSearchBox();
+        // setup search bar
+        setupSearchBar();
         // load the first page
         this.reloadCurrPageAsync();
     }
 
     private void layoutComponents() {
-        parent.setTop(searchHBox);
+        parent.setTop(searchBar);
         parent.setBottom(pageControlHBox);
         parent.setCenter(listView);
     }
@@ -137,7 +134,7 @@ public class Controller {
      */
     private void loadNextPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(searchedText, volatileCurrPage + 1);
+            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage + 1);
         }).thenAccept((jobList) -> {
             // it's the last page
             if (jobList.isEmpty())
@@ -170,7 +167,7 @@ public class Controller {
         CompletableFuture.supplyAsync(() -> {
             if (volatileCurrPage <= 1)
                 return null;
-            return todoJobMapper.findByPage(searchedText, volatileCurrPage - 1);
+            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage - 1);
         }).thenAccept((jobList) -> {
             if (jobList == null || jobList.isEmpty())
                 return;
@@ -200,7 +197,7 @@ public class Controller {
      */
     private void reloadCurrPageAsync() {
         CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(searchedText, volatileCurrPage);
+            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage);
         }).thenAccept((jobList) -> {
             boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
             // empty page
@@ -311,7 +308,7 @@ public class Controller {
                     copySelected();
                 } else if (e.getCode().equals(KeyCode.F)) {
                     Platform.runLater(() -> {
-                        searchTextField.requestFocus();
+                        searchBar.getSearchTextField().requestFocus();
                     });
                 }
             } else {
@@ -568,6 +565,7 @@ public class Controller {
                     if (nFile == null)
                         return;
 
+                    String searchedText = searchBar.getSearchTextField().getText();
                     ioHandler.writeObjectsAsync(todoJobMapper.findBetweenDates(searchedText, dr.getStart(), dr.getEnd()),
                             todoJobExportObjectPrinter,
                             nFile);
@@ -685,27 +683,9 @@ public class Controller {
                 nextPageBtn, MarginFactory.fixedMargin(10));
     }
 
-    private void setupSearchBox() {
-        searchTextField.prefWidthProperty().bind(listView.widthProperty().subtract(150));
-        searchTextField.setOnKeyReleased(e -> {
-            String changed = searchTextField.getText();
-            if (!Objects.equals(searchedText, changed))
-                searchedText = changed;
-
-            if (e.getCode().equals(KeyCode.ENTER))
-                reloadCurrPageAsync();
-        });
-
-        searchHBox.setAlignment(Pos.BASELINE_RIGHT);
-        searchHBox.getChildren().addAll(
-                MarginFactory.fixedMargin(20),
-                LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
-                MarginFactory.fixedMargin(10),
-                searchTextField,
-                MarginFactory.expandingMargin(),
-                MarginFactory.fixedMargin(10)
-//                closeBtn
-        );
+    private void setupSearchBar() {
+        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(150));
+        searchBar.onSearchTextFieldEnterPressed(this::reloadCurrPageAsync);
     }
 }
 
