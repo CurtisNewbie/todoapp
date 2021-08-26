@@ -29,6 +29,8 @@ import java.io.File;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
@@ -75,10 +77,14 @@ public class Controller {
     private final BorderPane parent;
 
     /** record whether it's the first time that the current page being loaded */
-    private static final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
+    private final AtomicBoolean firstTimeLoadingCurrPage = new AtomicBoolean(true);
 
     /** record whether the current file is readonly */
-    private static final AtomicBoolean readOnly = new AtomicBoolean(false);
+    private final AtomicBoolean readOnly = new AtomicBoolean(false);
+
+    // we only need a single thread, there isn't much concurrency going on here in this map,
+    // mainly the main thread and the Fx's thread
+    private final ExecutorService taskExec = Executors.newSingleThreadExecutor();
 
     public Controller(BorderPane parent) {
         this.parent = parent;
@@ -129,7 +135,7 @@ public class Controller {
     private void loadNextPageAsync() {
         CompletableFuture.supplyAsync(() -> {
             return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage + 1);
-        }).thenAccept((jobList) -> {
+        }, taskExec).thenAccept((jobList) -> {
             // it's the last page
             if (jobList.isEmpty())
                 return;
@@ -162,7 +168,7 @@ public class Controller {
             if (volatileCurrPage <= 1)
                 return null;
             return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage - 1);
-        }).thenAccept((jobList) -> {
+        }, taskExec).thenAccept((jobList) -> {
             if (jobList == null || jobList.isEmpty())
                 return;
 
@@ -192,7 +198,7 @@ public class Controller {
     private void reloadCurrPageAsync() {
         CompletableFuture.supplyAsync(() -> {
             return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage);
-        }).thenAccept((jobList) -> {
+        }, taskExec).thenAccept((jobList) -> {
             boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
             // empty page
             if (jobList.isEmpty()) {
@@ -490,7 +496,7 @@ public class Controller {
             LocalDate earliestDate = todoJobMapper.findEarliestDate();
             LocalDate latestDate = todoJobMapper.findLatestDate();
             return new Pair(earliestDate, latestDate);
-        }).thenAccept(p -> {
+        }, taskExec).thenAccept(p -> {
             Pair<LocalDate, LocalDate> pair = (Pair<LocalDate, LocalDate>) p;
             Platform.runLater(() -> {
                 if (listView.getItems().isEmpty())
@@ -572,7 +578,7 @@ public class Controller {
                     ex.printStackTrace();
                     return 0;
                 }
-            }).thenAccept((todoCount) -> {
+            }, taskExec).thenAccept((todoCount) -> {
                 toastInfo(String.format("Loaded %d TO-DOs", todoCount));
                 if (todoCount > 0) {
                     volatileCurrPage = 1;
