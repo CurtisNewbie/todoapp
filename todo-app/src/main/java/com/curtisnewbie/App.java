@@ -2,14 +2,13 @@ package com.curtisnewbie;
 
 import com.curtisnewbie.callback.OnClose;
 import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.controller.Controller;
 import com.curtisnewbie.util.ImageUtil;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,22 +32,24 @@ public class App extends Application {
     private final int MIN_HEIGHT = 350;
 
     private static Stage primaryStage;
-    private static Parent parent;
+    private static BorderPane borderPane;
     private static List<OnClose> onCloseList = new ArrayList<>();
 
     @Override
     public void init() throws Exception {
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);) {
-            FXMLLoader loader = new FXMLLoader();
-            App.parent = loader.load(fxmlIn);
-        }
+//        ClassLoader classLoader = this.getClass().getClassLoader();
+//        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);) {
+//            FXMLLoader loader = new FXMLLoader();
+//            App.parent = loader.load(fxmlIn);
+//        }
+        borderPane = new BorderPane();
     }
 
     @Override
     public void start(Stage stage) throws Exception {
         App.primaryStage = stage;
-        Scene s = new Scene(parent);
+        Scene s = new Scene(borderPane);
+        Controller.initialize(borderPane);
         stage.setScene(s);
         stage.setTitle(STARTUP_TITLE);
         stage.setMinWidth(MIN_WIDTH);

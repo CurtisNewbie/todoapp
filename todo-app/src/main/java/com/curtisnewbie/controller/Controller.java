@@ -16,20 +16,18 @@ import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -50,7 +48,7 @@ import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
  * @author yongjie.zhuang
  */
 @Slf4j
-public class Controller implements Initializable {
+public class Controller {
 
     private static final int LISTVIEW_PADDING = 55;
     private final String GITHUB_ABOUT;
@@ -64,17 +62,14 @@ public class Controller implements Initializable {
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     @FxThreadConfinement
-    @FXML
-    private ListView<TodoJobView> listView;
+    private ListView<TodoJobView> listView = new ListView<>();
 
     @FxThreadConfinement
-    @FXML
-    private HBox pageControlHBox;
+    private HBox pageControlHBox = new HBox();
 
     // todo create a separate component for 'searchBox' for maintainability
     @FxThreadConfinement
-    @FXML
-    private HBox searchHBox;
+    private HBox searchHBox = new HBox();
     @FxThreadConfinement
     private volatile String searchedText = "";
     @FxThreadConfinement
@@ -93,7 +88,11 @@ public class Controller implements Initializable {
     /** record whether the current file is readonly */
     private static final AtomicBoolean readOnly = new AtomicBoolean(false);
 
-    public Controller() {
+    private final BorderPane parent;
+
+    public Controller(BorderPane parent) {
+        this.parent = parent;
+
         // read configuration from file
         Config config = ioHandler.readConfig();
 
@@ -109,10 +108,8 @@ public class Controller implements Initializable {
         // load text and titles based on configured language
         GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
         AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
-    }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+        layoutComponents();
         // register a ContextMenu for the ListView
         registerContextMenu();
         // register key pressed event handler for ListView
@@ -123,6 +120,16 @@ public class Controller implements Initializable {
         setupSearchBox();
         // load the first page
         this.reloadCurrPageAsync();
+    }
+
+    private void layoutComponents() {
+        parent.setTop(searchHBox);
+        parent.setBottom(pageControlHBox);
+        parent.setCenter(listView);
+    }
+
+    public static Controller initialize(BorderPane parent) {
+        return new Controller(parent);
     }
 
     /**
@@ -688,14 +695,6 @@ public class Controller implements Initializable {
             if (e.getCode().equals(KeyCode.ENTER))
                 reloadCurrPageAsync();
         });
-
-        // todo this looks ugly :(
-//        Button closeBtn = ButtonFactory.getCloseBtn();
-//        closeBtn.setOnAction(e -> {
-//            this.searchedText = "";
-//            searchTextField.clear();
-//            reloadCurrPageAsync();
-//        });
 
         searchHBox.setAlignment(Pos.BASELINE_RIGHT);
         searchHBox.getChildren().addAll(
