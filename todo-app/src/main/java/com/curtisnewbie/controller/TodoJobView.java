@@ -199,6 +199,13 @@ public class TodoJobView extends HBox {
     }
 
     /**
+     * Get name
+     */
+    public String getName() {
+        return this.model.getName();
+    }
+
+    /**
      * Get copy of current {@code TodoJobView} in forms of a new {@code TodoJob}
      *
      * @return todoJob

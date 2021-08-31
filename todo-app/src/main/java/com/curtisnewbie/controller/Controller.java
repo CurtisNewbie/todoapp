@@ -485,10 +485,11 @@ public class Controller {
     private void copySelected() {
         Platform.runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
-            if (selected >= 0)
-                copyToClipBoard(
-                        todoJobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
-                );
+            if (selected >= 0) {
+                TodoJobView todoJobView = listView.getItems().get(selected);
+                copyToClipBoard(todoJobView.getName());
+//                        todoJobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
+            }
         });
     }
 
