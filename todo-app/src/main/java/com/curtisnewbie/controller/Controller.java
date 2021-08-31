@@ -334,11 +334,12 @@ public class Controller {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                Integer newId = todoJobMapper.insert(redo.getTodoJob());
+                TodoJob t = redo.getTodoJob();
+                Integer newId = todoJobMapper.insert(t);
                 if (newId != null) {
-                    var job = redo.getTodoJob();
-                    job.setId(newId);
-                    addTodoJobView(new TodoJobView(job, environment));
+//                    t.setId(newId);
+//                    addTodoJobView(new TodoJobView(t, environment));
+                    reloadCurrPageAsync();
                 } else {
                     toastError("Unknown error happens when try to redo");
                 }
