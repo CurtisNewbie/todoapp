@@ -89,6 +89,13 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
+    public Mono<List<TodoJob>> findByPageAsync(String name, int page) {
+        return Mono.create(sink -> {
+            sink.success(findByPage(name, page));
+        });
+    }
+
+    @Override
     public List<TodoJob> findByPage(String name, int page, int limit) {
         if (StrUtil.isEmpty(name))
             return findByPage(page);
@@ -333,6 +340,16 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public Mono<Integer> insertAsync(TodoJob todoJob) {
+        return Mono.create(sink -> {
+            Integer id = insert(todoJob);
+            if (id == null)
+                sink.error(new SQLException("Unable to insert todo"));
+            sink.success(id);
+        });
     }
 
     @Override

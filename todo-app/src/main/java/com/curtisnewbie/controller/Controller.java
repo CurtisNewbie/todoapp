@@ -155,108 +155,76 @@ public class Controller {
      * Load next page asynchronously
      */
     private void loadNextPageAsync() {
-        CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage + 1);
-        }, taskExec).thenAccept((jobList) -> {
-            // it's the last page
-            if (jobList.isEmpty())
-                return;
-
-            Platform.runLater(() -> {
-                volatileCurrPage += 1;
-                paginationBar.setCurrPage(volatileCurrPage);
-                var jobViewList = new ArrayList<TodoJobView>();
-                for (TodoJob j : jobList) {
-                    jobViewList.add(new TodoJobView(j, environment));
-                }
-                listView.getItems().clear();
-                jobViewList.forEach(jv -> {
-                    addTodoJobView(jv);
+        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
+                .subscribeOn(taskScheduler)
+                .subscribe(list -> {
+                    if (!list.isEmpty()) {
+                        Platform.runLater(() -> {
+                            volatileCurrPage += 1;
+                            paginationBar.setCurrPage(volatileCurrPage);
+                            clearAndLoadList(list);
+                        });
+                    }
                 });
-            });
-        }).handle((v, e) -> {
-            if (e != null) {
-                e.printStackTrace();
-            }
-            return null;
-        });
     }
 
     /**
      * Load previous page asynchronously
      */
     private void loadPrevPageAsync() {
-        CompletableFuture.supplyAsync(() -> {
-            if (volatileCurrPage <= 1)
-                return null;
-            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage - 1);
-        }, taskExec).thenAccept((jobList) -> {
-            if (jobList == null || jobList.isEmpty())
-                return;
+        if (volatileCurrPage <= 1)
+            return;
 
-            Platform.runLater(() -> {
-                volatileCurrPage -= 1;
-                paginationBar.setCurrPage(volatileCurrPage);
-                var jobViewList = new ArrayList<TodoJobView>();
-                for (TodoJob j : jobList) {
-                    jobViewList.add(new TodoJobView(j, environment));
-                }
-                listView.getItems().clear();
-                jobViewList.forEach(jv -> {
-                    addTodoJobView(jv);
+        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
+                .subscribeOn(taskScheduler)
+                .subscribe(list -> {
+                    if (!list.isEmpty()) {
+                        Platform.runLater(() -> {
+                            volatileCurrPage -= 1;
+                            paginationBar.setCurrPage(volatileCurrPage);
+                            clearAndLoadList(list);
+                        });
+                    }
                 });
-            });
-        }).handle((v, e) -> {
-            if (e != null) {
-                e.printStackTrace();
-            }
-            return null;
-        });
     }
 
     /**
      * Reload current page asynchronously
      */
     private void reloadCurrPageAsync() {
-        CompletableFuture.supplyAsync(() -> {
-            return todoJobMapper.findByPage(searchBar.getSearchTextField().getText(), volatileCurrPage);
-        }, taskExec).thenAccept((jobList) -> {
-            boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
-            // empty page
-            if (jobList.isEmpty()) {
-                // check if it's the first time loading current page
-                if (isFirstTimeLoading) {
-                    TodoJob welcomeTodo = new TodoJob();
-                    welcomeTodo.setName("Welcome using this TODO app! :D");
-                    welcomeTodo.setExpectedEndDate(LocalDate.now());
-                    welcomeTodo.setDone(false);
-                    Integer id = todoJobMapper.insert(welcomeTodo);
-                    if (id != 0) {
-                        welcomeTodo.setId(id);
-                        addTodoJobView(new TodoJobView(welcomeTodo, environment));
-                    }
-                }
-                Platform.runLater(() -> {
-                    this.listView.getItems().clear();
-                });
-                return;
-            }
+        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
+                .subscribeOn(taskScheduler)
+                .subscribe(list -> {
+                    boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
 
-            Platform.runLater(() -> {
-                var jobViewList = new ArrayList<TodoJobView>();
-                for (TodoJob j : jobList) {
-                    jobViewList.add(new TodoJobView(j, environment));
-                }
-                listView.getItems().clear();
-                jobViewList.forEach(jv -> {
-                    addTodoJobView(jv);
+                    // insert a welcome to-do job if there is none and it's first time loading page (since app startup)
+                    if (list.isEmpty() && isFirstTimeLoading) {
+                        TodoJob welcomeTodo = new TodoJob();
+                        welcomeTodo.setName("Welcome using this TODO app! :D");
+                        welcomeTodo.setExpectedEndDate(LocalDate.now());
+                        welcomeTodo.setDone(false);
+
+                        todoJobMapper.insertAsync(welcomeTodo)
+                                .subscribeOn(taskScheduler)
+                                .subscribe(id -> {
+                                    welcomeTodo.setId(id);
+                                    list.add(welcomeTodo);
+                                    clearAndLoadList(list);
+                                });
+                    }
+
+                    if (!list.isEmpty()) {
+                        clearAndLoadList(list);
+                    }
                 });
-            });
-        }).handle((v, e) -> {
-            if (e != null) {
-                e.printStackTrace();
-            }
-            return null;
+    }
+
+    private void clearAndLoadList(List<TodoJob> list) {
+        Platform.runLater(() -> {
+            listView.getItems().clear();
+            list.stream()
+                    .map(t -> new TodoJobView(t, environment))
+                    .forEach(tjv -> addTodoJobView(tjv));
         });
     }
 
@@ -286,18 +254,6 @@ public class Controller {
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
                     .subtract(Integer.parseInt(properties.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
             listView.getItems().add(jobView);
-        });
-    }
-
-    // only used on application startup, or loading read-only todos
-    private void _batchAddTodoJobViews(List<TodoJobView> jobViews) {
-        jobViews.forEach(jobView -> {
-            Platform.runLater(() -> {
-                jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
-                jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
-                        .subtract(Integer.parseInt(properties.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
-                listView.getItems().add(jobView);
-            });
         });
     }
 
@@ -360,15 +316,15 @@ public class Controller {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                TodoJob t = redo.getTodoJob();
-                Integer newId = todoJobMapper.insert(t);
-                if (newId != null) {
-//                    t.setId(newId);
-//                    addTodoJobView(new TodoJobView(t, environment));
-                    reloadCurrPageAsync();
-                } else {
-                    toastError("Unknown error happens when try to redo");
-                }
+                todoJobMapper.insertAsync(redo.getTodoJob())
+                        .subscribe(id -> {
+                            if (id != null) {
+                                reloadCurrPageAsync();
+                            } else {
+                                toastError("Unknown error happens when try to redo");
+                            }
+                        });
+
             }
         }
     }

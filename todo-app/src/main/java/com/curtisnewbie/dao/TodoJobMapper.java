@@ -19,6 +19,8 @@ public interface TodoJobMapper extends Mapper {
 
     List<TodoJob> findByPage(String name, int page);
 
+    Mono<List<TodoJob>> findByPageAsync(String name, int page);
+
     List<TodoJob> findByPage(String name, int page, int limit);
 
     List<TodoJob> findAll();
@@ -79,6 +81,19 @@ public interface TodoJobMapper extends Mapper {
      * @return primary key
      */
     Integer insert(TodoJob todoJob);
+
+    /**
+     * <p>
+     * Insert record
+     * </p>
+     * <p>
+     * id is always returned when the operation succeeds, if not, an exception is returned that can be caught in
+     * onError
+     * </p>
+     *
+     * @return primary key
+     */
+    Mono<Integer> insertAsync(TodoJob todoJob);
 
     /** Count total number of rows */
     int countRows();
