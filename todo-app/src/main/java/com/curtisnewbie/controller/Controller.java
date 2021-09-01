@@ -91,7 +91,7 @@ public class Controller {
 
     // we only need a single thread, there isn't much concurrency going on here in this map,
     // mainly the main thread and the Fx's thread
-    private final ExecutorService taskExec = Executors.newSingleThreadExecutor();
+    private final ExecutorService taskExec = Executors.newFixedThreadPool(1);
     private final Scheduler taskScheduler = Schedulers.fromExecutor(taskExec);
 
     public Controller(BorderPane parent) {
@@ -127,16 +127,6 @@ public class Controller {
         this.reloadCurrPageAsync();
         subscribeTickingFluxForReloading();
         // register shutdown hook
-        Runtime.getRuntime().addShutdownHook(onDestroy());
-    }
-
-    /** shutdown hook */
-    private Thread onDestroy() {
-        return new Thread(() -> {
-            taskExec.shutdown();
-            if (tickSubscription != null)
-                tickSubscription.dispose();
-        });
     }
 
     private void layoutComponents() {
