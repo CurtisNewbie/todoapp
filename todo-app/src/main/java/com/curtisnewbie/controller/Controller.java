@@ -273,10 +273,14 @@ public class Controller {
     private void addTodoJobView(TodoJobView jobView) {
         Platform.runLater(() -> {
             jobView.onModelChange((evt -> {
-                int c = todoJobMapper.updateById((TodoJob) evt.getNewValue());
-                if (c <= 0)
-                    toastError("Failed to update to-do, please try again");
-                reloadCurrPageAsync();
+                // executed in UI thread
+                todoJobMapper.updateByIdAsync((TodoJob) evt.getNewValue())
+                        .subscribe(isUpdated -> {
+                            if (isUpdated) {
+                                toastError("Failed to update to-do, please try again");
+                                reloadCurrPageAsync();
+                            }
+                        });
             }));
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
             jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
@@ -451,18 +455,20 @@ public class Controller {
                 dialog.setTitle(properties.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY));
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
+
                     var updated = result.get();
                     updated.setDone(old.isDone());
                     updated.setId(old.getId());
-                    if (todoJobMapper.updateById(updated) > 0) {
-                        jobView.setName(updated.getName());
-                        jobView.setExpectedEndDate(updated.getExpectedEndDate());
-                        jobView.setActualEndDate(updated.getActualEndDate());
-                        // reload current page only when it's actually updated
-                        reloadCurrPageAsync();
-                    } else {
-                        toastError("Failed to update to-do, please try again");
-                    }
+
+                    // executed in task scheduler, rather than in UI thread
+                    todoJobMapper.updateByIdAsync(updated)
+                            .subscribeOn(taskScheduler)
+                            .subscribe(isUpdated -> {
+                                if (isUpdated)
+                                    reloadCurrPageAsync();
+                                else
+                                    toastError("Failed to update to-do, please try again");
+                            });
                 }
             }
         });

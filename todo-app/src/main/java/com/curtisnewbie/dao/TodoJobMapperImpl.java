@@ -291,6 +291,13 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
+    public Mono<Boolean> updateByIdAsync(TodoJob todoJob) {
+        return Mono.create(sink -> {
+            sink.success(this.updateById(todoJob) > 0);
+        });
+    }
+
+    @Override
     public int deleteById(int id) {
         try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ?")) {
             stmt.setInt(1, id);
