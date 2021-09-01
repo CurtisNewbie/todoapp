@@ -24,8 +24,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -82,6 +85,9 @@ public class Controller {
     /** record whether the current file is readonly */
     private final AtomicBoolean readOnly = new AtomicBoolean(false);
 
+    /** subscription for a ticking interval */
+    private volatile Disposable tickSubscription;
+
     // we only need a single thread, there isn't much concurrency going on here in this map,
     // mainly the main thread and the Fx's thread
     private final ExecutorService taskExec = Executors.newSingleThreadExecutor();
@@ -117,6 +123,18 @@ public class Controller {
         registerKeyPressedEventHandler();
         // load the first page
         this.reloadCurrPageAsync();
+        subscribeTickingFluxForReloading();
+        // register shutdown hook
+        Runtime.getRuntime().addShutdownHook(onDestroy());
+    }
+
+    /** shutdown hook */
+    private Thread onDestroy() {
+        return new Thread(() -> {
+            taskExec.shutdown();
+            if (tickSubscription != null)
+                tickSubscription.dispose();
+        });
     }
 
     private void layoutComponents() {
@@ -651,6 +669,16 @@ public class Controller {
                 reloadCurrPageAsync();
             });
         });
+
+    }
+
+    private void subscribeTickingFluxForReloading() {
+        if (tickSubscription != null)
+            // register a flux that ticks for every 5 minute
+            tickSubscription = Flux.interval(Duration.ofMinutes(5)).subscribe((l) -> {
+                // reload page
+                reloadCurrPageAsync();
+            });
     }
 }
 
