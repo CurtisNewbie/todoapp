@@ -308,6 +308,13 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
+    public Mono<Boolean> deleteByIdAsync(int id) {
+        return Mono.create(sink -> {
+            sink.success(deleteById(id) > 0);
+        });
+    }
+
+    @Override
     public Integer insert(TodoJob todoJob) {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO todojob (name, is_done, expected_end_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {

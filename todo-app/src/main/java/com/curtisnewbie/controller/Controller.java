@@ -492,14 +492,19 @@ public class Controller {
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
                             int id = listView.getItems().get(selected).getTodoJobId();
-                            if (todoJobMapper.deleteById(id) <= 0) {
-                                toastInfo("Failed to delete to-do, please try again");
-                            } else {
-                                var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
-                                synchronized (redoStack) {
-                                    redoStack.push(new Redo(RedoType.DELETE, jobCopy));
-                                }
-                            }
+
+                            // executed in UI thread because we want to access the listView
+                            todoJobMapper.deleteByIdAsync(id)
+                                    .subscribe(isDeleted -> {
+                                        if (isDeleted) {
+                                            var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
+                                            synchronized (redoStack) {
+                                                redoStack.push(new Redo(RedoType.DELETE, jobCopy));
+                                            }
+                                        } else {
+                                            toastInfo("Failed to delete to-do, please try again");
+                                        }
+                                    });
                         });
             }
             reloadCurrPageAsync();

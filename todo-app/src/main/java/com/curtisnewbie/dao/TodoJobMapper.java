@@ -54,7 +54,7 @@ public interface TodoJobMapper extends Mapper {
     /**
      * Update record
      *
-     * @return number of rows affected
+     * @return is record updated or not
      * @throws SQLException
      */
     Mono<Boolean> updateByIdAsync(TodoJob todoJob);
@@ -65,6 +65,13 @@ public interface TodoJobMapper extends Mapper {
      * @return number of rows affected
      */
     int deleteById(int id);
+
+    /**
+     * Delete record
+     *
+     * @return is record deleted or not
+     */
+    Mono<Boolean> deleteByIdAsync(int id);
 
     /**
      * Insert record
