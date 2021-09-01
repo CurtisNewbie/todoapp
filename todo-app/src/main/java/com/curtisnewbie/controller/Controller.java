@@ -8,7 +8,6 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.dao.MapperFactory;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.dao.TodoJobMapper;
-import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
 import com.curtisnewbie.io.ObjectPrinter;
@@ -34,7 +33,6 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -542,43 +540,43 @@ public class Controller {
         });
     }
 
-    private void onAppendHandler(ActionEvent e) {
-        Platform.runLater(() -> {
-            if (readOnly.get())
-                return;
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_APPEND_TODO_KEY));
-            fileChooser.getExtensionFilters().add(getJsonExtFilter());
-            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
-            if (nFile == null || !nFile.exists()) {
-                log.info("No file selected, abort operation");
-                return;
-            }
-
-            CompletableFuture.supplyAsync(() -> {
-                try {
-                    var list = ioHandler.loadTodoJob(nFile);
-                    list.forEach(job -> {
-                        Integer id = todoJobMapper.insert(job);
-                        if (id == null) {
-                            toastError("Failed to add new to-do, please try again");
-                            return;
-                        }
-                    });
-                    return list.size();
-                } catch (FailureToLoadException ex) {
-                    ex.printStackTrace();
-                    return 0;
-                }
-            }, taskExec).thenAccept((todoCount) -> {
-                toastInfo(String.format("Loaded %d TO-DOs", todoCount));
-                if (todoCount > 0) {
-                    volatileCurrPage = 1;
-                    loadNextPageAsync();
-                }
-            });
-        });
-    }
+//    private void onAppendHandler(ActionEvent e) {
+//        Platform.runLater(() -> {
+//            if (readOnly.get())
+//                return;
+//            FileChooser fileChooser = new FileChooser();
+//            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_APPEND_TODO_KEY));
+//            fileChooser.getExtensionFilters().add(getJsonExtFilter());
+//            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
+//            if (nFile == null || !nFile.exists()) {
+//                log.info("No file selected, abort operation");
+//                return;
+//            }
+//
+//            CompletableFuture.supplyAsync(() -> {
+//                try {
+//                    var list = ioHandler.loadTodoJob(nFile);
+//                    list.forEach(job -> {
+//                        Integer id = todoJobMapper.insert(job);
+//                        if (id == null) {
+//                            toastError("Failed to add new to-do, please try again");
+//                            return;
+//                        }
+//                    });
+//                    return list.size();
+//                } catch (FailureToLoadException ex) {
+//                    ex.printStackTrace();
+//                    return 0;
+//                }
+//            }, taskExec).thenAccept((todoCount) -> {
+//                toastInfo(String.format("Loaded %d TO-DOs", todoCount));
+//                if (todoCount > 0) {
+//                    volatileCurrPage = 1;
+//                    loadNextPageAsync();
+//                }
+//            });
+//        });
+//    }
 
     private void onLanguageHandler(ActionEvent e) {
         String engChoice = "English";
