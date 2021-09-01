@@ -1,5 +1,7 @@
 package com.curtisnewbie.dao;
 
+import reactor.core.publisher.Mono;
+
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,9 +27,21 @@ public interface TodoJobMapper extends Mapper {
 
     List<TodoJob> findBetweenDates(String name, LocalDate startDate, LocalDate endDate);
 
+    Mono<List<TodoJob>> findBetweenDatesAsync(String name, LocalDate startDate, LocalDate endDate);
+
     LocalDate findEarliestDate();
 
+    /**
+     * If there is no 'earliest data', now is returned
+     */
+    Mono<LocalDate> findEarliestDateAsync();
+
     LocalDate findLatestDate();
+
+    /**
+     * If there is no 'latest data', now is returned
+     */
+    Mono<LocalDate> findLatestDateAsync();
 
     /**
      * Update record

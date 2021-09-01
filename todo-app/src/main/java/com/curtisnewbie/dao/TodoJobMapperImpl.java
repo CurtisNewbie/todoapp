@@ -4,6 +4,7 @@ import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -210,6 +211,13 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
+    public Mono<List<TodoJob>> findBetweenDatesAsync(String name, LocalDate startDate, LocalDate endDate) {
+        return Mono.create(sink -> {
+            sink.success(findBetweenDates(name, startDate, endDate));
+        });
+    }
+
+    @Override
     public LocalDate findEarliestDate() {
         CountdownTimer timer = new CountdownTimer();
         timer.start();
@@ -227,6 +235,16 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
+    public Mono<LocalDate> findEarliestDateAsync() {
+        return Mono.create(sink -> {
+            LocalDate ld = findEarliestDate();
+            if (ld == null)
+                ld = LocalDate.now();
+            sink.success(ld);
+        });
+    }
+
+    @Override
     public LocalDate findLatestDate() {
         try (Statement stmt = connection.createStatement();) {
             var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
@@ -237,6 +255,16 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public Mono<LocalDate> findLatestDateAsync() {
+        return Mono.create(sink -> {
+            LocalDate ld = findLatestDate();
+            if (ld == null)
+                ld = LocalDate.now();
+            sink.success(ld);
+        });
     }
 
     @Override

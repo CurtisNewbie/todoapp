@@ -14,7 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author yongjie.zhuang
@@ -26,6 +27,7 @@ public class IOHandlerImpl implements IOHandler {
     private static final String DEF_SAVE_NAME = "save.json";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
+    private static final ExecutorService ioExec = Executors.newSingleThreadExecutor();
 
     @Override
     public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
@@ -96,7 +98,7 @@ public class IOHandlerImpl implements IOHandler {
     public <T> void writeObjectsAsync(List<T> objs, ObjectPrinter<T> objectPrinter, File file) {
         if (file == null)
             return;
-        CompletableFuture.runAsync(() -> {
+        ioExec.execute(() -> {
             try {
                 if (!file.exists())
                     file.createNewFile();
@@ -130,7 +132,7 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeConfigAsync(Config config) {
-        CompletableFuture.runAsync(() -> {
+        ioExec.execute(() -> {
             File file = new File(getConfPath());
             try {
                 if (!file.exists())
