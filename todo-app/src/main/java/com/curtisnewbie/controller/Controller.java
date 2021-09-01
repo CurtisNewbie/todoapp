@@ -216,7 +216,6 @@ public class Controller {
                                 .subscribe(id -> {
                                     welcomeTodo.setId(id);
                                     list.add(welcomeTodo);
-                                    clearAndLoadList(list);
                                 });
                     }
 
