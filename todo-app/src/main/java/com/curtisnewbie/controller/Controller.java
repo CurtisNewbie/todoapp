@@ -92,7 +92,7 @@ public class Controller {
 
     // we only need a single thread, there isn't much concurrency going on here in this map,
     // mainly the main thread and the Fx's thread
-    private final ExecutorService taskExec = Executors.newFixedThreadPool(1);
+    private final ExecutorService taskExec = Executors.newFixedThreadPool(2);
     private final Scheduler taskScheduler = Schedulers.fromExecutor(taskExec);
 
     public Controller(BorderPane parent) {
@@ -248,8 +248,8 @@ public class Controller {
     private void addTodoJobView(TodoJobView jobView) {
         Platform.runLater(() -> {
             jobView.onModelChange((evt -> {
-                // executed in UI thread
                 todoJobMapper.get().updateByIdAsync((TodoJob) evt.getNewValue())
+                        .subscribeOn(taskScheduler)
                         .subscribe(isUpdated -> {
                             if (isUpdated)
                                 reloadCurrPageAsync();
@@ -323,7 +323,9 @@ public class Controller {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                todoJobMapper.get().insertAsync(redo.getTodoJob())
+                todoJobMapper.get()
+                        .insertAsync(redo.getTodoJob())
+                        .subscribeOn(taskScheduler)
                         .subscribe(id -> {
                             if (id != null) {
                                 reloadCurrPageAsync();
@@ -393,15 +395,15 @@ public class Controller {
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 TodoJob newTodo = result.get();
 
-                Integer id = todoJobMapper.get().insert(newTodo);
-                if (id == null) {
-                    toastError("Failed to add new to-do, please try again");
-                    return;
-                }
-                newTodo.setId(id);
-                addTodoJobView(new TodoJobView(newTodo, environment));
+                todoJobMapper.get().insertAsync(newTodo)
+                        .subscribeOn(taskScheduler)
+                        .subscribe(id -> {
+                            reloadCurrPageAsync();
+                        }, (err) -> {
+                            toastError("Failed to add new to-do, please try again");
+                            log.error("Failed to add new to-do", err);
+                        });
             }
-            reloadCurrPageAsync();
         });
     }
 
