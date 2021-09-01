@@ -2,6 +2,7 @@ package com.curtisnewbie.dao;
 
 import com.curtisnewbie.dao.processor.InitialiseScriptMapperPreprocessor;
 import com.curtisnewbie.dao.processor.MigrateV2d1ScriptMapperPreprocessor;
+import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.sql.Connection;
@@ -50,6 +51,12 @@ public final class MapperFactory {
         TodoJobMapper todoJobMapper = new TodoJobMapperImpl(conn);
         applyPreProcessing(todoJobMapper);
         return todoJobMapper;
+    }
+
+    public static Mono<TodoJobMapper> getNewTodoJobMapperAsync() {
+        return Mono.create(sink -> {
+            sink.success(getNewTodoJobMapper());
+        });
     }
 
     private static void applyPreProcessing(Mapper m) {

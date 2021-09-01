@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
@@ -59,7 +60,7 @@ public class Controller {
     private String AUTHOR_ABOUT;
 
     private final Environment environment;
-    private final TodoJobMapper todoJobMapper = MapperFactory.getNewTodoJobMapper();
+    private AtomicReference<TodoJobMapper> todoJobMapper = new AtomicReference<>();
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
@@ -95,6 +96,13 @@ public class Controller {
     private final Scheduler taskScheduler = Schedulers.fromExecutor(taskExec);
 
     public Controller(BorderPane parent) {
+        // speed up initialisation process
+        MapperFactory.getNewTodoJobMapperAsync()
+                .subscribeOn(taskScheduler)
+                .subscribe((mapper) -> {
+                    this.todoJobMapper.compareAndSet(null, mapper);
+                });
+
         this.parent = parent;
 
         // read configuration from file
@@ -123,10 +131,16 @@ public class Controller {
         registerContextMenu();
         // register key pressed event handler for ListView
         registerKeyPressedEventHandler();
+        // reload page for every 5 seconds
+        subscribeTickingFluxForReloading();
+
+        // before we use the mapper, we want to make sure that the mapper is initialised properly
+        while (todoJobMapper.get() == null) {
+            log.debug("Waiting for TodoJobMapper to initialize");
+        }
+
         // load the first page
         this.reloadCurrPageAsync();
-        subscribeTickingFluxForReloading();
-        // register shutdown hook
     }
 
     private void layoutComponents() {
@@ -136,14 +150,19 @@ public class Controller {
     }
 
     public static Controller initialize(BorderPane parent) {
-        return new Controller(parent);
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
+        Controller controller = new Controller(parent);
+        timer.stop();
+        log.info(String.format("Controller initialized, took: %.2f milliseconds\n", timer.getMilliSec()));
+        return controller;
     }
 
     /**
      * Load next page asynchronously
      */
     private void loadNextPageAsync() {
-        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
+        todoJobMapper.get().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
@@ -163,7 +182,7 @@ public class Controller {
         if (volatileCurrPage <= 1)
             return;
 
-        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
+        todoJobMapper.get().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
@@ -180,7 +199,7 @@ public class Controller {
      * Reload current page asynchronously
      */
     private void reloadCurrPageAsync() {
-        todoJobMapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
+        todoJobMapper.get().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
@@ -192,7 +211,7 @@ public class Controller {
                         welcomeTodo.setExpectedEndDate(LocalDate.now());
                         welcomeTodo.setDone(false);
 
-                        todoJobMapper.insertAsync(welcomeTodo)
+                        todoJobMapper.get().insertAsync(welcomeTodo)
                                 .subscribeOn(taskScheduler)
                                 .subscribe(id -> {
                                     welcomeTodo.setId(id);
@@ -230,7 +249,7 @@ public class Controller {
         Platform.runLater(() -> {
             jobView.onModelChange((evt -> {
                 // executed in UI thread
-                todoJobMapper.updateByIdAsync((TodoJob) evt.getNewValue())
+                todoJobMapper.get().updateByIdAsync((TodoJob) evt.getNewValue())
                         .subscribe(isUpdated -> {
                             if (isUpdated) {
                                 toastError("Failed to update to-do, please try again");
@@ -304,7 +323,7 @@ public class Controller {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                todoJobMapper.insertAsync(redo.getTodoJob())
+                todoJobMapper.get().insertAsync(redo.getTodoJob())
                         .subscribe(id -> {
                             if (id != null) {
                                 reloadCurrPageAsync();
@@ -374,7 +393,7 @@ public class Controller {
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 TodoJob newTodo = result.get();
 
-                Integer id = todoJobMapper.insert(newTodo);
+                Integer id = todoJobMapper.get().insert(newTodo);
                 if (id == null) {
                     toastError("Failed to add new to-do, please try again");
                     return;
@@ -405,7 +424,7 @@ public class Controller {
                     updated.setId(old.getId());
 
                     // executed in task scheduler, rather than in UI thread
-                    todoJobMapper.updateByIdAsync(updated)
+                    todoJobMapper.get().updateByIdAsync(updated)
                             .subscribeOn(taskScheduler)
                             .subscribe(isUpdated -> {
                                 if (isUpdated)
@@ -438,7 +457,7 @@ public class Controller {
                             int id = listView.getItems().get(selected).getTodoJobId();
 
                             // executed in UI thread because we want to access the listView
-                            todoJobMapper.deleteByIdAsync(id)
+                            todoJobMapper.get().deleteByIdAsync(id)
                                     .subscribe(isDeleted -> {
                                         if (isDeleted) {
                                             var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
@@ -471,7 +490,7 @@ public class Controller {
     }
 
     private void onExportHandler(ActionEvent e) {
-        Mono.zip(todoJobMapper.findEarliestDateAsync(), todoJobMapper.findLatestDateAsync())
+        Mono.zip(todoJobMapper.get().findEarliestDateAsync(), todoJobMapper.get().findLatestDateAsync())
                 .subscribeOn(taskScheduler)
                 .subscribe((tuple) -> {
                     Platform.runLater(() -> {
@@ -499,7 +518,7 @@ public class Controller {
                                 return;
 
                             final String searchedText = searchBar.getSearchTextField().getText();
-                            todoJobMapper.findBetweenDatesAsync(searchedText, dr.getStart(), dr.getEnd())
+                            todoJobMapper.get().findBetweenDatesAsync(searchedText, dr.getStart(), dr.getEnd())
                                     .subscribeOn(taskScheduler)
                                     .subscribe((list) -> {
                                         ioHandler.writeObjectsAsync(list,
