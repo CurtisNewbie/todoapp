@@ -251,10 +251,10 @@ public class Controller {
                 // executed in UI thread
                 todoJobMapper.get().updateByIdAsync((TodoJob) evt.getNewValue())
                         .subscribe(isUpdated -> {
-                            if (isUpdated) {
-                                toastError("Failed to update to-do, please try again");
+                            if (isUpdated)
                                 reloadCurrPageAsync();
-                            }
+                            else
+                                toastError("Failed to update to-do, please try again");
                         });
             }));
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
