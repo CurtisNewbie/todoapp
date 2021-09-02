@@ -90,6 +90,9 @@ public class Controller {
     /** subscription for a ticking interval */
     private volatile Disposable tickSubscription;
 
+    /** the last date checked by the {@link #tickSubscription}, must be synchronized using {@link #lastTickDate} */
+    private LocalDate lastTickDate = LocalDate.now();
+
     // we only need a single thread, there isn't much concurrency going on here in this map,
     // mainly the main thread and the Fx's thread
     private final ExecutorService taskExec = Executors.newFixedThreadPool(2);
@@ -655,12 +658,25 @@ public class Controller {
     }
 
     private void subscribeTickingFluxForReloading() {
-        if (tickSubscription != null)
-            // register a flux that ticks for every 5 minute
-            tickSubscription = Flux.interval(Duration.ofMinutes(5)).subscribe((l) -> {
-                // reload page
-                reloadCurrPageAsync();
-            });
+        if (tickSubscription == null)
+            // register a flux that ticks every 5 seconds
+            tickSubscription = Flux.interval(Duration.ofSeconds(5))
+                    .subscribe((l) -> {
+                        boolean isNextDate = false;
+                        synchronized (this.lastTickDate) {
+                            LocalDate now = LocalDate.now();
+                            if (now.isAfter(lastTickDate)) {
+                                lastTickDate = now;
+                                isNextDate = true;
+                            }
+                        }
+
+                        if (isNextDate) {
+                            log.info("Next date, reload current page");
+                            // we are now at next date, reload current page to refresh the timeLeftLabel in TodoJobView
+                            reloadCurrPageAsync();
+                        }
+                    });
     }
 }
 
