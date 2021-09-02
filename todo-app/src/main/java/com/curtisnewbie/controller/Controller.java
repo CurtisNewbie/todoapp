@@ -23,7 +23,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -87,10 +86,10 @@ public class Controller {
     /** record whether the current file is readonly */
     private final AtomicBoolean readOnly = new AtomicBoolean(false);
 
-    /** subscription for a ticking interval */
-    private volatile Disposable tickSubscription;
-
-    /** the last date checked by the {@link #tickSubscription}, must be synchronized using {@link #lastTickDate} */
+    /**
+     * the last date checked by the {@link #subscribeTickingFluxForReloading()}, must be synchronized using {@link
+     * #lastTickDate}
+     */
     private LocalDate lastTickDate = LocalDate.now();
 
     // we only need a single thread, there isn't much concurrency going on here in this map,
@@ -658,25 +657,24 @@ public class Controller {
     }
 
     private void subscribeTickingFluxForReloading() {
-        if (tickSubscription == null)
-            // register a flux that ticks every 5 seconds
-            tickSubscription = Flux.interval(Duration.ofSeconds(5))
-                    .subscribe((l) -> {
-                        boolean isNextDate = false;
-                        synchronized (this.lastTickDate) {
-                            LocalDate now = LocalDate.now();
-                            if (now.isAfter(lastTickDate)) {
-                                lastTickDate = now;
-                                isNextDate = true;
-                            }
+        // register a flux that ticks every 5 seconds
+        Flux.interval(Duration.ofSeconds(5))
+                .subscribe((l) -> {
+                    boolean isNextDate = false;
+                    synchronized (this.lastTickDate) {
+                        LocalDate now = LocalDate.now();
+                        if (now.isAfter(lastTickDate)) {
+                            lastTickDate = now;
+                            isNextDate = true;
                         }
+                    }
 
-                        if (isNextDate) {
-                            log.info("Next date, reload current page");
-                            // we are now at next date, reload current page to refresh the timeLeftLabel in TodoJobView
-                            reloadCurrPageAsync();
-                        }
-                    });
+                    if (isNextDate) {
+                        log.info("Next date, reload current page");
+                        // we are now at next date, reload current page to refresh the timeLeftLabel in TodoJobView
+                        reloadCurrPageAsync();
+                    }
+                });
     }
 }
 
