@@ -388,6 +388,7 @@ public class Controller {
         Platform.runLater(() -> {
             if (readOnly.get())
                 return;
+
             TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.ADD_TODO_JOB, null);
             dialog.setTitle(properties.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
@@ -448,17 +449,18 @@ public class Controller {
                 return;
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
+                final TodoJobView tjv = listView.getItems().get(selected);
+
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setResizable(true);
                 alert.setTitle(properties.getLocalizedProperty(TITLE_DELETE_KEY));
-                alert.setContentText(properties.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY));
+                alert.setContentText(properties.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY) + "\n\n" + tjv.getName() + "\n");
                 DialogUtil.disableHeader(alert);
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
-                            int id = listView.getItems().get(selected).getTodoJobId();
-
                             // executed in UI thread because we want to access the listView
-                            todoJobMapper.get().deleteByIdAsync(id)
+                            todoJobMapper.get().deleteByIdAsync(tjv.getTodoJobId())
                                     .subscribe(isDeleted -> {
                                         if (isDeleted) {
                                             var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
@@ -502,8 +504,8 @@ public class Controller {
                         LocalDate now = LocalDate.now();
                         int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
                         LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
-                        DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
 
+                        DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
                         dateRangeDialog.showEarliestDate(tuple.getT1());
                         dateRangeDialog.showLatestDate(tuple.getT2());
                         var opt = dateRangeDialog.showAndWait();

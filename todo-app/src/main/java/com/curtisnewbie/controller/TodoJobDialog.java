@@ -28,7 +28,7 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 @FxThreadConfinement
 public class TodoJobDialog extends Dialog<TodoJob> {
 
-    public static final double MAX_WIDTH = 350;
+    public static final double MAX_WIDTH = 450;
     private final GridPane grid;
     private final DialogType type;
     private Label contextLabel;
