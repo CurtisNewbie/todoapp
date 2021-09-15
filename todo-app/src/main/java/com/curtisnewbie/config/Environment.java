@@ -1,13 +1,13 @@
 package com.curtisnewbie.config;
 
+import lombok.Data;
+
 /**
  * Environment Configuration
- * <p>
- * This class is thread safe
- * </p>
  *
  * @author yongjie.zhuang
  */
+@Data
 public class Environment {
 
     /**
@@ -26,42 +26,22 @@ public class Environment {
      */
     private boolean strikethroughEffectEnabled;
 
-    public Environment(String savePath, Language language, boolean strikethroughEffectEnabled) {
+    /**
+     * Should search on typing
+     */
+    private boolean searchOnTypingEnabled;
+
+    public Environment(String savePath, Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled) {
         this.savePath = savePath;
         this.language = language;
         this.strikethroughEffectEnabled = strikethroughEffectEnabled;
+        this.searchOnTypingEnabled = searchOnTypingEnabled;
     }
 
     public Environment(Config config) {
-        this(config.getSavePath(), Language.parseLang(config.getLanguage()), config.getStrikethroughEffectEnabled());
-    }
-
-    public String getSavePath() {
-        return savePath;
-    }
-
-    public synchronized Language getLanguage() {
-        return language;
-    }
-
-    public synchronized void setLanguage(Language language) {
-        this.language = language;
-    }
-
-    public synchronized boolean isStrikethroughEffectEnabled() {
-        return strikethroughEffectEnabled;
-    }
-
-    public synchronized void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
-        this.strikethroughEffectEnabled = strikethroughEffectEnabled;
-    }
-
-    @Override
-    public String toString() {
-        return "Environment{" +
-                "savePath='" + savePath + '\'' +
-                ", language=" + language +
-                ", strikethroughEffectEnabled=" + strikethroughEffectEnabled +
-                '}';
+        this(config.getSavePath(),
+                Language.parseLang(config.getLanguage()),
+                config.getStrikethroughEffectEnabled(),
+                config.isSearchOnTypingEnabled());
     }
 }

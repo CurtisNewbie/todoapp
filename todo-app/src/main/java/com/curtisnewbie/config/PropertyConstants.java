@@ -37,9 +37,12 @@ public final class PropertyConstants {
     public static final String TEXT_TODAY_KEY = "text.today";
     public static final String TEXT_PAGE = "text.page";
     public static final String TEXT_SEARCH = "text.search";
+    public static final String TEXT_ENABLE = "text.enable";
+    public static final String TEXT_DISABLE = "text.disable";
 
 
     // ------------------ titles ----------------
+    public static final String TITLE_CHOOSE_SEARCH_ON_TYPE_KEY = "title.search-on-type.choice";
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";
     public static final String TITLE_BACKUP_TODO_KEY = "title.backup.todo";
     public static final String TITLE_APPEND_TODO_KEY = "title.append.todo";

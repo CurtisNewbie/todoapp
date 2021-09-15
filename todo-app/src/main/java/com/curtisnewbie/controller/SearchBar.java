@@ -30,6 +30,7 @@ public class SearchBar extends HBox {
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
     private boolean searchTextChanged = false;
     private String prevSearchText = "";
+    private boolean searchOnTypeEnabled = false;
 
     public SearchBar() {
         searchTextField.setOnKeyReleased(e -> {
@@ -38,7 +39,7 @@ public class SearchBar extends HBox {
                 prevSearchText = e.getText();
             }
 
-            if (e.getCode().equals(KeyCode.ENTER)) {
+            if (searchOnTypeEnabled || e.getCode().equals(KeyCode.ENTER)) {
                 for (Runnable r : onSearchTextFieldEnterPressed) {
                     r.run();
                 }
@@ -83,5 +84,13 @@ public class SearchBar extends HBox {
 
     public void setSearchTextChanged(boolean searchTextChanged) {
         this.searchTextChanged = searchTextChanged;
+    }
+
+    public boolean isSearchOnTypeEnabled() {
+        return searchOnTypeEnabled;
+    }
+
+    public void setSearchOnTypeEnabled(boolean searchOnTypeEnabled) {
+        this.searchOnTypeEnabled = searchOnTypeEnabled;
     }
 }

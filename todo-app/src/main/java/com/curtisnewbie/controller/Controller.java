@@ -32,7 +32,6 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,12 +57,14 @@ public class Controller {
     private String GITHUB_ABOUT;
     private String AUTHOR_ABOUT;
 
-    private final Environment environment;
     private AtomicReference<TodoJobMapper> todoJobMapper = new AtomicReference<>();
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     private final RedoStack redoStack = new RedoStack();
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
     private ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
+
+    @FxThreadConfinement
+    private final Environment environment;
 
     @FxThreadConfinement
     private ListView<TodoJobView> listView = new ListView<>();
@@ -92,10 +93,8 @@ public class Controller {
      */
     private LocalDate lastTickDate = LocalDate.now();
 
-    // we only need a single thread, there isn't much concurrency going on here in this map,
-    // mainly the main thread and the Fx's thread
-    private final ExecutorService taskExec = Executors.newFixedThreadPool(2);
-    private final Scheduler taskScheduler = Schedulers.fromExecutor(taskExec);
+    // Scheduler for reactor
+    private final Scheduler taskScheduler = Schedulers.fromExecutor(Executors.newFixedThreadPool(2));
 
     public Controller(BorderPane parent) {
         // speed up initialisation process
@@ -133,7 +132,7 @@ public class Controller {
         registerContextMenu();
         // register key pressed event handler for ListView
         registerKeyPressedEventHandler();
-        // reload page for every 5 seconds
+        // reload page when we are on next day
         subscribeTickingFluxForReloading();
 
         // before we use the mapper, we want to make sure that the mapper is initialised properly
@@ -271,11 +270,10 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), this::onDeleteHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::onUpdateHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::onCopyHandler)
-//                .addMenuItem(properties.getLocalizedProperty(TITLE_APPEND_KEY), this::onAppendHandler)
-//                .addMenuItem(properties.getLocalizedProperty(TITLE_LOAD_KEY), this::onReadHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::onExportHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler);
+                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::searchOnTypingConfigHandler);
         return ctxMenu;
     }
 
@@ -489,7 +487,6 @@ public class Controller {
             if (selected >= 0) {
                 TodoJobView todoJobView = listView.getItems().get(selected);
                 copyToClipBoard(todoJobView.getName());
-//                        todoJobExportObjectPrinter.printObject(listView.getItems().get(selected).createTodoJobCopy())
             }
         });
     }
@@ -554,44 +551,6 @@ public class Controller {
         });
     }
 
-//    private void onAppendHandler(ActionEvent e) {
-//        Platform.runLater(() -> {
-//            if (readOnly.get())
-//                return;
-//            FileChooser fileChooser = new FileChooser();
-//            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_APPEND_TODO_KEY));
-//            fileChooser.getExtensionFilters().add(getJsonExtFilter());
-//            File nFile = fileChooser.showOpenDialog(App.getPrimaryStage());
-//            if (nFile == null || !nFile.exists()) {
-//                log.info("No file selected, abort operation");
-//                return;
-//            }
-//
-//            CompletableFuture.supplyAsync(() -> {
-//                try {
-//                    var list = ioHandler.loadTodoJob(nFile);
-//                    list.forEach(job -> {
-//                        Integer id = todoJobMapper.insert(job);
-//                        if (id == null) {
-//                            toastError("Failed to add new to-do, please try again");
-//                            return;
-//                        }
-//                    });
-//                    return list.size();
-//                } catch (FailureToLoadException ex) {
-//                    ex.printStackTrace();
-//                    return 0;
-//                }
-//            }, taskExec).thenAccept((todoCount) -> {
-//                toastInfo(String.format("Loaded %d TO-DOs", todoCount));
-//                if (todoCount > 0) {
-//                    volatileCurrPage = 1;
-//                    loadNextPageAsync();
-//                }
-//            });
-//        });
-//    }
-
     private void onLanguageHandler(ActionEvent e) {
         String engChoice = "English";
         String chnChoice = "中文";
@@ -620,8 +579,36 @@ public class Controller {
                     layoutComponents();
                 });
             }
-            ioHandler.writeConfigAsync(new Config(environment));
+            updateConfigAsync(environment);
         });
+    }
+
+    private void searchOnTypingConfigHandler(ActionEvent e) {
+        final String enable = properties.getLocalizedProperty(TEXT_ENABLE);
+        final String disable = properties.getLocalizedProperty(TEXT_DISABLE);
+        Platform.runLater(() -> {
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY));
+            choiceDialog.setSelectedItem(disable);
+            choiceDialog.getItems().add(enable);
+            choiceDialog.getItems().add(disable);
+            DialogUtil.disableHeader(choiceDialog);
+            Optional<String> opt = choiceDialog.showAndWait();
+            if (opt.isPresent()) {
+                final boolean prevIsEnabled = environment.isSearchOnTypingEnabled();
+                final boolean currIsEnabled = opt.get().equals(enable);
+                if (currIsEnabled != prevIsEnabled) {
+                    // changed
+                    environment.setSearchOnTypingEnabled(currIsEnabled);
+                    searchBar.setSearchOnTypeEnabled(currIsEnabled);
+                    updateConfigAsync(environment);
+                }
+            }
+        });
+    }
+
+    private void updateConfigAsync(Environment environment) {
+        ioHandler.writeConfigAsync(new Config(environment));
     }
 
     private void registerContextMenu() {
@@ -645,6 +632,7 @@ public class Controller {
 
     private void setupSearchBar() {
         searchBar = new SearchBar();
+        searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
         searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(150));
         searchBar.onSearchTextFieldEnterPressed(() -> {
             Platform.runLater(() -> {
@@ -656,7 +644,6 @@ public class Controller {
                 reloadCurrPageAsync();
             });
         });
-
     }
 
     private void subscribeTickingFluxForReloading() {

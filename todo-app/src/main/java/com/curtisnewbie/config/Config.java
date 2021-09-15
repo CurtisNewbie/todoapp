@@ -1,6 +1,7 @@
 package com.curtisnewbie.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 import java.io.Serializable;
 
@@ -11,6 +12,7 @@ import java.io.Serializable;
  *
  * @author yongjie.zhuang
  */
+@Data
 public class Config implements Serializable {
 
     /**
@@ -31,6 +33,12 @@ public class Config implements Serializable {
     @JsonProperty(required = false, defaultValue = "false")
     private boolean strikethroughEffectEnabled;
 
+    /**
+     * Should search on typing
+     */
+    @JsonProperty(required = false, defaultValue = "false")
+    private boolean searchOnTypingEnabled;
+
     public Config() {
 
     }
@@ -39,6 +47,7 @@ public class Config implements Serializable {
         this.savePath = environment.getSavePath();
         this.language = environment.getLanguage().key;
         this.strikethroughEffectEnabled = environment.isStrikethroughEffectEnabled();
+        this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
     }
 
     public String getSavePath() {
@@ -63,14 +72,5 @@ public class Config implements Serializable {
 
     public void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
         this.strikethroughEffectEnabled = strikethroughEffectEnabled;
-    }
-
-    @Override
-    public String toString() {
-        return "Config{" +
-                "savePath='" + savePath + '\'' +
-                ", language='" + language + '\'' +
-                ", strikethroughEffectEnabled='" + strikethroughEffectEnabled + '\'' +
-                '}';
     }
 }
