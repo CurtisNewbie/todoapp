@@ -552,22 +552,25 @@ public class Controller {
     }
 
     private void onLanguageHandler(ActionEvent e) {
-        String engChoice = "English";
-        String chnChoice = "中文";
+        final String engChoice = "English";
+        final String chnChoice = "中文";
+        final Language oldLang = environment.getLanguage();
         Platform.runLater(() -> {
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY));
-            choiceDialog.setSelectedItem(engChoice);
+            choiceDialog.setSelectedItem(oldLang.equals(Language.ENG) ? engChoice : chnChoice);
             choiceDialog.getItems().add(engChoice);
             choiceDialog.getItems().add(chnChoice);
             DialogUtil.disableHeader(choiceDialog);
+
             Optional<String> opt = choiceDialog.showAndWait();
             if (opt.isPresent()) {
-                if (opt.get().equals(engChoice) && !environment.getLanguage().equals(Language.ENG)) {
-                    environment.setLanguage(Language.ENG);
-                } else {
-                    environment.setLanguage(Language.CHN);
-                }
+                final Language newLang = opt.get().equals(engChoice) ? Language.ENG : Language.CHN;
+                // not changed, do nothing
+                if (newLang.equals(oldLang))
+                    return;
+
+                environment.setLanguage(newLang);
                 // reload resource bundle for the updated locale
                 properties.changeToLocale(environment.getLanguage().locale, () -> {
                     reloadCurrPageAsync();
@@ -578,8 +581,9 @@ public class Controller {
                     setupSearchBar();
                     layoutComponents();
                 });
+                updateConfigAsync(environment);
             }
-            updateConfigAsync(environment);
+
         });
     }
 
