@@ -6,6 +6,7 @@ import com.curtisnewbie.config.Environment;
 import com.curtisnewbie.config.Language;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.dao.MapperFactory;
+import com.curtisnewbie.dao.MapperFactoryBase;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.dao.TodoJobMapper;
 import com.curtisnewbie.io.IOHandler;
@@ -56,6 +57,7 @@ public class Controller {
     private static final int LISTVIEW_PADDING = 55;
     private String GITHUB_ABOUT;
     private String AUTHOR_ABOUT;
+    private final String DB_ABS_PATH;
 
     private AtomicReference<TodoJobMapper> todoJobMapper = new AtomicReference<>();
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
@@ -87,6 +89,7 @@ public class Controller {
     /** record whether the current file is readonly */
     private final AtomicBoolean readOnly = new AtomicBoolean(false);
 
+
     /**
      * the last date checked by the {@link #subscribeTickingFluxForReloading()}, must be synchronized using {@link
      * #lastTickDate}
@@ -97,8 +100,10 @@ public class Controller {
     private final Scheduler taskScheduler = Schedulers.fromExecutor(Executors.newFixedThreadPool(2));
 
     public Controller(BorderPane parent) {
+        MapperFactory mapperFactory = new MapperFactoryBase();
+        DB_ABS_PATH = mapperFactory.getDatabaseAbsolutePath();
         // speed up initialisation process
-        MapperFactory.getNewTodoJobMapperAsync()
+        mapperFactory.getNewTodoJobMapperAsync()
                 .subscribeOn(taskScheduler)
                 .subscribe((mapper) -> {
                     this.todoJobMapper.compareAndSet(null, mapper);
@@ -541,7 +546,7 @@ public class Controller {
                     String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath())),
                     0, 0);
             gPane.add(getClassicTextWithPadding(
-                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), MapperFactory.getDatabaseAbsolutePath())),
+                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), DB_ABS_PATH)),
                     0, 1);
             gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
             gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
