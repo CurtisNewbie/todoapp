@@ -640,8 +640,8 @@ public class Controller {
                     searchBar.setSearchTextChanged(false);
                     volatileCurrPage = 1;
                     paginationBar.setCurrPage(volatileCurrPage);
+                    reloadCurrPageAsync();
                 }
-                reloadCurrPageAsync();
             });
         });
     }
