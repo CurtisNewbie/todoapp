@@ -27,11 +27,7 @@ E.g.,
     "strikethroughEffectEnabled":false
 }
 ```
+## Demo
 
-### Example of Exported File In A Human-Readable Form 
-
-```
-[IN PROGRESS] Expected: 14/07/2021 - Actual: __/__/____ 'Eat a banana'
-[IN PROGRESS] Expected: 14/07/2021 - Actual: __/__/____ 'Eat an apple'
-[FINISHED]    Expected: 14/07/2021 - Actual: 14/07/2021 'Do something important'
-```
+![Screenshot of the app with language set to chinese](demo/demo-cn.png)
+![Screenshot of the app with language set to english](demo/demo-en.png)
