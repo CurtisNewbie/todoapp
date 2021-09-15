@@ -1,4 +1,6 @@
-package com.curtisnewbie.dao;
+package com.curtisnewbie.dao.processor;
+
+import com.curtisnewbie.dao.Mapper;
 
 /**
  * Preprocessor of mapper

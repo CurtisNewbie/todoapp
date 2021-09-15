@@ -1,4 +1,4 @@
-package com.curtisnewbie.dao;
+package com.curtisnewbie.dao.script;
 
 import lombok.extern.slf4j.Slf4j;
 

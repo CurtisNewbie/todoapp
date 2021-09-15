@@ -1,16 +1,15 @@
-package com.curtisnewbie.dao.processor;
+package com.curtisnewbie.dao.script;
 
-import com.curtisnewbie.dao.Mapper;
-import com.curtisnewbie.dao.MapperPreprocessor;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -22,24 +21,23 @@ import java.util.Set;
  * @author yongjie.zhuang
  */
 @Slf4j
-public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
+public class MigrateV2d1Script extends AbstractScript implements PreInitializationScript {
 
+    private static final String MIGRATE_V2_SCRIPT = "migrate_v2.1.sql";
+    private static final String TODOJOB_TABLE_NAME = "todojob";
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
-    private final String MIGRATE_V2_SCRIPT = "migrate_v2.1.sql";
-    private final String TODOJOB_TABLE_NAME = "todojob";
     private final Set<String> columnsAddedInV2 = new HashSet<>(Arrays.asList(
             "expected_end_date",
             "actual_end_date"
     ));
 
     @Override
-    public void preprocessMapper(Mapper mapper) {
-        Objects.requireNonNull(mapper);
+    public void preInitialize(ScriptRunner runner, Connection conn) throws SQLException {
 
         log.info("Checking whether we should migrate to V2.1");
         boolean needToMigrate = true;
         try {
-            DatabaseMetaData meta = mapper.getDatabaseMetaData();
+            DatabaseMetaData meta = getDatabaseMetaData(conn);
             // check do we have the table at all
             boolean hasTable = false;
             ResultSet tables = meta.getTables(null, null, TODOJOB_TABLE_NAME, null);
@@ -64,16 +62,10 @@ public class MigrateV2d1ScriptMapperPreprocessor implements MapperPreprocessor {
             if (needToMigrate) {
                 log.info("Migrating to V2.1");
                 String script = ioHandler.readResourceAsString(MIGRATE_V2_SCRIPT);
-                mapper.runScript(script);
+                runner.runScript(conn, script);
             }
         } catch (Exception e) {
             throw new IllegalStateException("Unable to migrate to V2.1 DDL", e);
         }
-    }
-
-    @Override
-    public boolean supports(Mapper mapper) {
-        Objects.requireNonNull(mapper);
-        return true;
     }
 }

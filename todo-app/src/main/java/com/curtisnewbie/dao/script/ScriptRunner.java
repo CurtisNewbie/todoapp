@@ -1,4 +1,4 @@
-package com.curtisnewbie.dao;
+package com.curtisnewbie.dao.script;
 
 import java.sql.Connection;
 import java.sql.SQLException;

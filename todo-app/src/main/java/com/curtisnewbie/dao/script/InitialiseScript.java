@@ -1,13 +1,12 @@
-package com.curtisnewbie.dao.processor;
+package com.curtisnewbie.dao.script;
 
-import com.curtisnewbie.dao.Mapper;
-import com.curtisnewbie.dao.MapperPreprocessor;
 import com.curtisnewbie.io.IOHandler;
 import com.curtisnewbie.io.IOHandlerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Preprocessor that runs script to initialise tables if necessary
@@ -15,27 +14,19 @@ import java.util.Objects;
  * @author yongjie.zhuang
  */
 @Slf4j
-public class InitialiseScriptMapperPreprocessor implements MapperPreprocessor {
+public class InitialiseScript extends AbstractScript implements PreInitializationScript {
 
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
-    private final String INIT_SCRIPT = "init.sql";
+    private static final String INIT_SCRIPT = "init.sql";
 
     @Override
-    public void preprocessMapper(Mapper mapper) {
-        Objects.requireNonNull(mapper);
+    public void preInitialize(ScriptRunner runner, Connection conn) throws SQLException {
         log.info("Attempt to run initialization script for tables that are not yet created");
         try {
             String script = ioHandler.readResourceAsString(INIT_SCRIPT);
-            mapper.runScript(script);
+            runner.runScript(conn, script);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to run tables' initialization script: " + INIT_SCRIPT, e);
         }
-    }
-
-    @Override
-    public boolean supports(Mapper mapper) {
-        Objects.requireNonNull(mapper);
-        // support all kinds of Mapper
-        return true;
     }
 }

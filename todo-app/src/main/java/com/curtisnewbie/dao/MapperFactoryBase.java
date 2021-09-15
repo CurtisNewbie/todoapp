@@ -1,7 +1,7 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.dao.processor.InitialiseScriptMapperPreprocessor;
-import com.curtisnewbie.dao.processor.MigrateV2d1ScriptMapperPreprocessor;
+import com.curtisnewbie.dao.processor.MapperPreprocessor;
+import com.curtisnewbie.dao.script.*;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
@@ -24,10 +24,12 @@ public class MapperFactoryBase implements MapperFactory {
     private static final String DB_ABS_PATH;
     private static final Connection conn;
 
-    private final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>(Arrays.asList(
-            new MigrateV2d1ScriptMapperPreprocessor(),
-            new InitialiseScriptMapperPreprocessor()
+    private final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>();
+    private final List<PreInitializationScript> preInitScripts = new ArrayList<>(Arrays.asList(
+            new MigrateV2d1Script(),
+            new InitialiseScript()
     ));
+    private final ScriptRunner scriptRunner = new SimpleScriptRunner();
 
     static {
         try {
@@ -41,6 +43,17 @@ public class MapperFactoryBase implements MapperFactory {
     }
 
     public MapperFactoryBase() {
+        try {
+            runPreInitializeScript();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to run pre-initialize scripts", e);
+        }
+    }
+
+    private void runPreInitializeScript() throws SQLException {
+        for (PreInitializationScript s : preInitScripts) {
+            s.preInitialize(scriptRunner, conn);
+        }
     }
 
     @Override
@@ -69,4 +82,5 @@ public class MapperFactoryBase implements MapperFactory {
             }
         }
     }
+
 }
