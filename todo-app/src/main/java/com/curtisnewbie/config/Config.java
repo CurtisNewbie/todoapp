@@ -16,12 +16,6 @@ import java.io.Serializable;
 public class Config implements Serializable {
 
     /**
-     * Path to where the to-do list is saved on disk
-     */
-    @Deprecated  // TODO: 21/03/2021 Not removing it for backward compatibility 
-    private String savePath;
-
-    /**
      * Language to use (optional for backward compatibility)
      */
     @JsonProperty(required = false, defaultValue = "eng")
@@ -44,33 +38,16 @@ public class Config implements Serializable {
     }
 
     public Config(Environment environment) {
-        this.savePath = environment.getSavePath();
         this.language = environment.getLanguage().key;
         this.strikethroughEffectEnabled = environment.isStrikethroughEffectEnabled();
         this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
     }
 
-    public String getSavePath() {
-        return savePath;
-    }
-
-    public void setSavePath(String savePath) {
-        this.savePath = savePath;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public boolean getStrikethroughEffectEnabled() {
-        return strikethroughEffectEnabled;
-    }
-
-    public void setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
-        this.strikethroughEffectEnabled = strikethroughEffectEnabled;
+    public static Config getDefaultConfig() {
+        Config c = new Config();
+        c.setSearchOnTypingEnabled(false);
+        c.setStrikethroughEffectEnabled(false);
+        c.setLanguage(Language.DEFAULT.key);
+        return c;
     }
 }

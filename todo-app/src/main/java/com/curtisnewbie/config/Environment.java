@@ -11,12 +11,6 @@ import lombok.Data;
 public class Environment {
 
     /**
-     * Path to where the to-do list is saved on disk
-     */
-    @Deprecated  // TODO: 21/03/2021 Not removing it for backward compatibility 
-    private final String savePath;
-
-    /**
      * Language to use
      */
     private Language language;
@@ -31,17 +25,15 @@ public class Environment {
      */
     private boolean searchOnTypingEnabled;
 
-    public Environment(String savePath, Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled) {
-        this.savePath = savePath;
+    public Environment(Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled) {
         this.language = language;
         this.strikethroughEffectEnabled = strikethroughEffectEnabled;
         this.searchOnTypingEnabled = searchOnTypingEnabled;
     }
 
     public Environment(Config config) {
-        this(config.getSavePath(),
-                Language.parseLang(config.getLanguage()),
-                config.getStrikethroughEffectEnabled(),
+        this(Language.parseLang(config.getLanguage()),
+                config.isStrikethroughEffectEnabled(),
                 config.isSearchOnTypingEnabled());
     }
 }

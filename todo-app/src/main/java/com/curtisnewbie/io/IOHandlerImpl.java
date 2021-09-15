@@ -1,11 +1,11 @@
 package com.curtisnewbie.io;
 
 import com.curtisnewbie.config.Config;
-import com.curtisnewbie.config.Language;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.exception.FailureToLoadException;
 import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.StrUtil;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,10 +24,14 @@ import java.util.concurrent.Executors;
 public class IOHandlerImpl implements IOHandler {
     private static final String DIR_NAME = "todo-app";
     private static final String CONF_NAME = "settings.json";
-    private static final String DEF_SAVE_NAME = "save.json";
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
     private static final ExecutorService ioExec = Executors.newSingleThreadExecutor();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    static {
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
 
     @Override
     public List<TodoJob> loadTodoJob(File saveFile) throws FailureToLoadException {
@@ -123,9 +127,7 @@ public class IOHandlerImpl implements IOHandler {
      * @throws IOException
      */
     private Config writeDefaultConfIntoFile(File file) throws IOException {
-        Config defaultConfig = new Config();
-        defaultConfig.setSavePath(getDefSavePath());
-        defaultConfig.setLanguage(Language.DEFAULT.key);
+        Config defaultConfig = Config.getDefaultConfig();
         writeConfig(defaultConfig, file);
         return defaultConfig;
     }
@@ -156,11 +158,6 @@ public class IOHandlerImpl implements IOHandler {
         try (FileWriter fw = new FileWriter(file)) {
             fw.write(objectMapper.writeValueAsString(config));
         }
-    }
-
-
-    private String getDefSavePath() {
-        return BASE_PATH + File.separator + DEF_SAVE_NAME;
     }
 
     @Override
