@@ -559,8 +559,9 @@ public class Controller {
     private void onLanguageHandler(ActionEvent e) {
         final String engChoice = "English";
         final String chnChoice = "中文";
-        final Language oldLang = environment.getLanguage();
         Platform.runLater(() -> {
+            final Language oldLang = environment.getLanguage();
+
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY));
             choiceDialog.setSelectedItem(oldLang.equals(Language.ENG) ? engChoice : chnChoice);
@@ -598,7 +599,7 @@ public class Controller {
         Platform.runLater(() -> {
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY));
-            choiceDialog.setSelectedItem(disable);
+            choiceDialog.setSelectedItem(environment.isSearchOnTypingEnabled() ? enable : disable);
             choiceDialog.getItems().add(enable);
             choiceDialog.getItems().add(disable);
             DialogUtil.disableHeader(choiceDialog);
