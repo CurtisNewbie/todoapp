@@ -33,6 +33,11 @@ public class PaginationBar extends HBox {
                 nextPageBtn, MarginFactory.fixedMargin(10));
     }
 
+    public PaginationBar(int page){
+        this();
+        setCurrPage(page);
+    }
+
     public Button getPrevPageBtn() {
         return prevPageBtn;
     }

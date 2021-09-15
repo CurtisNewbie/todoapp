@@ -124,7 +124,7 @@ public class Controller {
         });
 
         // setup control panel for pagination
-        setupPaginationBar();
+        setupPaginationBar(Optional.empty());
         // setup search bar
         setupSearchBar();
         // layout the components on borderpane
@@ -615,7 +615,7 @@ public class Controller {
                     // override the previous menu
                     registerContextMenu();
                     // override the previous pagination bar and search bar
-                    setupPaginationBar();
+                    setupPaginationBar(Optional.of(volatileCurrPage));
                     setupSearchBar();
                     layoutComponents();
                 });
@@ -630,8 +630,11 @@ public class Controller {
         });
     }
 
-    private void setupPaginationBar() {
-        paginationBar = new PaginationBar();
+    private void setupPaginationBar(Optional<Integer> currPage) {
+        if (currPage.isPresent())
+            paginationBar = new PaginationBar(currPage.get());
+        else
+            paginationBar = new PaginationBar();
         paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
         });
