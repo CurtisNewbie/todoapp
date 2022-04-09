@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
-import static com.curtisnewbie.util.TextFactory.getClassicTextWithPadding;
+import static com.curtisnewbie.util.TextFactory.selectableText;
 
 /**
  * <p>
@@ -276,10 +276,10 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::onUpdateHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::onCopyHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::onExportHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::searchOnTypingConfigHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::onChangeExportPatternHandler);
+                .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::onChangeExportPatternHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler);
         return ctxMenu;
     }
 
@@ -540,14 +540,13 @@ public class Controller {
             Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
             GridPane gPane = new GridPane();
             aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
-            gPane.add(getClassicTextWithPadding(
-                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath())),
-                    0, 0);
-            gPane.add(getClassicTextWithPadding(
-                    String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), DB_ABS_PATH)),
-                    0, 1);
-            gPane.add(getClassicTextWithPadding(GITHUB_ABOUT), 0, 2);
-            gPane.add(getClassicTextWithPadding(AUTHOR_ABOUT), 0, 3);
+
+            String desc = String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
+            desc += String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), DB_ABS_PATH) +"\n";
+            desc += GITHUB_ABOUT + "\n";
+            desc += AUTHOR_ABOUT;
+            gPane.add(selectableText(desc), 0, 0);
+
             aboutDialog.getDialogPane().setContent(gPane);
             DialogUtil.disableHeader(aboutDialog);
             aboutDialog.show();
