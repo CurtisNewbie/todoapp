@@ -1,10 +1,11 @@
 package com.curtisnewbie.config;
 
+import com.curtisnewbie.util.*;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -23,6 +24,9 @@ public final class PropertiesLoader {
     private Properties commonProp = new Properties();
     private final AtomicReference<ResourceBundle> localizedPropBundleRef = new AtomicReference<>();
 
+    /** cache of ResourceBundle, thread-safe, and it is guarded by a lock for 'this' */
+    private final ConcurrentMap<Locale, ResourceBundle> resourceBundleCache = new ConcurrentHashMap<>();
+
     private PropertiesLoader() {
         try {
             this.commonProp.load(
@@ -40,7 +44,23 @@ public final class PropertiesLoader {
      * @param locale locale to be used
      */
     public void changeToLocale(Locale locale) {
-        this.localizedPropBundleRef.set(ResourceBundle.getBundle(BASE_BUNDLE_NAME, locale));
+        synchronized (this) {
+            ResourceBundle resourceBundle = resourceBundleCache.get(locale);
+            if (resourceBundle != null) {
+                this.localizedPropBundleRef.set(resourceBundle);
+                return;
+            }
+
+            // this is to avoid encoding issue
+            final String fname = BASE_BUNDLE_NAME + "_" + locale.getLanguage() + ".properties";
+            try (final InputStreamReader isr = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(fname), "UTF-8");) {
+                resourceBundle = new PropertyResourceBundle(isr);
+                this.resourceBundleCache.put(locale, resourceBundle);
+                this.localizedPropBundleRef.set(resourceBundle);
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
     /**

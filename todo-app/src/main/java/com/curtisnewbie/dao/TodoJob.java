@@ -6,8 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Date;
 
 /**
@@ -70,7 +69,7 @@ public class TodoJob {
 
     @JsonSetter("expectedEndDate")
     public void expectedEndDateDeserializer(long expectedEndDate) {
-        this.expectedEndDate = LocalDate.ofInstant(new Date(expectedEndDate).toInstant(), ZoneId.systemDefault());
+        this.expectedEndDate = Instant.ofEpochMilli(expectedEndDate).atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     @JsonGetter("actualEndDate")
@@ -83,7 +82,7 @@ public class TodoJob {
         if (actualEndDate == null)
             this.expectedEndDate = null;
         else
-            this.expectedEndDate = LocalDate.ofInstant(new Date(actualEndDate).toInstant(), ZoneId.systemDefault());
+            this.expectedEndDate = Instant.ofEpochMilli(actualEndDate).atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     @Override

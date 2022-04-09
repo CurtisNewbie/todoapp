@@ -358,7 +358,7 @@ public class Controller {
         Objects.requireNonNull(type);
 
         Platform.runLater(() -> {
-            var alert = new Alert(type);
+            Alert alert = new Alert(type);
             alert.setResizable(true);
             Label label = new Label(msg);
             alert.getDialogPane().setContent(label);
@@ -426,7 +426,7 @@ public class Controller {
                 Optional<TodoJob> result = dialog.showAndWait();
                 if (result.isPresent()) {
 
-                    var updated = result.get();
+                    final TodoJob updated = result.get();
                     updated.setDone(old.isDone());
                     updated.setId(old.getId());
 
@@ -468,7 +468,7 @@ public class Controller {
                             todoJobMapper.get().deleteByIdAsync(tjv.getTodoJobId())
                                     .subscribe(isDeleted -> {
                                         if (isDeleted) {
-                                            var jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
+                                            TodoJob jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
                                             synchronized (redoStack) {
                                                 redoStack.push(new Redo(RedoType.DELETE, jobCopy));
                                             }
@@ -512,7 +512,7 @@ public class Controller {
                         DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
                         dateRangeDialog.showEarliestDate(tuple.getT1());
                         dateRangeDialog.showLatestDate(tuple.getT2());
-                        var opt = dateRangeDialog.showAndWait();
+                        Optional<DateRange> opt = dateRangeDialog.showAndWait();
                         if (opt.isPresent()) {
                             DateRange dr = opt.get();
                             // 2. choose where to export

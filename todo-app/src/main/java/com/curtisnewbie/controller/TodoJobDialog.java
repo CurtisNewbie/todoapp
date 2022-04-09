@@ -156,7 +156,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         setResultConverter((dialogButton) -> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
-                var todoJob = new TodoJob(textArea.getText().trim());
+                TodoJob todoJob = new TodoJob(textArea.getText().trim());
                 todoJob.setExpectedEndDate(expectedEndDate != null ? expectedEndDate : LocalDate.now());
                 if (shouldDisplayActualEndDatePicker()) {
                     todoJob.setActualEndDate(actualEndDate);

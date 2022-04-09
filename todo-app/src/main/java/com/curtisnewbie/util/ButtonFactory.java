@@ -26,14 +26,14 @@ public final class ButtonFactory {
     }
 
     public static final Button getRectBtn(String txt) {
-        var btn = getRectBtn();
+        Button btn = getRectBtn();
         btn.setText(txt);
         return btn;
     }
 
     public static final Button getArrowLeftBtn() {
-        var btn = getRectBtn();
-        var imgView = new ImageView(ImageUtil.ARROW_LEFT_ICON);
+        Button btn = getRectBtn();
+        ImageView imgView = new ImageView(ImageUtil.ARROW_LEFT_ICON);
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);
@@ -41,8 +41,8 @@ public final class ButtonFactory {
     }
 
     public static final Button getArrowRightBtn() {
-        var btn = getRectBtn();
-        var imgView = new ImageView(ImageUtil.ARROW_RIGHT_ICON);
+        Button btn = getRectBtn();
+        ImageView imgView = new ImageView(ImageUtil.ARROW_RIGHT_ICON);
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);
@@ -50,8 +50,8 @@ public final class ButtonFactory {
     }
 
     public static final Button getCloseBtn() {
-        var btn = getRectBtn();
-        var imgView = new ImageView(ImageUtil.CLOSE_ICON);
+        Button btn = getRectBtn();
+        ImageView imgView = new ImageView(ImageUtil.CLOSE_ICON);
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);

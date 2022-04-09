@@ -41,7 +41,7 @@ public class IOHandlerImpl implements IOHandler {
             if (!saveFile.exists()) {
                 return Collections.EMPTY_LIST;
             } else {
-                try (BufferedReader br = new BufferedReader(new FileReader(saveFile, StandardCharsets.UTF_8))) {
+                try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
                     StringBuilder sb = new StringBuilder();
                     String line;
                     while ((line = br.readLine()) != null) {
@@ -107,7 +107,7 @@ public class IOHandlerImpl implements IOHandler {
                 if (!file.exists())
                     file.createNewFile();
 
-                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8))) {
+                try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                     for (T t : objs) {
                         bw.write(objectPrinter.printObject(t));
                     }

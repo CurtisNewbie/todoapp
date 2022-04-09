@@ -32,7 +32,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -62,7 +62,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -117,7 +117,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -142,7 +142,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -168,7 +168,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -201,7 +201,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                var job = new TodoJob();
+                TodoJob job = new TodoJob();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -229,7 +229,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         CountdownTimer timer = new CountdownTimer();
         timer.start();
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
+            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
             if (rs.next()) {
                 timer.stop();
                 log.debug(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
@@ -254,7 +254,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     @Override
     public LocalDate findLatestDate() {
         try (Statement stmt = connection.createStatement();) {
-            var rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
+            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
             if (rs.next()) {
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
@@ -330,7 +330,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
             int c = stmt.executeUpdate();
             if (c > 0) {
-                try (var rs = stmt.getGeneratedKeys()) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         return rs.getInt(1);
                     }
@@ -355,7 +355,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     @Override
     public int countRows() {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) FROM todojob")) {
-            var rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1);
             } else {
@@ -369,7 +369,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     @Override
     public boolean hasRecord() {
         try (PreparedStatement stmt = connection.prepareStatement("SELECT id FROM todojob LIMIT 1")) {
-            var rs = stmt.executeQuery();
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return true;
             } else {

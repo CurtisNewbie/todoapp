@@ -4,7 +4,7 @@ JavaFX app for managing TO-DOs. Supports both Windows and Linux platforms. Downl
 
 ## Pre-requisite
 
-- JDK-11
+- JDK-8
 
 ## Configuration
 - **Configuration via UI or external configuration file**

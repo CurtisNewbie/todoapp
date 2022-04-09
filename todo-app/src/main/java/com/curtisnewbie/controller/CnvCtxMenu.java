@@ -24,7 +24,7 @@ public class CnvCtxMenu extends ContextMenu {
      * @return current {@code JobCtxMenu}, this is convenient for method chaining
      */
     public CnvCtxMenu addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
-        var menuItem = new MenuItem(itemName);
+        MenuItem menuItem = new MenuItem(itemName);
         menuItem.setOnAction(eh);
         this.getItems().add(menuItem);
         return this;
