@@ -1,6 +1,5 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.util.CountdownTimer;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -52,8 +51,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             throw new IllegalArgumentException("limit must be greater than 0");
         if (page <= 0)
             throw new IllegalArgumentException("page must be greater than 0");
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         "ORDER BY is_done ASC, actual_end_date DESC, expected_end_date ASC LIMIT ? OFFSET ?");) {
@@ -70,8 +67,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setActualEndDate(rs.getDate(5) != null ? DateUtil.localDateOf(rs.getDate(5).getTime()) : null);
                 result.add(job);
             }
-            timer.stop();
-            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -104,8 +99,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             throw new IllegalArgumentException("limit must be greater than 0");
         if (page <= 0)
             throw new IllegalArgumentException("page must be greater than 0");
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         "WHERE name LIKE ? " +
@@ -125,8 +118,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setActualEndDate(rs.getDate(5) != null ? DateUtil.localDateOf(rs.getDate(5).getTime()) : null);
                 result.add(job);
             }
-            timer.stop();
-            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -158,8 +149,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
 
     @Override
     public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         "WHERE expected_end_date BETWEEN ? AND ? ORDER BY expected_end_date DESC, is_done ASC");) {
@@ -176,8 +165,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setActualEndDate(rs.getDate(5) != null ? DateUtil.localDateOf(rs.getDate(5).getTime()) : null);
                 result.add(job);
             }
-            timer.stop();
-            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -189,8 +176,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         if (StrUtil.isEmpty(name))
             return findBetweenDates(startDate, endDate);
 
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         " WHERE (expected_end_date BETWEEN ? AND ?) AND name LIKE ? " +
@@ -209,8 +194,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                 job.setActualEndDate(rs.getDate(5) != null ? DateUtil.localDateOf(rs.getDate(5).getTime()) : null);
                 result.add(job);
             }
-            timer.stop();
-            log.debug(String.format("%s found: %d records, took: %.2f milliseconds\n", stmt.toString(), result.size(), timer.getMilliSec()));
             return result;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
@@ -226,13 +209,9 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
 
     @Override
     public LocalDate findEarliestDate() {
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (Statement stmt = connection.createStatement();) {
             ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
             if (rs.next()) {
-                timer.stop();
-                log.debug(String.format("Find earliest date took: %.2f milliseconds\n", timer.getMilliSec()));
                 return DateUtil.localDateOf(rs.getDate(1).getTime());
             }
             return null;
@@ -278,8 +257,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     public int updateById(TodoJob todoJob) {
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(todoJob.getId());
-        CountdownTimer timer = new CountdownTimer();
-        timer.start();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ?, actual_end_date = ? WHERE id = ?")) {
             stmt.setString(1, todoJob.getName());
@@ -289,8 +266,6 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
                     new java.sql.Date(DateUtil.startTimeOf(todoJob.getActualEndDate())) : null);
             stmt.setInt(5, todoJob.getId());
             int res = stmt.executeUpdate();
-            timer.stop();
-            log.debug(String.format("Update took %.2f milliseconds", timer.getMilliSec()));
             return res;
         } catch (SQLException e) {
             throw new IllegalStateException(e);
