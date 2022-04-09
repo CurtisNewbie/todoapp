@@ -47,6 +47,7 @@ public class Config implements Serializable {
         this.language = environment.getLanguage().key;
         this.strikethroughEffectEnabled = environment.isStrikethroughEffectEnabled();
         this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
+        this.pattern = environment.getPattern();
     }
 
     public static Config getDefaultConfig() {
