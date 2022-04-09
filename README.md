@@ -4,7 +4,8 @@ JavaFX app for managing TO-DOs. Supports both Windows and Linux platforms. Downl
 
 ## Pre-requisite
 
-- JDK-8
+- Oracle JDK-8 
+    - (For Openjdk or jdk > 1.8, uncomment the dependencies in pom.xml)
 
 ## Configuration
 - **Configuration via UI or external configuration file**
@@ -25,6 +26,7 @@ E.g.,
     "savePath": "/home/zhuangyongj/save.json",
     "language": "eng",
     "strikethroughEffectEnabled":false
+    ...
 }
 ```
 ## Demo
