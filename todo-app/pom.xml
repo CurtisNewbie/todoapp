@@ -4,7 +4,7 @@
 
   <groupId>com.curtisnewbie</groupId>
   <artifactId>todo-app</artifactId>
-  <version>2.5</version>
+  <version>2.7-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>todo-app</name>
@@ -58,9 +58,7 @@
       <scope>test</scope>
     </dependency>
 
-
-    <!-- For openjdk or jdk > 1.8 -->
-    <!--
+    <!-- For oracle jdk 1.8, comment the plugin below -->
     <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-controls</artifactId>
@@ -84,7 +82,7 @@
       <version>${javafx.version}</version>
       <classifier>linux</classifier>
     </dependency>
-    -->
+    <!-- =========================================== -->
 
   </dependencies>
 
@@ -92,17 +90,16 @@
     <finalName>todo-app-${version}</finalName>
     <plugins>
 
-      <!-- For openjdk or jdk > 1.8 -->
-      <!--
-        <plugin>
-          <groupId>org.openjfx</groupId>
-          <artifactId>javafx-maven-plugin</artifactId>
-          <version>0.0.4</version>
-          <configuration>
-            <mainClass>com.curtisnewbie.AppLauncher</mainClass>
-          </configuration>
-        </plugin>
-      -->
+      <!-- For oracle jdk 1.8, comment the plugin below -->
+      <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.4</version>
+        <configuration>
+          <mainClass>com.curtisnewbie.AppLauncher</mainClass>
+        </configuration>
+      </plugin>
+      <!-- =========================================== -->
 
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -123,6 +120,14 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
       </plugin>
     </plugins>
   </build>
