@@ -278,7 +278,8 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::onExportHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::onAboutHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::onLanguageHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::searchOnTypingConfigHandler);
+                .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::searchOnTypingConfigHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::onChangeExportPatternHandler);
         return ctxMenu;
     }
 
@@ -525,13 +526,10 @@ public class Controller {
                                 return;
 
                             final String searchedText = searchBar.getSearchTextField().getText();
+                            final String exportPattern = environment.getPattern(); // nullable
                             todoJobMapper.get().findBetweenDatesAsync(searchedText, dr.getStart(), dr.getEnd())
                                     .subscribeOn(taskScheduler)
-                                    .subscribe((list) -> {
-                                        ioHandler.writeObjectsAsync(list,
-                                                todoJobExportObjectPrinter,
-                                                nFile);
-                                    });
+                                    .subscribe((list) -> ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern), nFile));
                         }
                     });
                 });
@@ -590,6 +588,22 @@ public class Controller {
                 updateConfigAsync(environment);
             }
 
+        });
+    }
+
+    private void onChangeExportPatternHandler(ActionEvent e) {
+        Platform.runLater(() -> {
+            final String pattern = environment.getPattern();
+            TxtAreaDialog dialog = new TxtAreaDialog(pattern != null ? pattern : "");
+            dialog.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY));
+            dialog.setContentText(properties.getLocalizedProperty(TEXT_EXPORT_PATTERN_DESC_KEY));
+            DialogUtil.disableHeader(dialog);
+
+            Optional<String> opt = dialog.showAndWait();
+            if (opt.isPresent()) {
+                environment.setPattern(opt.get());
+                updateConfigAsync(environment);
+            }
         });
     }
 

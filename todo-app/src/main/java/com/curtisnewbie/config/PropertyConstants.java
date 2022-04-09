@@ -20,10 +20,7 @@ public final class PropertyConstants {
     // ------------------ text ------------------
     public static final String TEXT_DONE_KEY = "text.done";
     public static final String TEXT_IN_PROGRESS_KEY = "text.in.progress";
-    public static final String TEXT_SAVE_ON_CLOSE_KEY = "text.save.choice";
-    public static final String TEXT_SAVED_KEY = "text.saved";
     public static final String TEXT_DELETE_CONFIRM_KEY = "text.delete.confirm";
-    public static final String TEXT_LANGUAGE_KEY = "text.lang";
     public static final String TEXT_MONTHS_KEY = "text.months";
     public static final String TEXT_YEARS_KEY = "text.years";
     public static final String TEXT_DAYS_KEY = "text.days";
@@ -39,15 +36,15 @@ public final class PropertyConstants {
     public static final String TEXT_SEARCH = "text.search";
     public static final String TEXT_ENABLE = "text.enable";
     public static final String TEXT_DISABLE = "text.disable";
+    public static final String TEXT_EXPORT_PATTERN_DESC_KEY = "text.export.pattern.desc";
+
 
 
     // ------------------ titles ----------------
     public static final String TITLE_CHOOSE_SEARCH_ON_TYPE_KEY = "title.search-on-type.choice";
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";
-    public static final String TITLE_BACKUP_TODO_KEY = "title.backup.todo";
-    public static final String TITLE_APPEND_TODO_KEY = "title.append.todo";
-    public static final String TITLE_READ_TODO_KEY = "title.read.todo";
     public static final String TITLE_EXPORT_TODO_KEY = "title.export.todo";
+    public static final String TITLE_EXPORT_PATTERN_KEY = "title.export.pattern";
     public static final String TITLE_SAVE_PATH_KEY = "title.save.path";
     public static final String TITLE_CONFIG_PATH_KEY = "title.config.path";
     public static final String TITLE_ADD_NEW_TODO_KEY = "title.add.new.todo";
@@ -56,9 +53,7 @@ public final class PropertyConstants {
     public static final String TITLE_DELETE_KEY = "title.delete";
     public static final String TITLE_UPDATE_KEY = "title.update";
     public static final String TITLE_COPY_KEY = "title.copy";
-    public static final String TITLE_BACKUP_KEY = "title.backup";
     public static final String TITLE_EXPORT_KEY = "title.export";
-    public static final String TITLE_APPEND_KEY = "title.append";
-    public static final String TITLE_LOAD_KEY = "title.load";
     public static final String TITLE_ABOUT_KEY = "title.about";
+
 }

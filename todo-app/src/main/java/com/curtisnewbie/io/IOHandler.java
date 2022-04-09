@@ -7,6 +7,7 @@ import com.curtisnewbie.exception.FailureToLoadException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -45,11 +46,11 @@ public interface IOHandler {
     /**
      * Writer list of objects to file in an asynchronous way
      *
-     * @param objs          objects
-     * @param objectPrinter printer of the given objects
-     * @param file          file that the jobs exported to
+     * @param objs      objects
+     * @param converter converter that convert the given object T to String
+     * @param file      file that the jobs exported to
      */
-    <T> void writeObjectsAsync(List<T> objs, ObjectPrinter<T> objectPrinter, File file);
+    <T> void writeObjectsAsync(List<T> objs, Function<T, String> converter, File file);
 
     /**
      * Get Conf file path

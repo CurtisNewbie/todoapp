@@ -11,7 +11,8 @@ public interface ObjectPrinter<T> {
     /**
      * Print object
      *
-     * @param t object
+     * @param t       object
+     * @param pattern pattern
      */
-    String printObject(T t);
+    String printObject(T t, String pattern);
 }

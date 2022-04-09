@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 /**
  * @author yongjie.zhuang
@@ -99,7 +100,7 @@ public class IOHandlerImpl implements IOHandler {
     }
 
     @Override
-    public <T> void writeObjectsAsync(List<T> objs, ObjectPrinter<T> objectPrinter, File file) {
+    public <T> void writeObjectsAsync(List<T> objs, Function<T, String> converter, File file) {
         if (file == null)
             return;
         ioExec.execute(() -> {
@@ -109,7 +110,7 @@ public class IOHandlerImpl implements IOHandler {
 
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
                     for (T t : objs) {
-                        bw.write(objectPrinter.printObject(t));
+                        bw.write(converter.apply(t));
                     }
                 }
             } catch (IOException e) {

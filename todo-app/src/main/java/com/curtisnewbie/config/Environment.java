@@ -25,15 +25,22 @@ public class Environment {
      */
     private boolean searchOnTypingEnabled;
 
-    public Environment(Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled) {
+    /**
+     * Pattern used to export to-dos
+     */
+    private String pattern;
+
+    public Environment(Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled, String pattern) {
         this.language = language;
         this.strikethroughEffectEnabled = strikethroughEffectEnabled;
         this.searchOnTypingEnabled = searchOnTypingEnabled;
+        this.pattern = pattern;
     }
 
     public Environment(Config config) {
         this(Language.parseLang(config.getLanguage()),
                 config.isStrikethroughEffectEnabled(),
-                config.isSearchOnTypingEnabled());
+                config.isSearchOnTypingEnabled(),
+                config.getPattern());
     }
 }

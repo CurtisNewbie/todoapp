@@ -2,6 +2,7 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.util.DialogUtil;
 import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.MarginFactory;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -24,7 +25,7 @@ import javafx.scene.layout.Region;
 @FxThreadConfinement
 public class TxtAreaDialog extends Dialog<String> {
 
-    public static final double MAX_WIDTH = 350;
+    public static final double MAX_WIDTH = 500;
     private final GridPane grid;
     private final Label label;
     private final TextArea textArea;
@@ -45,6 +46,7 @@ public class TxtAreaDialog extends Dialog<String> {
         this.textArea = new TextArea(defValue);
         this.textArea.setMaxWidth(MAX_WIDTH);
         this.textArea.setWrapText(true);
+
         GridPane.setHgrow(textArea, Priority.ALWAYS);
         GridPane.setFillWidth(textArea, true);
 
@@ -59,8 +61,8 @@ public class TxtAreaDialog extends Dialog<String> {
         this.grid.setHgap(10);
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
-        this.grid.add(label, 0, 0);
-        this.grid.add(textArea, 1, 0);
+        this.grid.add(MarginFactory.wrapWithCommonPadding(label), 0, 0);
+        this.grid.add(MarginFactory.wrapWithCommonPadding(textArea), 0, 1);
         dialogPane.setContent(grid);
 
         dialogPane.contentTextProperty().addListener(o -> {

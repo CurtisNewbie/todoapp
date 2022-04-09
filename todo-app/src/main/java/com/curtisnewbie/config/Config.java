@@ -22,6 +22,12 @@ public class Config implements Serializable {
     private String language;
 
     /**
+     * pattern used to export to-dos (optional for backward compatibility)
+     */
+    @JsonProperty(required = false, defaultValue = "")
+    private String pattern;
+
+    /**
      * Should finished task to have strikethrough effect
      */
     @JsonProperty(required = false, defaultValue = "false")
