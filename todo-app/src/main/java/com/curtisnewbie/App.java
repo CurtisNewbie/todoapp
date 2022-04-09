@@ -24,8 +24,6 @@ public class App extends Application {
     private static final PropertiesLoader properties = PropertiesLoader.getInstance();
     public static final String VERSION = properties.getCommonProperty("app.version");
     public static final String STARTUP_TITLE = "TO-DO " + VERSION;
-    private static final String FXML_FILE = "ui.fxml";
-    private static final String ICON_FILE = "icon.png";
     private final int DEF_WIDTH = Integer.parseInt(properties.getCommonProperty("app.def.width"));
     private final int DEF_HEIGHT = Integer.parseInt(properties.getCommonProperty("app.def.height"));
     private final int MIN_WIDTH = 500;
@@ -37,11 +35,6 @@ public class App extends Application {
 
     @Override
     public void init() throws Exception {
-//        ClassLoader classLoader = this.getClass().getClassLoader();
-//        try (InputStream fxmlIn = classLoader.getResourceAsStream(FXML_FILE);) {
-//            FXMLLoader loader = new FXMLLoader();
-//            App.parent = loader.load(fxmlIn);
-//        }
         borderPane = new BorderPane();
     }
 
