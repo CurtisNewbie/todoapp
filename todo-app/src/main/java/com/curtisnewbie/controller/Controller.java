@@ -484,17 +484,18 @@ public class Controller {
                         if (listView.getItems().isEmpty())
                             return;
 
-                        // 1. pick date range
+                        // 1. pick date range and searched text
                         LocalDate now = LocalDate.now();
                         int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
                         LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
 
-                        DateRangeDialog dateRangeDialog = new DateRangeDialog(startDateToPick, now);
-                        dateRangeDialog.showEarliestDate(tuple.getT1());
-                        dateRangeDialog.showLatestDate(tuple.getT2());
-                        Optional<DateRange> opt = dateRangeDialog.showAndWait();
+                        final ExportDialog dialog = new ExportDialog(startDateToPick, now, searchBar.getSearchTextField().getText());
+                        dialog.showEarliestDate(tuple.getT1());
+                        dialog.showLatestDate(tuple.getT2());
+                        Optional<ExportDialog.ExportParam> opt = dialog.showAndWait();
                         if (opt.isPresent()) {
-                            DateRange dr = opt.get();
+                            final ExportDialog.ExportParam ep = opt.get();
+
                             // 2. choose where to export
                             FileChooser fileChooser = new FileChooser();
                             fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
@@ -504,9 +505,9 @@ public class Controller {
                             if (nFile == null)
                                 return;
 
-                            final String searchedText = searchBar.getSearchTextField().getText();
                             final String exportPattern = environment.getPattern(); // nullable
-                            todoJobMapper().findBetweenDatesAsync(searchedText, dr.getStart(), dr.getEnd())
+                            final DateRange dateRange = ep.getDateRange();
+                            todoJobMapper().findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
                                     .subscribeOn(taskScheduler)
                                     .subscribe((list) -> ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern), nFile));
                         }
