@@ -26,10 +26,7 @@ import javafx.scene.layout.Region;
 public class TxtAreaDialog extends Dialog<String> {
 
     public static final double MAX_WIDTH = 500;
-    private final GridPane grid;
-    private final Label label;
     private final TextArea textArea;
-    private final String defaultValue;
 
     /**
      * Create TxtAreaDialog with "" as default value
@@ -51,23 +48,19 @@ public class TxtAreaDialog extends Dialog<String> {
         GridPane.setFillWidth(textArea, true);
 
         // -- label
-        label = createContentLabel(dialogPane.getContentText());
+        final Label label = createContentLabel(dialogPane.getContentText());
         label.setPrefWidth(Region.USE_COMPUTED_SIZE);
         label.textProperty().bind(dialogPane.contentTextProperty());
 
-        this.defaultValue = defValue;
-
-        this.grid = new GridPane();
-        this.grid.setHgap(10);
-        this.grid.setMaxWidth(Double.MAX_VALUE);
-        this.grid.setAlignment(Pos.CENTER_LEFT);
-        this.grid.add(MarginFactory.wrapWithCommonPadding(label), 0, 0);
-        this.grid.add(MarginFactory.wrapWithCommonPadding(textArea), 0, 1);
+        final GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setMaxWidth(Double.MAX_VALUE);
+        grid.setAlignment(Pos.CENTER_LEFT);
+        grid.add(MarginFactory.wrapWithCommonPadding(label), 0, 0);
+        grid.add(MarginFactory.wrapWithCommonPadding(textArea), 0, 1);
         dialogPane.setContent(grid);
 
-        dialogPane.contentTextProperty().addListener(o -> {
-            Platform.runLater(() -> textArea.requestFocus());
-        });
+        dialogPane.contentTextProperty().addListener(o -> Platform.runLater(textArea::requestFocus));
 
         setTitle(ControlResources.getString("Dialog.confirm.title"));
         dialogPane.setHeaderText(ControlResources.getString("Dialog.confirm.header"));

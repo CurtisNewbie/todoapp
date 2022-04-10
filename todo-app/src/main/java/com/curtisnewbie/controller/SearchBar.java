@@ -26,7 +26,6 @@ import static com.curtisnewbie.config.PropertyConstants.TEXT_SEARCH;
 public class SearchBar extends HBox {
 
     private final TextField searchTextField = new TextField();
-    private final PropertiesLoader properties = PropertiesLoader.getInstance();
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
     private boolean searchTextChanged = false;
     private String prevSearchText = "";
@@ -49,7 +48,7 @@ public class SearchBar extends HBox {
         this.setAlignment(Pos.BASELINE_RIGHT);
         this.getChildren().addAll(
                 MarginFactory.fixedMargin(20),
-                LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_SEARCH)),
+                LabelFactory.classicLabel(PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH)),
                 MarginFactory.fixedMargin(10),
                 searchTextField,
                 MarginFactory.expandingMargin(),

@@ -11,18 +11,15 @@ public interface MapperFactory {
 
     /**
      * Get absolute path to database file
-     *
-     * @return
      */
     String getDatabaseAbsolutePath();
 
     /**
      * Get new {@link TodoJobMapper}
-     */
-    TodoJobMapper getNewTodoJobMapper();
-
-    /**
-     * Get new {@link TodoJobMapper}
+     * <p>
+     * This method may block until the factory is fully initialized
+     * </p>
      */
     Mono<TodoJobMapper> getNewTodoJobMapperAsync();
+
 }

@@ -21,6 +21,7 @@ import java.util.Set;
  * @author yongjie.zhuang
  */
 @Slf4j
+@Deprecated // we don't need it anymore, just to make thing faster
 public class MigrateV2d1Script extends AbstractScript implements PreInitializationScript {
 
     private static final String MIGRATE_V2_SCRIPT = "migrate_v2.1.sql";

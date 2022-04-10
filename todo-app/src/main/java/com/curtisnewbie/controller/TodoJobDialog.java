@@ -33,11 +33,11 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private final DialogType type;
     private Label contextLabel;
     private TextArea textArea;
-    private DatePicker expectedEndDatePicker;
+    private final DatePicker expectedEndDatePicker;
     private LocalDate expectedEndDate;
     private DatePicker actualEndDatePicker;
     private LocalDate actualEndDate;
-    private Optional<TodoJob> optionalTodoJob;
+    private final Optional<TodoJob> optionalTodoJob;
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**

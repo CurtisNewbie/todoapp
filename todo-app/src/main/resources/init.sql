@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS todojob (
 );
 
 -- 07/AUG/2021 remove index
---CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, expected_end_date DESC);
-DROP INDEX IF EXISTS sort_idx;
+-- CREATE INDEX IF NOT EXISTS sort_idx ON todojob (is_done ASC, expected_end_date DESC);
+-- DROP INDEX IF EXISTS sort_idx;

@@ -57,7 +57,7 @@ public class TodoJobView extends HBox {
     /**
      * Model inside this view
      */
-    private TodoJob model;
+    private final TodoJob model;
 
     /**
      * The name of this {@code TodoJob}

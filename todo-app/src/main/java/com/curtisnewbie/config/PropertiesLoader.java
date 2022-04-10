@@ -1,11 +1,13 @@
 package com.curtisnewbie.config;
 
-import com.curtisnewbie.util.*;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -64,16 +66,6 @@ public final class PropertiesLoader {
     }
 
     /**
-     * Reload resource bundle, change to the specified locale
-     *
-     * @param locale locale to be used
-     */
-    public void changeToLocale(Locale locale, OnLoaded e) {
-        this.changeToLocale(locale);
-        e.loaded();
-    }
-
-    /**
      * Get common property
      *
      * @param key key
@@ -100,7 +92,4 @@ public final class PropertiesLoader {
         return INSTANCE;
     }
 
-    public interface OnLoaded {
-        void loaded();
-    }
 }

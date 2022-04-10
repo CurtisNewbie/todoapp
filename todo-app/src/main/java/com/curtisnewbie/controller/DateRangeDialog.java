@@ -26,7 +26,6 @@ import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
 public class DateRangeDialog extends Dialog<DateRange> {
 
     private final GridPane grid;
-    private final Label label;
     private final DatePicker startDatePicker;
     private final DatePicker endDatePicker;
     private boolean earliestDateIsShown = false;
@@ -44,7 +43,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         this.endDatePicker.setConverter(new LocalDateStringConverter());
 
         // -- label
-        label = createContentLabel(dialogPane.getContentText());
+        final Label label = createContentLabel(dialogPane.getContentText());
         label.setPrefWidth(Region.USE_COMPUTED_SIZE);
         label.textProperty().bind(dialogPane.contentTextProperty());
 

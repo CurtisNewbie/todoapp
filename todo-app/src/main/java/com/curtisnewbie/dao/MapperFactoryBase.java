@@ -1,7 +1,7 @@
 package com.curtisnewbie.dao;
 
-import com.curtisnewbie.dao.processor.MapperPreprocessor;
 import com.curtisnewbie.dao.script.*;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
@@ -11,12 +11,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Factory of Mapper
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 public class MapperFactoryBase implements MapperFactory {
 
     private static final String DB_NAME = "todoapp.db";
@@ -24,12 +27,15 @@ public class MapperFactoryBase implements MapperFactory {
     private static final String DB_ABS_PATH;
     private static final Connection conn;
 
-    private final List<MapperPreprocessor> mapperPreprocessors = new ArrayList<>();
-    private final List<PreInitializationScript> preInitScripts = new ArrayList<>(Arrays.asList(
-            new MigrateV2d1Script(),
+    //  will be removed after initialization
+    private List<PreInitializationScript> preInitScripts = new ArrayList<>(Arrays.asList(
             new InitialiseScript()
     ));
-    private final ScriptRunner scriptRunner = new SimpleScriptRunner();
+    //  will be removed after initialization
+    private ScriptRunner scriptRunner = new SimpleScriptRunner();
+
+    /** Whether the initialize scripts are finished */
+    private final AtomicBoolean isInitialized = new AtomicBoolean();
 
     static {
         try {
@@ -43,17 +49,25 @@ public class MapperFactoryBase implements MapperFactory {
     }
 
     public MapperFactoryBase() {
-        try {
-            runPreInitializeScript();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Failed to run pre-initialize scripts", e);
-        }
+        runPreInitializeScriptAsync();
     }
 
-    private void runPreInitializeScript() throws SQLException {
-        for (PreInitializationScript s : preInitScripts) {
-            s.preInitialize(scriptRunner, conn);
-        }
+    private void runPreInitializeScriptAsync() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                for (PreInitializationScript s : preInitScripts) {
+                    s.preInitialize(scriptRunner, conn);
+                }
+            } catch (SQLException e) {
+                throw new IllegalStateException("Failed to run pre-initialize scripts", e);
+            } finally {
+                isInitialized.set(true);
+                _doPostConstruct();
+            }
+        }).exceptionally(e -> {
+            log.error("Failed to run pre-initialize scripts", e);
+            return null;
+        });
     }
 
     @Override
@@ -62,25 +76,21 @@ public class MapperFactoryBase implements MapperFactory {
     }
 
     @Override
-    public TodoJobMapper getNewTodoJobMapper() {
-        TodoJobMapper todoJobMapper = new TodoJobMapperImpl(conn);
-        applyPreProcessing(todoJobMapper);
-        return todoJobMapper;
-    }
-
-    @Override
     public Mono<TodoJobMapper> getNewTodoJobMapperAsync() {
-        return Mono.create(sink -> {
-            sink.success(getNewTodoJobMapper());
-        });
+        while (!isInitialized())
+            ; // what till the scripts are executed
+        return Mono.create(sink -> sink.success(new TodoJobMapperImpl(conn)));
     }
 
-    private void applyPreProcessing(Mapper m) {
-        for (MapperPreprocessor p : mapperPreprocessors) {
-            if (p.supports(m)) {
-                p.preprocessMapper(m);
-            }
-        }
+    /**
+     * Whether the Mapper Factory is fully initialized
+     */
+    private boolean isInitialized() {
+        return isInitialized.get();
     }
 
+    private void _doPostConstruct() {
+        preInitScripts = null;
+        scriptRunner = null;
+    }
 }
