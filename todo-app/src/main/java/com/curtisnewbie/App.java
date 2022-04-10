@@ -9,8 +9,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * <p>
@@ -33,7 +33,7 @@ public class App extends Application {
 
     private static Stage primaryStage;
     private static BorderPane borderPane;
-    private static final List<Runnable> onCloseList = new ArrayList<>();
+    private static final List<Runnable> onCloseList = new CopyOnWriteArrayList<>();
 
     @Override
     public void init() throws Exception {
@@ -56,7 +56,7 @@ public class App extends Application {
         stage.setMinHeight(MIN_HEIGHT);
         stage.setWidth(DEF_WIDTH);
         stage.setHeight(DEF_HEIGHT);
-        stage.getIcons().add(ImageUtil.TITLE_ICON);
+        stage.getIcons().add(ImageUtil.load(ImageUtil.ICON_IMG_NAME));
 
         // activate all registered callbacks on close
         stage.setOnCloseRequest(e -> {
@@ -73,14 +73,14 @@ public class App extends Application {
      *
      * @param oc callback
      */
-    public synchronized static void registerOnClose(Runnable oc) {
+    public static void registerOnClose(Runnable oc) {
         App.onCloseList.add(oc);
     }
 
     /**
      * Invokes all registered callbacks
      */
-    private synchronized static void invokesOnCloseList() {
+    private static void invokesOnCloseList() {
         App.onCloseList.forEach(r -> {
             try {
                 r.run();

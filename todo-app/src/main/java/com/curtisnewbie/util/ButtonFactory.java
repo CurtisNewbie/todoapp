@@ -5,6 +5,8 @@ import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Rectangle;
 
+import static com.curtisnewbie.util.ImageUtil.*;
+
 
 /**
  * Factory for buttons
@@ -18,40 +20,40 @@ public final class ButtonFactory {
 
     }
 
-    public static final Button getRectBtn() {
+    public static Button getRectBtn() {
         Button btn = new Button();
         btn.setAlignment(Pos.BASELINE_CENTER);
         btn.setShape(new Rectangle());
         return btn;
     }
 
-    public static final Button getRectBtn(String txt) {
+    public static Button getRectBtn(String txt) {
         Button btn = getRectBtn();
         btn.setText(txt);
         return btn;
     }
 
-    public static final Button getArrowLeftBtn() {
+    public static Button getArrowLeftBtn() {
         Button btn = getRectBtn();
-        ImageView imgView = new ImageView(ImageUtil.ARROW_LEFT_ICON);
+        ImageView imgView = new ImageView(loadFromCache(ARROW_LEFT_IMG_NAME));
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);
         return btn;
     }
 
-    public static final Button getArrowRightBtn() {
+    public static Button getArrowRightBtn() {
         Button btn = getRectBtn();
-        ImageView imgView = new ImageView(ImageUtil.ARROW_RIGHT_ICON);
+        ImageView imgView = new ImageView(loadFromCache(ARROW_RIGHT_IMG_NAME));
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);
         return btn;
     }
 
-    public static final Button getCloseBtn() {
+    public static Button getCloseBtn() {
         Button btn = getRectBtn();
-        ImageView imgView = new ImageView(ImageUtil.CLOSE_ICON);
+        ImageView imgView = new ImageView(loadFromCache(CLOSE_IMG_NAME));
         imgView.setFitHeight(DEF_IMAGE_SIDE_LEN);
         imgView.setFitWidth(DEF_IMAGE_SIDE_LEN);
         btn.setGraphic(imgView);
