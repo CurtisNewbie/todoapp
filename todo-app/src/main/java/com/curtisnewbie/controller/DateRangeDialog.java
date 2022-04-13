@@ -15,7 +15,7 @@ import javafx.scene.layout.Region;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
+import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
  * Dialog for picking range of dates
@@ -55,8 +55,10 @@ public class DateRangeDialog extends Dialog<DateRange> {
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(label, 0, 0);
-        this.grid.add(wrapWithPadding(startDatePicker, new Insets(1, 2, 5, 2)), 1, 0);
-        this.grid.add(wrapWithPadding(endDatePicker, new Insets(1, 2, 5, 2)), 2, 0);
+
+        final Insets pad = new Insets(1, 2, 5, 2);
+        this.grid.add(padding(startDatePicker, pad), 1, 0);
+        this.grid.add(padding(endDatePicker, pad), 2, 0);
         dialogPane.setContent(grid);
 
         setTitle(ControlResources.getString("Dialog.confirm.title"));
@@ -105,7 +107,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         String earliestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
         Objects.requireNonNull(earliestStr);
         Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(wrapWithPadding(earliestBtn, new Insets(1, 0, 5, 2)), 1, 1);
+        grid.add(padding(earliestBtn, 1, 0, 5, 2), 1, 1);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(d);
         });
@@ -126,7 +128,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         String latestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
         Objects.requireNonNull(latestStr);
         Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(wrapWithPadding(latestBtn, new Insets(1, 2, 5, 2)), 2, 1);
+        grid.add(padding(latestBtn, 1, 2, 5, 2), 2, 1);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(d);
         });

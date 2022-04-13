@@ -7,7 +7,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
 import static com.curtisnewbie.util.MarginFactory.getCommonInsets;
-import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
+import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
  * <p>
@@ -30,7 +30,7 @@ public final class TextFactory {
     }
 
     public static HBox selectableTextWithPadding(String txt) {
-        return wrapWithPadding(selectableText(txt), getCommonInsets());
+        return padding(selectableText(txt), getCommonInsets());
     }
 
     public static Text getClassicText(String txt) {
@@ -41,7 +41,7 @@ public final class TextFactory {
     }
 
     public static HBox getClassicTextWithPadding(String txt) {
-        return wrapWithPadding(getClassicText(txt), getCommonInsets());
+        return padding(getClassicText(txt), getCommonInsets());
     }
 
 }

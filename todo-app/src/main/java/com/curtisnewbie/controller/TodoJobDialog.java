@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
-import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
+import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
  * Dialog for TodoJob
@@ -123,16 +123,16 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(contextLabel, 0, 0);
         String expectedEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_EXPECTED_END_DATE_KEY);
-        this.grid.add(wrapWithPadding(classicLabel(expectedEndDateText + ":"), new Insets(1, 2, 5, 2)),
+        this.grid.add(padding(classicLabel(expectedEndDateText + ":"), new Insets(1, 2, 5, 2)),
                 1, 1);
-        this.grid.add(wrapWithPadding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
+        this.grid.add(padding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
                 2, 1);
 
         if (shouldDisplayActualEndDatePicker()) {
             String actualEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_ACTUAL_END_DATE_KEY);
-            this.grid.add(wrapWithPadding(classicLabel(actualEndDateText + ":"), new Insets(1, 2, 5, 2)),
+            this.grid.add(padding(classicLabel(actualEndDateText + ":"), new Insets(1, 2, 5, 2)),
                     1, 2);
-            this.grid.add(wrapWithPadding(actualEndDatePicker, new Insets(1, 2, 5, 2)),
+            this.grid.add(padding(actualEndDatePicker, new Insets(1, 2, 5, 2)),
                     2, 2);
             this.grid.add(textArea, 1, 3);
         } else {

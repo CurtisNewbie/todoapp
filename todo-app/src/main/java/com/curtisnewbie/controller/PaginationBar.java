@@ -27,10 +27,10 @@ public class PaginationBar extends HBox {
         this.setAlignment(Pos.BASELINE_RIGHT);
         PropertiesLoader properties = PropertiesLoader.getInstance();
         this.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_PAGE)),
-                MarginFactory.fixedMargin(10),
-                currPageLabel, MarginFactory.fixedMargin(10),
-                prevPageBtn, MarginFactory.fixedMargin(10),
-                nextPageBtn, MarginFactory.fixedMargin(10));
+                MarginFactory.margin(10),
+                currPageLabel, MarginFactory.margin(10),
+                prevPageBtn, MarginFactory.margin(10),
+                nextPageBtn, MarginFactory.margin(10));
     }
 
     public PaginationBar(int page){

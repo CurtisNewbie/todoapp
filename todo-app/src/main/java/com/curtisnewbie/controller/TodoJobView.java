@@ -132,16 +132,16 @@ public class TodoJobView extends HBox {
         Objects.requireNonNull(checkboxName);
         this.getChildren()
                 .addAll(doneLabel,
-                        fixedMargin(3),
+                        margin(3),
                         expectedEndDateLabel,
-                        fixedMargin(3),
+                        margin(3),
                         actualEndDateLabel,
-                        fixedMargin(20),
+                        margin(20),
                         wrapWithCommonPadding(nameText),
-                        fixedMargin(2),
+                        margin(2),
                         timeLeftLabel,
-                        fixedMargin(2),
-                        expandingMargin(),
+                        margin(2),
+                        fillingMargin(),
                         leftPaddedLabel(checkboxName),
                         doneCheckBox);
         HBox.setHgrow(this, Priority.SOMETIMES);

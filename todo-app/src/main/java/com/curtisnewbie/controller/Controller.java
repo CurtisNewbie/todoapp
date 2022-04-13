@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
+import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
 
 /**
@@ -103,7 +104,7 @@ public class Controller {
     @FxThreadConfinement
     private final BorderPane innerPane;
     @FxThreadConfinement
-    private QuickTodoBar quickTodoBar = new QuickTodoBar();
+    private QuickTodoBar quickTodoBar;
     @FxThreadConfinement
     private final BorderPane outerPane;
 
@@ -139,14 +140,13 @@ public class Controller {
         // setup to-do job printer
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
+        innerPane.setCenter(listView);
         // setup quick to-do text area
         _setupQuickTodoBar();
         // setup control panel for pagination
         _setupPaginationBar(1);
         // setup search bar
         _setupSearchBar();
-        // layout the components on borderpane
-        layoutComponents();
         // register a ContextMenu for the ListView
         _registerContextMenu();
         // register key pressed event handler for ListView
@@ -158,12 +158,7 @@ public class Controller {
         this.reloadCurrPageAsync();
     }
 
-    private void layoutComponents() {
-        innerPane.setTop(searchBar);
-        innerPane.setBottom(paginationBar);
-        innerPane.setCenter(listView);
-    }
-
+    /** Initialize a Controller that is bound to the given BorderPane */
     public static Controller initialize(BorderPane parent) {
         return new Controller(parent);
     }
@@ -286,7 +281,7 @@ public class Controller {
             if (this.outerPane.getTop() != null)
                 this.outerPane.setTop(null);
             else
-                this.outerPane.setTop(quickTodoBar);
+                this.outerPane.setTop(padding(quickTodoBar, 3, 0, 3, 0));
         });
     }
 
@@ -552,27 +547,31 @@ public class Controller {
             choiceDialog.getItems().add(chnChoice);
             DialogUtil.disableHeader(choiceDialog);
 
-            Optional<String> opt = choiceDialog.showAndWait();
-            if (opt.isPresent()) {
-                final Language newLang = opt.get().equals(engChoice) ? Language.ENG : Language.CHN;
-                // not changed, do nothing
-                if (newLang.equals(oldLang))
-                    return;
+            final Optional<String> opt = choiceDialog.showAndWait();
+            if (!opt.isPresent())
+                return;
 
-                environment.setLanguage(newLang);
-                // reload resource bundle for the updated locale
-                properties.changeToLocale(environment.getLanguage().locale);
-                reloadCurrPageAsync();
-                // override the previous menu
-                _registerContextMenu();
-                // override the previous pagination bar and search bar
-                _setupPaginationBar(volatileCurrPage);
-                _setupSearchBar();
-                _setupQuickTodoBar();
-                layoutComponents();
-                updateConfigAsync(environment);
-            }
+            final Language newLang = opt.get().equals(engChoice) ? Language.ENG : Language.CHN;
 
+            // not changed, do nothing
+            if (newLang.equals(oldLang)) return;
+
+            environment.setLanguage(newLang);
+
+            // reload resource bundle for the updated locale
+            properties.changeToLocale(environment.getLanguage().locale);
+
+            // reload current page
+            reloadCurrPageAsync();
+
+            // reload all menus, components to apply the change of locale
+            _registerContextMenu();
+            _setupPaginationBar(volatileCurrPage);
+            _setupSearchBar();
+            _setupQuickTodoBar();
+
+            // persist the config
+            updateConfigAsync(environment);
         });
     }
 
@@ -626,6 +625,7 @@ public class Controller {
 
     private void _setupPaginationBar(int currPage) {
         paginationBar = new PaginationBar(currPage);
+        innerPane.setBottom(paginationBar);
         paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
         });
@@ -636,7 +636,7 @@ public class Controller {
 
     private void _setupQuickTodoBar() {
         quickTodoBar = new QuickTodoBar();
-        quickTodoBar.textFieldPrefWidthProperty().bind(listView.widthProperty().subtract(100));
+        quickTodoBar.textFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
         quickTodoBar.setOnEnter(name -> {
             final LocalDate now = LocalDate.now();
             TodoJob tj = new TodoJob();
@@ -651,6 +651,9 @@ public class Controller {
             outerPane.setTop(quickTodoBar);
     }
 
+    /**
+     * Insert to-do job and reload current page async
+     */
     private void doInsertTodo(TodoJob job) {
         _todoJobMapper()
                 .insertAsync(job)
@@ -666,8 +669,9 @@ public class Controller {
 
     private void _setupSearchBar() {
         searchBar = new SearchBar();
+        innerPane.setTop(searchBar);
         searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
-        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(100));
+        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
         searchBar.onSearchTextFieldEnterPressed(() -> {
             Platform.runLater(() -> {
                 if (searchBar.isSearchTextChanged()) {

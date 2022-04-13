@@ -21,7 +21,7 @@ public final class MarginFactory {
     /**
      * HBox acts as an infinite "margin" that expand "sometimes" when it's possible
      */
-    public static HBox expandingMargin() {
+    public static HBox fillingMargin() {
         HBox box = new HBox();
         HBox.setHgrow(box, Priority.SOMETIMES);
         return box;
@@ -30,7 +30,7 @@ public final class MarginFactory {
     /**
      * HBox acts as a "margin" never expand or shrinks
      */
-    public static HBox fixedMargin(int width) {
+    public static HBox margin(int width) {
         HBox box = new HBox();
         box.setMinWidth(width);
         HBox.setHgrow(box, Priority.NEVER);
@@ -40,11 +40,25 @@ public final class MarginFactory {
     /**
      * Wrap a Node with padding, and the container that wraps it is returned (a HBox)
      *
+     * @param node   node
+     * @param top    top
+     * @param right  right
+     * @param bottom bottom
+     * @param left
+     * @return container that wraps the node
+     */
+    public static HBox padding(Node node, int top, int right, int bottom, int left) {
+        return padding(node, new Insets(top, right, bottom, left));
+    }
+
+    /**
+     * Wrap a Node with padding, and the container that wraps it is returned (a HBox)
+     *
      * @param node    node
      * @param padding Size of the padding
      * @return container that wraps the node
      */
-    public static HBox wrapWithPadding(Node node, Insets padding) {
+    public static HBox padding(Node node, Insets padding) {
         HBox hbox = new HBox();
         hbox.getChildren().add(node);
         hbox.setPadding(padding);
@@ -59,7 +73,7 @@ public final class MarginFactory {
      * @return container that wraps the node
      */
     public static HBox wrapWithCommonPadding(Node node) {
-        return wrapWithPadding(node, getCommonInsets());
+        return padding(node, getCommonInsets());
     }
 
     /**

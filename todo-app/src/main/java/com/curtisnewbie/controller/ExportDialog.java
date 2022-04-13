@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 import static com.curtisnewbie.util.LabelFactory.rightPaddedLabel;
-import static com.curtisnewbie.util.MarginFactory.wrapWithPadding;
+import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
  * Dialog for exporting
@@ -52,15 +52,15 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         final BorderPane bp = new BorderPane();
         this.grid = new GridPane();
-        bp.setTop(wrapWithPadding(searchedTextField, new Insets(1, 0, 5, 0)));
+        bp.setTop(padding(searchedTextField, new Insets(1, 0, 5, 0)));
         bp.setCenter(grid);
 
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(rightPaddedLabel(properties.getLocalizedProperty(PropertyConstants.TEXT_SEARCH)), 0, 0);
-        this.grid.add(wrapWithPadding(searchedTextField, new Insets(1, 2, 5, 0)), 1, 0);
-        this.grid.add(wrapWithPadding(startDatePicker, new Insets(1, 2, 5, 0)), 0, 1);
-        this.grid.add(wrapWithPadding(endDatePicker, new Insets(1, 2, 5, 0)), 1, 1);
+        this.grid.add(padding(searchedTextField, new Insets(1, 2, 5, 0)), 1, 0);
+        this.grid.add(padding(startDatePicker, new Insets(1, 2, 5, 0)), 0, 1);
+        this.grid.add(padding(endDatePicker, new Insets(1, 2, 5, 0)), 1, 1);
         dialogPane.setContent(bp);
 
         setTitle(ControlResources.getString("Dialog.confirm.title"));
@@ -115,7 +115,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         String earliestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
         Objects.requireNonNull(earliestStr);
         Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(wrapWithPadding(earliestBtn, new Insets(1, 2, 5, 2)), 0, 2);
+        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, 2);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(d);
         });
@@ -136,7 +136,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         String latestStr = properties.getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
         Objects.requireNonNull(latestStr);
         Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(wrapWithPadding(latestBtn, new Insets(1, 2, 5, 2)), 1, 2);
+        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, 2);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(d);
         });

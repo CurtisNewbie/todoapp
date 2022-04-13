@@ -3,19 +3,19 @@ package com.curtisnewbie.controller;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.util.FxThreadConfinement;
 import com.curtisnewbie.util.FxThreadUtil;
-import com.curtisnewbie.util.LabelFactory;
-import com.curtisnewbie.util.MarginFactory;
 import javafx.beans.property.DoubleProperty;
-import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import static com.curtisnewbie.config.PropertyConstants.TEXT_SEARCH;
+import static com.curtisnewbie.util.LabelFactory.classicLabel;
+import static com.curtisnewbie.util.MarginFactory.margin;
+import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
  * <p>Search bar</p>
@@ -23,7 +23,7 @@ import static com.curtisnewbie.config.PropertyConstants.TEXT_SEARCH;
  * @author yongjie.zhuang
  */
 @FxThreadConfinement
-public class SearchBar extends HBox {
+public class SearchBar extends VBox {
 
     private final TextField searchTextField = new TextField();
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
@@ -45,14 +45,13 @@ public class SearchBar extends HBox {
             }
         });
 
-        this.setAlignment(Pos.BASELINE_RIGHT);
+        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH);
         this.getChildren().addAll(
-                MarginFactory.fixedMargin(20),
-                LabelFactory.classicLabel(PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH)),
-                MarginFactory.fixedMargin(10),
-                searchTextField,
-                MarginFactory.expandingMargin(),
-                MarginFactory.fixedMargin(10)
+                margin(5),
+                padding(classicLabel(label), 0, 5, 0, 5),
+                margin(5),
+                padding(searchTextField, 0, 5, 15, 5),
+                margin(5)
         );
     }
 
