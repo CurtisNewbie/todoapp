@@ -113,6 +113,8 @@ public class Controller {
         this.innerPane = new BorderPane();
         this.outerPane.setCenter(this.innerPane);
 
+        _setupOuterPane();
+
         final MapperFactory mapperFactory = new MapperFactoryBase();
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
 
