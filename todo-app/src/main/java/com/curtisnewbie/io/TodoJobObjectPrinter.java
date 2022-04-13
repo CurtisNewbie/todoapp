@@ -66,7 +66,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     }
 
     private static String formatContent(String content) {
-        return content.replaceAll("\\n", "\n\t") + "\n";
+        return content.replaceAll("\\n", "\n  ") + "\n";
     }
 
     /** default formatting */
