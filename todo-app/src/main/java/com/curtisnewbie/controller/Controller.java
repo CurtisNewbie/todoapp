@@ -103,8 +103,7 @@ public class Controller {
     @FxThreadConfinement
     private final BorderPane innerPane;
     @FxThreadConfinement
-    /** Quick TO-DO Text Area on Top */
-    private final TextArea quickTodoTextArea = new TextArea();
+    private QuickTodoBar quickTodoBar = new QuickTodoBar();
     @FxThreadConfinement
     private final BorderPane outerPane;
 
@@ -120,7 +119,7 @@ public class Controller {
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
 
         /**
-         * speed up initialisation process, we make it async, and we rely on the {@link #todoJobMapper() } method to
+         * speed up initialisation process, we make it async, and we rely on the {@link #_todoJobMapper() } method to
          * delay the timing that we retrieve the mapper
          */
         mapperFactory.getNewTodoJobMapperAsync()
@@ -141,7 +140,7 @@ public class Controller {
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
         // setup quick to-do text area
-        _setupQuickTodoTextArea();
+        _setupQuickTodoBar();
         // setup control panel for pagination
         _setupPaginationBar(1);
         // setup search bar
@@ -173,7 +172,7 @@ public class Controller {
      * Load next page asynchronously
      */
     private void loadNextPageAsync() {
-        todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
+        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
@@ -193,7 +192,7 @@ public class Controller {
         if (volatileCurrPage <= 1)
             return;
 
-        todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
+        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
@@ -210,7 +209,7 @@ public class Controller {
      * Reload current page asynchronously
      */
     private void reloadCurrPageAsync() {
-        todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
+        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     boolean isFirstTimeLoading = firstTimeLoadingCurrPage.compareAndSet(true, false);
@@ -221,7 +220,7 @@ public class Controller {
                         welcomeTodo.setName("Welcome using this TODO app! :D");
                         welcomeTodo.setExpectedEndDate(LocalDate.now());
                         welcomeTodo.setDone(false);
-                        welcomeTodo.setId(todoJobMapper().insert(welcomeTodo));
+                        welcomeTodo.setId(_todoJobMapper().insert(welcomeTodo));
                         list.add(welcomeTodo);
                     }
 
@@ -251,7 +250,7 @@ public class Controller {
     private void addTodoJobView(TodoJobView jobView) {
         Platform.runLater(() -> {
             jobView.onModelChange((evt -> {
-                todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
+                _todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
                         .subscribeOn(taskScheduler)
                         .subscribe(isUpdated -> {
                             if (isUpdated)
@@ -287,7 +286,7 @@ public class Controller {
             if (this.outerPane.getTop() != null)
                 this.outerPane.setTop(null);
             else
-                this.outerPane.setTop(quickTodoTextArea);
+                this.outerPane.setTop(quickTodoBar);
         });
     }
 
@@ -330,17 +329,7 @@ public class Controller {
             if (redo == null)
                 return;
             if (redo.getType().equals(RedoType.DELETE)) {
-                todoJobMapper()
-                        .insertAsync(redo.getTodoJob())
-                        .subscribeOn(taskScheduler)
-                        .subscribe(id -> {
-                            if (id != null) {
-                                reloadCurrPageAsync();
-                            } else {
-                                toastError("Unknown error happens when try to redo");
-                            }
-                        });
-
+                doInsertTodo(redo.getTodoJob());
             }
         }
     }
@@ -401,7 +390,7 @@ public class Controller {
             if (result.isPresent() && !StrUtil.isEmpty(result.get().getName())) {
                 TodoJob newTodo = result.get();
 
-                todoJobMapper().insertAsync(newTodo)
+                _todoJobMapper().insertAsync(newTodo)
                         .subscribeOn(taskScheduler)
                         .subscribe(id -> {
                             reloadCurrPageAsync();
@@ -430,7 +419,7 @@ public class Controller {
                     updated.setId(old.getId());
 
                     // executed in task scheduler, rather than in UI thread
-                    todoJobMapper().updateByIdAsync(updated)
+                    _todoJobMapper().updateByIdAsync(updated)
                             .subscribeOn(taskScheduler)
                             .subscribe(isUpdated -> {
                                 if (isUpdated)
@@ -462,7 +451,7 @@ public class Controller {
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
                             // executed in UI thread because we want to access the listView
-                            todoJobMapper().deleteByIdAsync(tjv.getTodoJobId())
+                            _todoJobMapper().deleteByIdAsync(tjv.getTodoJobId())
                                     .subscribe(isDeleted -> {
                                         if (isDeleted) {
                                             TodoJob jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
@@ -494,7 +483,7 @@ public class Controller {
     }
 
     private void _onExportHandler(ActionEvent e) {
-        Mono.zip(todoJobMapper().findEarliestDateAsync(), todoJobMapper().findLatestDateAsync())
+        Mono.zip(_todoJobMapper().findEarliestDateAsync(), _todoJobMapper().findLatestDateAsync())
                 .subscribeOn(taskScheduler)
                 .subscribe((tuple) -> {
                     Platform.runLater(() -> {
@@ -524,7 +513,7 @@ public class Controller {
 
                             final String exportPattern = environment.getPattern(); // nullable
                             final DateRange dateRange = ep.getDateRange();
-                            todoJobMapper().findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
+                            _todoJobMapper().findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
                                     .subscribeOn(taskScheduler)
                                     .subscribe((list) -> ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern), nFile));
                         }
@@ -579,6 +568,7 @@ public class Controller {
                 // override the previous pagination bar and search bar
                 _setupPaginationBar(volatileCurrPage);
                 _setupSearchBar();
+                _setupQuickTodoBar();
                 layoutComponents();
                 updateConfigAsync(environment);
             }
@@ -644,44 +634,40 @@ public class Controller {
         });
     }
 
-    private void _setupQuickTodoTextArea() {
-        quickTodoTextArea.setWrapText(true);
-        quickTodoTextArea.setPrefHeight(50);
-        quickTodoTextArea.setOnKeyPressed(e -> {
-
-            // only when both the ENTER key and ctrl / alt key is pressed, we think that is a confirmation
-            if (e.getCode().equals(KeyCode.ENTER) && (e.isControlDown() || e.isAltDown() || e.isMetaDown())) {
-                Platform.runLater(() -> {
-                    final String name = quickTodoTextArea.getText();
-                    if (StrUtil.isEmpty(name))
-                        return;
-
-                    quickTodoTextArea.clear();
-
-                    final LocalDate now = LocalDate.now();
-                    TodoJob tj = new TodoJob();
-                    tj.setDone(false);
-                    tj.setExpectedEndDate(now);
-                    tj.setActualEndDate(null);
-                    tj.setName(name);
-                    todoJobMapper().insertAsync(tj)
-                            .subscribeOn(taskScheduler)
-                            .subscribe(id -> {
-                                reloadCurrPageAsync();
-                            }, (err) -> {
-                                toastError("Failed to add new to-do, please try again");
-                                log.error("Failed to add new to-do", err);
-                            });
-                });
-            }
+    private void _setupQuickTodoBar() {
+        quickTodoBar = new QuickTodoBar();
+        quickTodoBar.textFieldPrefWidthProperty().bind(listView.widthProperty().subtract(100));
+        quickTodoBar.setOnEnter(name -> {
+            final LocalDate now = LocalDate.now();
+            TodoJob tj = new TodoJob();
+            tj.setDone(false);
+            tj.setExpectedEndDate(now);
+            tj.setActualEndDate(null);
+            tj.setName(name);
+            doInsertTodo(tj);
         });
+
+        if (outerPane.getTop() != null)
+            outerPane.setTop(quickTodoBar);
     }
 
+    private void doInsertTodo(TodoJob job) {
+        _todoJobMapper()
+                .insertAsync(job)
+                .subscribeOn(taskScheduler)
+                .subscribe(id -> {
+                    if (id != null) {
+                        reloadCurrPageAsync();
+                    } else {
+                        toastError("Unknown error happens when try to redo");
+                    }
+                });
+    }
 
     private void _setupSearchBar() {
         searchBar = new SearchBar();
         searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
-        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(150));
+        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(100));
         searchBar.onSearchTextFieldEnterPressed(() -> {
             Platform.runLater(() -> {
                 if (searchBar.isSearchTextChanged()) {
@@ -701,7 +687,7 @@ public class Controller {
      * fully initialized
      * </p>
      */
-    private TodoJobMapper todoJobMapper() {
+    private TodoJobMapper _todoJobMapper() {
         // before we use the mapper, we want to make sure that the mapper is initialised properly
         TodoJobMapper todoJobMapper;
         while ((todoJobMapper = this._todoJobMapper.get()) == null) {

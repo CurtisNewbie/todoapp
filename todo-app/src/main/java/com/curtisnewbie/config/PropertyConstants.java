@@ -35,6 +35,7 @@ public final class PropertyConstants {
     public static final String TEXT_PAGE = "text.page";
     public static final String TEXT_SEARCH = "text.search";
     public static final String TEXT_ENABLE = "text.enable";
+    public static final String TEXT_QUICK_TODO = "text.quick.todo";
     public static final String TEXT_DISABLE = "text.disable";
     public static final String TEXT_EXPORT_PATTERN_DESC_KEY = "text.export.pattern.desc";
 

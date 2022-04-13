@@ -35,6 +35,7 @@ public final class PropertiesLoader {
                     new InputStreamReader(PropertiesLoader.class.getClassLoader().getResourceAsStream(COMMON_PROPERTIES),
                             "UTF-8")
             );
+            changeToLocale(Locale.ENGLISH); // by default english
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
