@@ -101,13 +101,17 @@ public class Controller {
     @FxThreadConfinement
     private PaginationBar paginationBar;
     @FxThreadConfinement
-    private final BorderPane parent;
+    private final BorderPane innerPane;
+
+    private final BorderPane outerPane;
 
     /**
      * Create and bind the new Controller to a BorderPane
      */
     public Controller(BorderPane parent) {
-        this.parent = parent;
+        this.outerPane = parent;
+        this.innerPane = new BorderPane();
+        this.outerPane.setCenter(this.innerPane);
 
         final MapperFactory mapperFactory = new MapperFactoryBase();
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
@@ -151,9 +155,9 @@ public class Controller {
     }
 
     private void layoutComponents() {
-        parent.setTop(searchBar);
-        parent.setBottom(paginationBar);
-        parent.setCenter(listView);
+        innerPane.setTop(searchBar);
+        innerPane.setBottom(paginationBar);
+        innerPane.setCenter(listView);
     }
 
     public static Controller initialize(BorderPane parent) {
@@ -238,8 +242,6 @@ public class Controller {
      * <p>
      * The operation of adding the jobView to the ListView is always executed in Javafx's thread
      * </p>
-     *
-     * @param jobView
      */
     private void addTodoJobView(TodoJobView jobView) {
         Platform.runLater(() -> {
@@ -626,6 +628,42 @@ public class Controller {
             loadNextPageAsync();
         });
     }
+
+    // todo optimise this later
+    private void _setupOuterPane() {
+        final TextArea topTextArea = new TextArea();
+        topTextArea.setWrapText(true);
+        topTextArea.setPrefHeight(40);
+        this.outerPane.setTop(topTextArea);
+
+        topTextArea.setOnKeyPressed(e -> {
+            if (e.getCode().equals(KeyCode.ENTER)) {
+                Platform.runLater(() -> {
+                    final String name = topTextArea.getText();
+                    if (StrUtil.isEmpty(name))
+                        return;
+
+                    topTextArea.clear();
+
+                    final LocalDate now = LocalDate.now();
+                    TodoJob tj = new TodoJob();
+                    tj.setDone(false);
+                    tj.setExpectedEndDate(now);
+                    tj.setActualEndDate(null);
+                    tj.setName(name);
+                    todoJobMapper().insertAsync(tj)
+                            .subscribeOn(taskScheduler)
+                            .subscribe(id -> {
+                                reloadCurrPageAsync();
+                            }, (err) -> {
+                                toastError("Failed to add new to-do, please try again");
+                                log.error("Failed to add new to-do", err);
+                            });
+                });
+            }
+        });
+    }
+
 
     private void _setupSearchBar() {
         searchBar = new SearchBar();
