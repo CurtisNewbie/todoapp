@@ -32,6 +32,7 @@ public final class PropertyConstants {
     public static final String TEXT_AHEAD_KEY = "text.ahead";
     public static final String TEXT_ON_TIME_KEY = "text.on-time";
     public static final String TEXT_TODAY_KEY = "text.today";
+    public static final String TEXT_CURRENT_WEEK_KEY = "text.current-week";
     public static final String TEXT_PAGE = "text.page";
     public static final String TEXT_SEARCH = "text.search";
     public static final String TEXT_ENABLE = "text.enable";

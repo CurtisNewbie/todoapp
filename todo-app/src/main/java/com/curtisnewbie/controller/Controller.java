@@ -441,11 +441,8 @@ public class Controller {
                             return;
 
                         // 1. pick date range and searched text
-                        LocalDate now = LocalDate.now();
-                        int daysAfterMonday = now.getDayOfWeek().getValue() - 1;
-                        LocalDate startDateToPick = daysAfterMonday == 0 ? now.minusWeeks(1) : now.minusDays(daysAfterMonday);
-
-                        final ExportDialog dialog = new ExportDialog(startDateToPick, now, searchBar.getSearchTextField().getText());
+                        final LocalDate now = LocalDate.now();
+                        final ExportDialog dialog = new ExportDialog(now, now, searchBar.getSearchTextField().getText());
                         dialog.showEarliestDate(tuple.getT1());
                         dialog.showLatestDate(tuple.getT2());
                         Optional<ExportDialog.ExportParam> opt = dialog.showAndWait();
