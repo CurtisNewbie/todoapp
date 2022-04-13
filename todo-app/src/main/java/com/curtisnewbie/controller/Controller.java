@@ -102,7 +102,10 @@ public class Controller {
     private PaginationBar paginationBar;
     @FxThreadConfinement
     private final BorderPane innerPane;
-
+    @FxThreadConfinement
+    /** Quick TO-DO Text Area on Top */
+    private final TextArea quickTodoTextArea = new TextArea();
+    @FxThreadConfinement
     private final BorderPane outerPane;
 
     /**
@@ -112,8 +115,6 @@ public class Controller {
         this.outerPane = parent;
         this.innerPane = new BorderPane();
         this.outerPane.setCenter(this.innerPane);
-
-        _setupOuterPane();
 
         final MapperFactory mapperFactory = new MapperFactoryBase();
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
@@ -139,6 +140,8 @@ public class Controller {
         // setup to-do job printer
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
+        // setup quick to-do text area
+        _setupQuickTodoTextArea();
         // setup control panel for pagination
         _setupPaginationBar(1);
         // setup search bar
@@ -274,8 +277,18 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::_onLanguageHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::_onChangeExportPatternHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onSwitchQuickTodoHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::_onAboutHandler);
         return ctxMenu;
+    }
+
+    private void _onSwitchQuickTodoHandler(ActionEvent e) {
+        Platform.runLater(() -> {
+            if (this.outerPane.getTop() != null)
+                this.outerPane.setTop(null);
+            else
+                this.outerPane.setTop(quickTodoTextArea);
+        });
     }
 
     /**
@@ -631,21 +644,19 @@ public class Controller {
         });
     }
 
-    // todo optimise this later
-    private void _setupOuterPane() {
-        final TextArea topTextArea = new TextArea();
-        topTextArea.setWrapText(true);
-        topTextArea.setPrefHeight(40);
-        this.outerPane.setTop(topTextArea);
+    private void _setupQuickTodoTextArea() {
+        quickTodoTextArea.setWrapText(true);
+        quickTodoTextArea.setPrefHeight(40);
+        quickTodoTextArea.setOnKeyPressed(e -> {
 
-        topTextArea.setOnKeyPressed(e -> {
-            if (e.getCode().equals(KeyCode.ENTER)) {
+            // only when both the ENTER key and ctrl / alt key is pressed, we think that is a confirmation
+            if (e.getCode().equals(KeyCode.ENTER) && (e.isControlDown() || e.isAltDown() || e.isMetaDown())) {
                 Platform.runLater(() -> {
-                    final String name = topTextArea.getText();
+                    final String name = quickTodoTextArea.getText();
                     if (StrUtil.isEmpty(name))
                         return;
 
-                    topTextArea.clear();
+                    quickTodoTextArea.clear();
 
                     final LocalDate now = LocalDate.now();
                     TodoJob tj = new TodoJob();

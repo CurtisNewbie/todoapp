@@ -45,6 +45,7 @@ public final class PropertyConstants {
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";
     public static final String TITLE_EXPORT_TODO_KEY = "title.export.todo";
     public static final String TITLE_EXPORT_PATTERN_KEY = "title.export.pattern";
+    public static final String TITLE_SWITCH_QUICK_TODO_KEY = "title.quick.todo.switch";
     public static final String TITLE_SAVE_PATH_KEY = "title.save.path";
     public static final String TITLE_CONFIG_PATH_KEY = "title.config.path";
     public static final String TITLE_ADD_NEW_TODO_KEY = "title.add.new.todo";
