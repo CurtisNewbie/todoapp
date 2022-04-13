@@ -1,6 +1,5 @@
 package com.curtisnewbie.util;
 
-import com.curtisnewbie.controller.TodoJobView;
 import javafx.application.Platform;
 
 import java.util.ConcurrentModificationException;
@@ -35,7 +34,8 @@ public final class FxThreadUtil {
         if (!isDebug)
             return; // not debugging, do nothing
 
-        if (!Platform.isFxApplicationThread())
-            throw new ConcurrentModificationException(TodoJobView.class.getName() + " should only be used inside UI thread");
+        if (!Platform.isFxApplicationThread()) {
+            throw new ConcurrentModificationException("Method should only run inside UI thread, current thread: " + Thread.currentThread());
+        }
     }
 }

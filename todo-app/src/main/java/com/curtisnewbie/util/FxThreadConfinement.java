@@ -3,7 +3,7 @@ package com.curtisnewbie.util;
 import java.lang.annotation.*;
 
 /**
- * Annotation that marks a class being confined in JavaFx's UI thread
+ * Annotation that marks a class, field or method invocation that should be confined in JavaFx's UI thread
  * <p>
  * It's only used for documentation. When such annotation presents, the use of the annotated type's objects must be
  * properly confined in the UI thread.
@@ -11,7 +11,7 @@ import java.lang.annotation.*;
  *
  * @author yongjie.zhuang
  */
-@Target({ElementType.FIELD, ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.SOURCE)
 @Documented
 public @interface FxThreadConfinement {
