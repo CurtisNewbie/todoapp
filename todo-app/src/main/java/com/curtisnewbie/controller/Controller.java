@@ -646,7 +646,7 @@ public class Controller {
 
     private void _setupQuickTodoTextArea() {
         quickTodoTextArea.setWrapText(true);
-        quickTodoTextArea.setPrefHeight(40);
+        quickTodoTextArea.setPrefHeight(50);
         quickTodoTextArea.setOnKeyPressed(e -> {
 
             // only when both the ENTER key and ctrl / alt key is pressed, we think that is a confirmation
