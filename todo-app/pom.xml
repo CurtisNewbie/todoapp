@@ -58,30 +58,30 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- For oracle jdk 1.8, comment the plugin below -->
-<!--    <dependency>-->
-<!--      <groupId>org.openjfx</groupId>-->
-<!--      <artifactId>javafx-controls</artifactId>-->
-<!--      <version>${javafx.version}</version>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.openjfx</groupId>-->
-<!--      <artifactId>javafx-graphics</artifactId>-->
-<!--      <version>${javafx.version}</version>-->
-<!--      <classifier>win</classifier>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.openjfx</groupId>-->
-<!--      <artifactId>javafx-graphics</artifactId>-->
-<!--      <version>${javafx.version}</version>-->
-<!--      <classifier>mac</classifier>-->
-<!--    </dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.openjfx</groupId>-->
-<!--      <artifactId>javafx-graphics</artifactId>-->
-<!--      <version>${javafx.version}</version>-->
-<!--      <classifier>linux</classifier>-->
-<!--    </dependency>-->
+    <!-- For oracle jdk 1.8, comment the dependencies below -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>win</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>mac</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>linux</classifier>
+    </dependency>
     <!-- =========================================== -->
 
   </dependencies>
@@ -91,14 +91,14 @@
     <plugins>
 
       <!-- For oracle jdk 1.8, comment the plugin below -->
-<!--      <plugin>-->
-<!--        <groupId>org.openjfx</groupId>-->
-<!--        <artifactId>javafx-maven-plugin</artifactId>-->
-<!--        <version>0.0.4</version>-->
-<!--        <configuration>-->
-<!--          <mainClass>com.curtisnewbie.AppLauncher</mainClass>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.4</version>
+        <configuration>
+          <mainClass>com.curtisnewbie.AppLauncher</mainClass>
+        </configuration>
+      </plugin>
       <!-- =========================================== -->
 
       <plugin>
