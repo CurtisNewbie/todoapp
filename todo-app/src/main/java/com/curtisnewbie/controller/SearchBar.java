@@ -23,7 +23,7 @@ import static com.curtisnewbie.util.MarginFactory.padding;
  * @author yongjie.zhuang
  */
 @RequiresFxThread
-public class SearchBar extends VBox {
+public class SearchBar extends VBox implements Refreshable {
 
     private final TextField searchTextField = new TextField();
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
@@ -45,14 +45,7 @@ public class SearchBar extends VBox {
             }
         });
 
-        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH);
-        this.getChildren().addAll(
-                margin(5),
-                padding(classicLabel(label), 0, 5, 0, 5),
-                margin(5),
-                padding(searchTextField, 0, 5, 15, 5),
-                margin(5)
-        );
+        refresh();
     }
 
     /**
@@ -90,5 +83,18 @@ public class SearchBar extends VBox {
 
     public void setSearchOnTypeEnabled(boolean searchOnTypeEnabled) {
         this.searchOnTypeEnabled = searchOnTypeEnabled;
+    }
+
+    @Override
+    public void refresh() {
+        this.getChildren().clear();
+        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH);
+        this.getChildren().addAll(
+                margin(5),
+                padding(classicLabel(label), 0, 5, 0, 5),
+                margin(5),
+                padding(searchTextField, 0, 5, 15, 5),
+                margin(5)
+        );
     }
 }

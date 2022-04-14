@@ -24,7 +24,7 @@ import static com.curtisnewbie.util.TooltipUtil.tooltip;
  * @author yongj.zhuang
  */
 @RequiresFxThread
-public class QuickTodoBar extends VBox {
+public class QuickTodoBar extends VBox implements Refreshable {
 
     private final TextField textField = new TextField();
     private Consumer<String> onEnter;
@@ -48,14 +48,7 @@ public class QuickTodoBar extends VBox {
             }
         });
 
-        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_QUICK_TODO);
-        this.getChildren().addAll(
-                margin(5),
-                MarginFactory.padding(classicLabel(label), 0, 5, 0, 5),
-                margin(5),
-                padding(textField, new Insets(0, 5, 5, 5)),
-                margin(5)
-        );
+        refresh();
     }
 
     public void setOnEnter(Consumer<String> onEnter) {
@@ -68,5 +61,18 @@ public class QuickTodoBar extends VBox {
     public DoubleProperty textFieldPrefWidthProperty() {
         FxThreadUtil.checkThreadConfinement();
         return textField.prefWidthProperty();
+    }
+
+    @Override
+    public void refresh() {
+        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_QUICK_TODO);
+        this.getChildren().clear();
+        this.getChildren().addAll(
+                margin(5),
+                MarginFactory.padding(classicLabel(label), 0, 5, 0, 5),
+                margin(5),
+                padding(textField, new Insets(0, 5, 5, 5)),
+                margin(5)
+        );
     }
 }

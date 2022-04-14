@@ -54,8 +54,6 @@ import static javafx.application.Platform.*;
 @Slf4j
 public class Controller {
 
-    private static final int LISTVIEW_PADDING = 55;
-
     /** Properties Loader, thread-safe */
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
     /** GitHub link in About */
@@ -91,20 +89,15 @@ public class Controller {
     @RequiresFxThread
     private final Environment environment = new Environment(ioHandler.readConfig());
     @RequiresFxThread
-    private final ListView<TodoJobView> listView = new ListView<>();
+    private final TodoJobListView todoJobListView = new TodoJobListView();
     @RequiresFxThread
     private volatile int volatileCurrPage = 1;
-
     @RequiresFxThread
-    @ReInstantiated(instantiatedBy = "refreshView()")
-    private SearchBar searchBar;
+    private final SearchBar searchBar = new SearchBar();
     @RequiresFxThread
-    @ReInstantiated(instantiatedBy = "refreshView()")
-    private PaginationBar paginationBar;
+    private final QuickTodoBar quickTodoBar = new QuickTodoBar();
     @RequiresFxThread
-    @ReInstantiated(instantiatedBy = "refreshView()")
-    private QuickTodoBar quickTodoBar;
-
+    private final PaginationBar paginationBar = new PaginationBar(1);
     @RequiresFxThread
     private final BorderPane innerPane;
     @RequiresFxThread
@@ -117,7 +110,6 @@ public class Controller {
         this.outerPane = parent;
         this.innerPane = new BorderPane();
         this.outerPane.setCenter(this.innerPane);
-        this.innerPane.setCenter(listView);
 
         final MapperFactory mapperFactory = new MapperFactoryBase();
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
@@ -129,28 +121,15 @@ public class Controller {
         // setup to-do job printer
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
-        // register key pressed event handler for ListView
-        listView.setOnKeyPressed(e -> {
-            if (e.isControlDown()) {
-                if (e.getCode().equals(KeyCode.Z))
-                    redo();
-                else if (e.getCode().equals(KeyCode.C))
-                    copySelected();
-                else if (e.getCode().equals(KeyCode.F))
-                    runLater(() -> searchBar.getSearchTextField().requestFocus());
-            } else {
-                if (e.getCode().equals(KeyCode.DELETE))
-                    deleteSelected();
-                else if (e.getCode().equals(KeyCode.F5))
-                    reloadCurrPageAsync();
+        // setup components for the first time
+        _setupTodoJobListView();
+        _setupSearchBar();
+        _setupQuickTodoBar();
+        _setupPaginationBar();
 
-            }
-        });
-
-        // refresh view for the first time
-        refreshView();
         // reload page when we are on next day
         _subscribeTickingFluxForReloading();
+
         // load the first page
         reloadCurrPageAsync();
     }
@@ -164,14 +143,9 @@ public class Controller {
      * Refresh view
      */
     private synchronized void refreshView() {
-        // setup quick to-do text area
-        _setupQuickTodoBar();
-        // setup control panel for pagination
-        _setupPaginationBar(volatileCurrPage);
-        // setup search bar
-        _setupSearchBar();
-        // register a ContextMenu for the ListView
-        _registerContextMenu();
+        searchBar.refresh();
+        quickTodoBar.refresh();
+        todoJobListView.setContextMenu(createCtxMenu());
     }
 
     /**
@@ -185,7 +159,7 @@ public class Controller {
                         runLater(() -> {
                             volatileCurrPage += 1;
                             paginationBar.setCurrPage(volatileCurrPage);
-                            clearAndLoadList(list);
+                            todoJobListView.clearAndLoadList(list, environment);
                         });
                     }
                 });
@@ -205,7 +179,7 @@ public class Controller {
                         runLater(() -> {
                             volatileCurrPage -= 1;
                             paginationBar.setCurrPage(volatileCurrPage);
-                            clearAndLoadList(list);
+                            todoJobListView.clearAndLoadList(list, environment);
                         });
                     }
                 });
@@ -219,48 +193,10 @@ public class Controller {
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty())
-                        clearAndLoadList(list);
+                        runLater(() -> todoJobListView.clearAndLoadList(list, environment));
                 });
     }
 
-    /** Load Todos into ListView */
-    @RunInFxThread
-    private void clearAndLoadList(List<TodoJob> list) {
-        runLater(() -> {
-            listView.getItems().clear();
-            list.stream()
-                    .map(t -> new TodoJobView(t, environment))
-                    .forEach(this::displayTodoJobView);
-        });
-    }
-
-    /**
-     * <p>
-     * Load {@code TodoJobView} into the {@code ListView}.
-     * </p>
-     * <p>
-     * The operation of adding the jobView to the ListView is always executed in Javafx's thread
-     * </p>
-     */
-    @RunInFxThread
-    private void displayTodoJobView(TodoJobView jobView) {
-        runLater(() -> {
-            jobView.onModelChange((evt -> {
-                _todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
-                        .subscribeOn(taskScheduler)
-                        .subscribe(isUpdated -> {
-                            if (isUpdated)
-                                reloadCurrPageAsync();
-                            else
-                                toast("Failed to update to-do, please try again");
-                        });
-            }));
-            jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
-            jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
-                    .subtract(Integer.parseInt(properties.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
-            listView.getItems().add(jobView);
-        });
-    }
 
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
@@ -356,13 +292,13 @@ public class Controller {
     @RunInFxThread
     private void _onUpdateHandler(ActionEvent e) {
         runLater(() -> {
-            final int selected = listView.getSelectionModel().getSelectedIndex();
+            final int selected = todoJobListView.getSelectedIndex();
             if (selected < 0)
                 return;
 
-            TodoJobView jobView = listView.getItems().get(selected);
-            TodoJob old = jobView.createTodoJobCopy();
-            TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
+            final TodoJobView jobView = todoJobListView.get(selected);
+            final TodoJob old = jobView.createTodoJobCopy();
+            final TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
                     jobView.createTodoJobCopy());
             dialog.setTitle(properties.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
@@ -388,9 +324,9 @@ public class Controller {
     @RunInFxThread
     private void deleteSelected() {
         runLater(() -> {
-            int selected = listView.getSelectionModel().getSelectedIndex();
+            int selected = todoJobListView.getSelectedIndex();
             if (selected >= 0) {
-                final TodoJobView tjv = listView.getItems().get(selected);
+                final TodoJobView tjv = todoJobListView.get(selected);
 
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setResizable(true);
@@ -400,11 +336,10 @@ public class Controller {
                 alert.showAndWait()
                         .filter(resp -> resp == ButtonType.OK)
                         .ifPresent(resp -> {
-                            // executed in UI thread because we want to access the listView
                             _todoJobMapper().deleteByIdAsync(tjv.getTodoJobId())
                                     .subscribe(isDeleted -> {
                                         if (isDeleted) {
-                                            TodoJob jobCopy = listView.getItems().remove(selected).createTodoJobCopy();
+                                            TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
                                             synchronized (redoStack) {
                                                 redoStack.push(new Redo(RedoType.DELETE, jobCopy));
                                             }
@@ -421,9 +356,9 @@ public class Controller {
     @RunInFxThread
     private void copySelected() {
         runLater(() -> {
-            int selected = listView.getSelectionModel().getSelectedIndex();
+            int selected = todoJobListView.getSelectedIndex();
             if (selected >= 0) {
-                TodoJobView todoJobView = listView.getItems().get(selected);
+                TodoJobView todoJobView = todoJobListView.get(selected);
                 copyToClipBoard(todoJobView.getName());
             }
         });
@@ -434,7 +369,7 @@ public class Controller {
                 .subscribeOn(taskScheduler)
                 .subscribe((tuple) -> {
                     runLater(() -> {
-                        if (listView.getItems().isEmpty())
+                        if (todoJobListView.isEmpty())
                             return;
 
                         // 1. pick date range and searched text
@@ -503,24 +438,15 @@ public class Controller {
                 return;
 
             final Language newLang = opt.get().equals(engChoice) ? Language.ENG : Language.CHN;
-
-            // not changed, do nothing
-            if (newLang.equals(oldLang)) return;
+            if (newLang.equals(oldLang))
+                return;
 
             environment.setLanguage(newLang);
+            writeConfigAsync(environment);
 
-            // reload resource bundle for the updated locale
             properties.changeToLocale(environment.getLanguage().locale);
-
-            // reload current page
             reloadCurrPageAsync();
-
-            // reload all menus, components to apply the change of locale
-            // refresh view for the first time
             refreshView();
-
-            // persist the config
-            updateConfigAsync(environment);
         });
     }
 
@@ -536,7 +462,7 @@ public class Controller {
             Optional<String> opt = dialog.showAndWait();
             if (opt.isPresent()) {
                 environment.setPattern(opt.get());
-                updateConfigAsync(environment);
+                writeConfigAsync(environment);
             }
         });
     }
@@ -561,24 +487,18 @@ public class Controller {
                     // changed
                     environment.setSearchOnTypingEnabled(currIsEnabled);
                     searchBar.setSearchOnTypeEnabled(currIsEnabled);
-                    updateConfigAsync(environment);
+                    writeConfigAsync(environment);
                 }
             }
         });
     }
 
-    private void updateConfigAsync(Environment environment) {
+    private void writeConfigAsync(Environment environment) {
         ioHandler.writeConfigAsync(new Config(environment));
     }
 
     @RequiresFxThread
-    private void _registerContextMenu() {
-        listView.setContextMenu(createCtxMenu());
-    }
-
-    @RequiresFxThread
-    private void _setupPaginationBar(int currPage) {
-        paginationBar = new PaginationBar(currPage);
+    private void _setupPaginationBar() {
         innerPane.setBottom(paginationBar);
         paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
@@ -590,8 +510,7 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupQuickTodoBar() {
-        quickTodoBar = new QuickTodoBar();
-        quickTodoBar.textFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
+        quickTodoBar.textFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));
         quickTodoBar.setOnEnter(name -> {
             final LocalDate now = LocalDate.now();
             TodoJob tj = new TodoJob();
@@ -601,9 +520,6 @@ public class Controller {
             tj.setName(name);
             doInsertTodo(tj);
         });
-
-        if (outerPane.getTop() != null)
-            outerPane.setTop(quickTodoBar);
     }
 
     /**
@@ -624,10 +540,9 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupSearchBar() {
-        searchBar = new SearchBar();
         innerPane.setTop(searchBar);
         searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
-        searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
+        searchBar.searchTextFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));
         searchBar.onSearchTextFieldEnterPressed(() -> {
             runLater(() -> {
                 if (searchBar.isSearchTextChanged()) {
@@ -691,6 +606,39 @@ public class Controller {
                         log.info("TodoJobMapper loaded");
                     }
                 });
+    }
+
+    private void _setupTodoJobListView() {
+        this.innerPane.setCenter(this.todoJobListView);
+        this.todoJobListView.setContextMenu(createCtxMenu());
+
+        todoJobListView.onKeyPressed(e -> {
+            if (e.isControlDown()) {
+                if (e.getCode().equals(KeyCode.Z))
+                    redo();
+                else if (e.getCode().equals(KeyCode.C))
+                    copySelected();
+                else if (e.getCode().equals(KeyCode.F))
+                    runLater(() -> searchBar.getSearchTextField().requestFocus());
+            } else {
+                if (e.getCode().equals(KeyCode.DELETE))
+                    deleteSelected();
+                else if (e.getCode().equals(KeyCode.F5))
+                    reloadCurrPageAsync();
+
+            }
+        });
+        // do on each to-do changes
+        todoJobListView.onModelChanged(evt -> {
+            _todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
+                    .subscribeOn(taskScheduler)
+                    .subscribe(isUpdated -> {
+                        if (isUpdated)
+                            reloadCurrPageAsync();
+                        else
+                            toast("Failed to update to-do, please try again");
+                    });
+        });
     }
 
 }
