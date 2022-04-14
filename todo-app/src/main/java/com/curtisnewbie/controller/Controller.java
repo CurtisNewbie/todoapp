@@ -14,7 +14,6 @@ import com.curtisnewbie.io.IOHandlerFactory;
 import com.curtisnewbie.io.ObjectPrinter;
 import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
@@ -39,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
+import static javafx.application.Platform.*;
 
 /**
  * <p>
@@ -58,15 +58,14 @@ public class Controller {
 
     /** Properties Loader, thread-safe */
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
-
-    /** Github link in About */
+    /** GitHub link in About */
     private final String GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
     /** Author in About */
     private final String AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
 
     /** Path to DB */
     private final String dbAbsPath;
-
+    /** AtomicReference for mapper */
     private final AtomicReference<TodoJobMapper> _todoJobMapper = new AtomicReference<>();
 
     /** IO Handler, thread-safe */
@@ -77,31 +76,38 @@ public class Controller {
     private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     /**
-     * the last date used and updated by the {@link #_subscribeTickingFluxForReloading()}, must be synchronized using
-     * {@link #lastTickDateLock}
+     * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()},
+     * must be synchronized using {@link #lastTickDateLock}
      */
+    @LockedBy(field = "lastTickDateLock")
     private LocalDate lastTickDate = LocalDate.now();
-    /** Lock for {@link #lastTickDate } */
     private final Object lastTickDateLock = new Object();
 
-    /** Scheduler for reactor */
+    /**
+     * Scheduler for reactor
+     */
     private final Scheduler taskScheduler = Schedulers.fromExecutor(ForkJoinPool.commonPool());
 
-    @FxThreadConfinement
+    @RequiresFxThread
     private final Environment environment = new Environment(ioHandler.readConfig());
-    @FxThreadConfinement
+    @RequiresFxThread
     private final ListView<TodoJobView> listView = new ListView<>();
-    @FxThreadConfinement
+    @RequiresFxThread
     private volatile int volatileCurrPage = 1;
-    @FxThreadConfinement
+
+    @RequiresFxThread
+    @ReInstantiated(instantiatedBy = "refreshView()")
     private SearchBar searchBar;
-    @FxThreadConfinement
+    @RequiresFxThread
+    @ReInstantiated(instantiatedBy = "refreshView()")
     private PaginationBar paginationBar;
-    @FxThreadConfinement
-    private final BorderPane innerPane;
-    @FxThreadConfinement
+    @RequiresFxThread
+    @ReInstantiated(instantiatedBy = "refreshView()")
     private QuickTodoBar quickTodoBar;
-    @FxThreadConfinement
+
+    @RequiresFxThread
+    private final BorderPane innerPane;
+    @RequiresFxThread
     private final BorderPane outerPane;
 
     /**
@@ -131,7 +137,7 @@ public class Controller {
                 else if (e.getCode().equals(KeyCode.C))
                     copySelected();
                 else if (e.getCode().equals(KeyCode.F))
-                    Platform.runLater(() -> searchBar.getSearchTextField().requestFocus());
+                    runLater(() -> searchBar.getSearchTextField().requestFocus());
             } else {
                 if (e.getCode().equals(KeyCode.DELETE))
                     deleteSelected();
@@ -176,7 +182,7 @@ public class Controller {
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
-                        Platform.runLater(() -> {
+                        runLater(() -> {
                             volatileCurrPage += 1;
                             paginationBar.setCurrPage(volatileCurrPage);
                             clearAndLoadList(list);
@@ -196,7 +202,7 @@ public class Controller {
                 .subscribeOn(taskScheduler)
                 .subscribe(list -> {
                     if (!list.isEmpty()) {
-                        Platform.runLater(() -> {
+                        runLater(() -> {
                             volatileCurrPage -= 1;
                             paginationBar.setCurrPage(volatileCurrPage);
                             clearAndLoadList(list);
@@ -217,8 +223,10 @@ public class Controller {
                 });
     }
 
+    /** Load Todos into ListView */
+    @RunInFxThread
     private void clearAndLoadList(List<TodoJob> list) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             listView.getItems().clear();
             list.stream()
                     .map(t -> new TodoJobView(t, environment))
@@ -234,8 +242,9 @@ public class Controller {
      * The operation of adding the jobView to the ListView is always executed in Javafx's thread
      * </p>
      */
+    @RunInFxThread
     private void displayTodoJobView(TodoJobView jobView) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             jobView.onModelChange((evt -> {
                 _todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
                         .subscribeOn(taskScheduler)
@@ -243,7 +252,7 @@ public class Controller {
                             if (isUpdated)
                                 reloadCurrPageAsync();
                             else
-                                toastError("Failed to update to-do, please try again");
+                                toast("Failed to update to-do, please try again");
                         });
             }));
             jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
@@ -268,8 +277,9 @@ public class Controller {
         return ctxMenu;
     }
 
+    @RunInFxThread
     private void _onSwitchQuickTodoHandler(ActionEvent e) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             if (this.outerPane.getTop() != null)
                 this.outerPane.setTop(null);
             else
@@ -291,29 +301,12 @@ public class Controller {
         }
     }
 
-    private void toastInfo(String msg) {
-        Objects.requireNonNull(msg);
-        _toast(msg, Alert.AlertType.INFORMATION);
-    }
-
-    private void toastError(String msg) {
-        Objects.requireNonNull(msg);
-        msg = "ERROR: " + msg;
-        _toast(msg, Alert.AlertType.ERROR);
-    }
-
-    private void _toast(String msg, Alert.AlertType type) {
-        Objects.requireNonNull(msg);
-        Objects.requireNonNull(type);
-
-        Platform.runLater(() -> {
-            Alert alert = new Alert(type);
-            alert.setResizable(true);
-            Label label = new Label(msg);
-            alert.getDialogPane().setContent(label);
-            DialogUtil.disableHeader(alert);
-            alert.show();
-        });
+    /**
+     * Toast a message
+     */
+    @RunInFxThread
+    private void toast(String msg) {
+        runLater(() -> ToastUtil.toast(msg));
     }
 
     /**
@@ -321,8 +314,9 @@ public class Controller {
      *
      * @param content text
      */
+    @RunInFxThread
     private void copyToClipBoard(String content) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent cc = new ClipboardContent();
             cc.putString(content);
@@ -338,9 +332,9 @@ public class Controller {
         return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
     }
 
+    @RunInFxThread
     private void _onAddHandler(ActionEvent e) {
-        Platform.runLater(() -> {
-
+        runLater(() -> {
             TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.ADD_TODO_JOB, null);
             dialog.setTitle(properties.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
@@ -353,14 +347,15 @@ public class Controller {
                     .subscribe(id -> {
                         reloadCurrPageAsync();
                     }, (err) -> {
-                        toastError("Failed to add new to-do, please try again");
+                        toast("Failed to add new to-do, please try again");
                         log.error("Failed to add new to-do", err);
                     });
         });
     }
 
+    @RunInFxThread
     private void _onUpdateHandler(ActionEvent e) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             final int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected < 0)
                 return;
@@ -385,13 +380,14 @@ public class Controller {
                         if (isUpdated)
                             reloadCurrPageAsync();
                         else
-                            toastError("Failed to update to-do, please try again");
+                            toast("Failed to update to-do, please try again");
                     });
         });
     }
 
+    @RunInFxThread
     private void deleteSelected() {
-        Platform.runLater(() -> {
+        runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 final TodoJobView tjv = listView.getItems().get(selected);
@@ -413,7 +409,7 @@ public class Controller {
                                                 redoStack.push(new Redo(RedoType.DELETE, jobCopy));
                                             }
                                         } else {
-                                            toastInfo("Failed to delete to-do, please try again");
+                                            toast("Failed to delete to-do, please try again");
                                         }
                                     });
                         });
@@ -422,8 +418,9 @@ public class Controller {
         });
     }
 
+    @RunInFxThread
     private void copySelected() {
-        Platform.runLater(() -> {
+        runLater(() -> {
             int selected = listView.getSelectionModel().getSelectedIndex();
             if (selected >= 0) {
                 TodoJobView todoJobView = listView.getItems().get(selected);
@@ -436,7 +433,7 @@ public class Controller {
         Mono.zip(_todoJobMapper().findEarliestDateAsync(), _todoJobMapper().findLatestDateAsync())
                 .subscribeOn(taskScheduler)
                 .subscribe((tuple) -> {
-                    Platform.runLater(() -> {
+                    runLater(() -> {
                         if (listView.getItems().isEmpty())
                             return;
 
@@ -468,8 +465,9 @@ public class Controller {
                 });
     }
 
+    @RunInFxThread
     private void _onAboutHandler(ActionEvent e) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             Alert aboutDialog = new Alert(Alert.AlertType.INFORMATION);
             GridPane gPane = new GridPane();
             aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
@@ -486,10 +484,11 @@ public class Controller {
         });
     }
 
+    @RunInFxThread
     private void _onLanguageHandler(ActionEvent e) {
         final String engChoice = "English";
         final String chnChoice = "中文";
-        Platform.runLater(() -> {
+        runLater(() -> {
             final Language oldLang = environment.getLanguage();
 
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
@@ -525,8 +524,9 @@ public class Controller {
         });
     }
 
+    @RunInFxThread
     private void _onChangeExportPatternHandler(ActionEvent e) {
-        Platform.runLater(() -> {
+        runLater(() -> {
             final String pattern = environment.getPattern();
             TxtAreaDialog dialog = new TxtAreaDialog(pattern != null ? pattern : "");
             dialog.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY));
@@ -541,11 +541,12 @@ public class Controller {
         });
     }
 
+    @RunInFxThread
     private void _searchOnTypingConfigHandler(ActionEvent e) {
         final String enable = properties.getLocalizedProperty(TEXT_ENABLE);
         final String disable = properties.getLocalizedProperty(TEXT_DISABLE);
 
-        Platform.runLater(() -> {
+        runLater(() -> {
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY));
             choiceDialog.setSelectedItem(environment.isSearchOnTypingEnabled() ? enable : disable);
@@ -570,12 +571,12 @@ public class Controller {
         ioHandler.writeConfigAsync(new Config(environment));
     }
 
-    @FxThreadConfinement
+    @RequiresFxThread
     private void _registerContextMenu() {
         listView.setContextMenu(createCtxMenu());
     }
 
-    @FxThreadConfinement
+    @RequiresFxThread
     private void _setupPaginationBar(int currPage) {
         paginationBar = new PaginationBar(currPage);
         innerPane.setBottom(paginationBar);
@@ -587,7 +588,7 @@ public class Controller {
         });
     }
 
-    @FxThreadConfinement
+    @RequiresFxThread
     private void _setupQuickTodoBar() {
         quickTodoBar = new QuickTodoBar();
         quickTodoBar.textFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
@@ -616,19 +617,19 @@ public class Controller {
                     if (id != null) {
                         reloadCurrPageAsync();
                     } else {
-                        toastError("Unknown error happens when try to redo");
+                        toast("Unknown error happens when try to redo");
                     }
                 });
     }
 
-    @FxThreadConfinement
+    @RequiresFxThread
     private void _setupSearchBar() {
         searchBar = new SearchBar();
         innerPane.setTop(searchBar);
         searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
         searchBar.searchTextFieldPrefWidthProperty().bind(listView.widthProperty().subtract(15));
         searchBar.onSearchTextFieldEnterPressed(() -> {
-            Platform.runLater(() -> {
+            runLater(() -> {
                 if (searchBar.isSearchTextChanged()) {
                     searchBar.setSearchTextChanged(false);
                     volatileCurrPage = 1;

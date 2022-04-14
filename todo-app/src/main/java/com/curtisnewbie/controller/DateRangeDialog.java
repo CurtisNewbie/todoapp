@@ -4,7 +4,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.DialogUtil;
-import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.RequiresFxThread;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,7 +22,7 @@ import static com.curtisnewbie.util.MarginFactory.padding;
  *
  * @author yongjie.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class DateRangeDialog extends Dialog<DateRange> {
 
     private final GridPane grid;

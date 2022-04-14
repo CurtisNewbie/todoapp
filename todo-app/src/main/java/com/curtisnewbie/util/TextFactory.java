@@ -1,8 +1,8 @@
 package com.curtisnewbie.util;
 
 import javafx.geometry.VPos;
+import javafx.scene.*;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
@@ -29,7 +29,7 @@ public final class TextFactory {
         return tf;
     }
 
-    public static HBox selectableTextWithPadding(String txt) {
+    public static Parent selectableTextWithPadding(String txt) {
         return padding(selectableText(txt), getCommonInsets());
     }
 
@@ -40,7 +40,7 @@ public final class TextFactory {
         return text;
     }
 
-    public static HBox getClassicTextWithPadding(String txt) {
+    public static Parent getClassicTextWithPadding(String txt) {
         return padding(getClassicText(txt), getCommonInsets());
     }
 

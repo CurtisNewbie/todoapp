@@ -1,7 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.util.DialogUtil;
-import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.RequiresFxThread;
 import com.curtisnewbie.util.MarginFactory;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
@@ -22,7 +22,7 @@ import javafx.scene.layout.Region;
  *
  * @author yongjie.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class TxtAreaDialog extends Dialog<String> {
 
     public static final double MAX_WIDTH = 500;

@@ -23,7 +23,7 @@ import static com.curtisnewbie.util.TooltipUtil.tooltip;
  *
  * @author yongj.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class QuickTodoBar extends VBox {
 
     private final TextField textField = new TextField();

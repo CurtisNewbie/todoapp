@@ -1,7 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.config.PropertiesLoader;
-import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.RequiresFxThread;
 import com.curtisnewbie.util.FxThreadUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.control.TextField;
@@ -22,7 +22,7 @@ import static com.curtisnewbie.util.MarginFactory.padding;
  *
  * @author yongjie.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class SearchBar extends VBox {
 
     private final TextField searchTextField = new TextField();

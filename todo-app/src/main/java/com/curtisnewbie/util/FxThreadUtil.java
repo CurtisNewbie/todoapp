@@ -13,7 +13,7 @@ import java.util.ConcurrentModificationException;
  * </p>
  *
  * @author yongjie.zhuang
- * @see FxThreadConfinement
+ * @see RequiresFxThread
  */
 public final class FxThreadUtil {
 

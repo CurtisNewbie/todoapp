@@ -1,9 +1,8 @@
 package com.curtisnewbie.util;
 
 import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.*;
+import javafx.scene.layout.*;
 
 /**
  * <p>
@@ -38,41 +37,50 @@ public final class MarginFactory {
     }
 
     /**
-     * Wrap a Node with padding, and the container that wraps it is returned (a HBox)
+     * Wrap a Node with padding, and the container that wraps it is returned
+     *
+     * @param node node
+     * @param w    width
+     * @return container that wraps the node
+     */
+    public static Parent padding(Node node, int w) {
+        return padding(node, w, w, w, w);
+    }
+
+    /**
+     * Wrap a Node with padding, and the container that wraps it is returned
      *
      * @param node   node
      * @param top    top
      * @param right  right
      * @param bottom bottom
-     * @param left
      * @return container that wraps the node
      */
-    public static HBox padding(Node node, int top, int right, int bottom, int left) {
+    public static Parent padding(Node node, int top, int right, int bottom, int left) {
         return padding(node, new Insets(top, right, bottom, left));
     }
 
     /**
-     * Wrap a Node with padding, and the container that wraps it is returned (a HBox)
+     * Wrap a Node with padding, and the container that wraps it is returned
      *
      * @param node    node
      * @param padding Size of the padding
      * @return container that wraps the node
      */
-    public static HBox padding(Node node, Insets padding) {
-        HBox hbox = new HBox();
-        hbox.getChildren().add(node);
-        hbox.setPadding(padding);
-        return hbox;
+    public static Parent padding(Node node, Insets padding) {
+        HBox p = new HBox();
+        p.getChildren().add(node);
+        p.setPadding(padding);
+        return p;
     }
 
     /**
-     * Wrap a Node with common padding (see {@link #getCommonInsets()}), and the container that wraps it is returned (a
-     * HBox)
+     * Wrap a Node with common padding (see {@link #getCommonInsets()}), and the container that wraps it is returned
      *
      * @param node node
      * @return container that wraps the node
      */
-    public static HBox wrapWithCommonPadding(Node node) {
+    public static Parent wrapWithCommonPadding(Node node) {
         return padding(node, getCommonInsets());
     }
 

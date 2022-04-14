@@ -16,7 +16,7 @@ import static com.curtisnewbie.config.PropertyConstants.TEXT_PAGE;
  *
  * @author yongjie.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class PaginationBar extends HBox {
 
     private final Button prevPageBtn = ButtonFactory.getArrowLeftBtn();

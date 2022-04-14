@@ -5,7 +5,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.CheckBoxFactory;
-import com.curtisnewbie.util.FxThreadConfinement;
+import com.curtisnewbie.util.RequiresFxThread;
 import com.curtisnewbie.util.ShapeFactory;
 import com.curtisnewbie.util.TextFactory;
 import javafx.application.Platform;
@@ -46,7 +46,7 @@ import static com.curtisnewbie.util.MarginFactory.*;
  *
  * @author yongjie.zhuang
  */
-@FxThreadConfinement
+@RequiresFxThread
 public class TodoJobView extends HBox {
 
     /**
