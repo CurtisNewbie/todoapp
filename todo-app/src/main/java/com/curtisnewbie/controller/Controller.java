@@ -14,6 +14,7 @@ import com.curtisnewbie.io.IOHandlerFactory;
 import com.curtisnewbie.io.ObjectPrinter;
 import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
+import javafx.application.*;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
@@ -162,6 +163,8 @@ public class Controller {
         _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
                 .thenAcceptAsync(list -> {
                     runLater(() -> {
+                        if (list.isEmpty())
+                            return;
                         volatileCurrPage += 1;
                         paginationBar.setCurrPage(volatileCurrPage);
                         todoJobListView.clearAndLoadList(list, environment);
