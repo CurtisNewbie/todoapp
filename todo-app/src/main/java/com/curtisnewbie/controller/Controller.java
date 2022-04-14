@@ -89,15 +89,15 @@ public class Controller {
     @RequiresFxThread
     private final Environment environment = new Environment(ioHandler.readConfig());
     @RequiresFxThread
-    private final TodoJobListView todoJobListView = new TodoJobListView();
+    private final TodoJobListView todoJobListView;
     @RequiresFxThread
     private volatile int volatileCurrPage = 1;
     @RequiresFxThread
-    private final SearchBar searchBar = new SearchBar();
+    private final SearchBar searchBar;
     @RequiresFxThread
-    private final QuickTodoBar quickTodoBar = new QuickTodoBar();
+    private final QuickTodoBar quickTodoBar;
     @RequiresFxThread
-    private final PaginationBar paginationBar = new PaginationBar(1);
+    private final PaginationBar paginationBar;
     @RequiresFxThread
     private final BorderPane innerPane;
     @RequiresFxThread
@@ -120,6 +120,12 @@ public class Controller {
 
         // setup to-do job printer
         this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
+
+        // instantiate view components after we changed the locale
+        todoJobListView = new TodoJobListView();
+        searchBar = new SearchBar();
+        quickTodoBar = new QuickTodoBar();
+        paginationBar = new PaginationBar(volatileCurrPage);
 
         // setup components for the first time
         _setupTodoJobListView();
