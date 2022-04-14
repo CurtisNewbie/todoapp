@@ -76,10 +76,13 @@ public class MapperFactoryBase implements MapperFactory {
     }
 
     @Override
-    public Mono<TodoJobMapper> getNewTodoJobMapperAsync() {
-        while (!isInitialized())
-            ; // what till the scripts are executed
-        return Mono.create(sink -> sink.success(new TodoJobMapperImpl(conn)));
+    public CompletableFuture<TodoJobMapper> getNewTodoJobMapperAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            while (!isInitialized())
+                ; // what till the scripts are executed
+
+            return new TodoJobMapperImpl(conn);
+        });
     }
 
     /**

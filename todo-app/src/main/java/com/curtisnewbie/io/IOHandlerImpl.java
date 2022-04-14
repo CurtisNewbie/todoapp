@@ -14,9 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Function;
+
+import static java.util.concurrent.CompletableFuture.*;
 
 /**
  * @author yongjie.zhuang
@@ -26,7 +27,6 @@ public class IOHandlerImpl implements IOHandler {
     private static final String DIR_NAME = "todo-app";
     private static final String CONF_NAME = "settings.json";
     private static final String BASE_PATH = System.getProperty("user.home") + File.separator + DIR_NAME;
-    private static final ExecutorService ioExec = Executors.newSingleThreadExecutor();
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
@@ -103,7 +103,7 @@ public class IOHandlerImpl implements IOHandler {
     public <T> void writeObjectsAsync(List<T> objs, Function<T, String> converter, File file) {
         if (file == null)
             return;
-        ioExec.execute(() -> {
+        runAsync(() -> {
             try {
                 if (!file.exists())
                     file.createNewFile();
@@ -123,9 +123,7 @@ public class IOHandlerImpl implements IOHandler {
     /**
      * Write the default configuration (text) into the file
      *
-     * @param file
      * @return defaultConfig
-     * @throws IOException
      */
     private Config writeDefaultConfIntoFile(File file) throws IOException {
         Config defaultConfig = Config.getDefaultConfig();
@@ -135,7 +133,7 @@ public class IOHandlerImpl implements IOHandler {
 
     @Override
     public void writeConfigAsync(Config config) {
-        ioExec.execute(() -> {
+        CompletableFuture.runAsync(() -> {
             File file = new File(getConfPath());
             try {
                 if (!file.exists())
@@ -150,10 +148,6 @@ public class IOHandlerImpl implements IOHandler {
 
     /**
      * Write configuration (text) into the file
-     *
-     * @param config
-     * @param file
-     * @throws IOException
      */
     private void writeConfig(Config config, File file) throws IOException {
         try (FileWriter fw = new FileWriter(file)) {

@@ -6,6 +6,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.StrInterpolationUtil;
 import com.curtisnewbie.util.StrUtil;
+import com.sun.tools.doclint.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,16 +37,10 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     private static final int ENG_WIDTH = 13;
     private static final int CN_WIDTH = 5;
 
-    private PropertiesLoader propertiesLoader;
-    private Environment environment;
-
-    public TodoJobObjectPrinter(PropertiesLoader propertiesLoader, Environment environment) {
-        this.propertiesLoader = propertiesLoader;
-        this.environment = environment;
-    }
+    private static final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
 
     @Override
-    public String printObject(TodoJob todoJob, String pattern) {
+    public String printObject(TodoJob todoJob, String pattern, Environment environment) {
         final String status = todoJob.isDone() ? propertiesLoader.getLocalizedProperty(TEXT_DONE_KEY) : propertiesLoader.getLocalizedProperty(TEXT_IN_PROGRESS_KEY);
         final String expectedEndDate = toDDmmUUUUSlash(todoJob.getExpectedEndDate());
         final String actualEndDate = todoJob.getActualEndDate() != null ? toDDmmUUUUSlash(todoJob.getActualEndDate()) : "__/__/____";
@@ -53,7 +48,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
 
         // no pattern specified, use the default one
         if (pattern == null || StrUtil.isEmpty(pattern)) {
-            return defaultPattern(status, actualEndDate, expectedEndDate, content);
+            return defaultPattern(status, actualEndDate, expectedEndDate, content, environment);
         }
 
         // do string interpolation based on the given pattern
@@ -70,7 +65,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     }
 
     /** default formatting */
-    private String defaultPattern(String status, String actualEndDate, String expectedEndDate, String content) {
+    private String defaultPattern(String status, String actualEndDate, String expectedEndDate, String content, Environment environment) {
         final String expectedText = propertiesLoader.getLocalizedProperty(TEXT_EXPECTED_END_DATE_KEY);
         final String actualText = propertiesLoader.getLocalizedProperty(TEXT_ACTUAL_END_DATE_KEY);
         int width = environment.getLanguage().equals(Language.ENG) ? ENG_WIDTH : CN_WIDTH;

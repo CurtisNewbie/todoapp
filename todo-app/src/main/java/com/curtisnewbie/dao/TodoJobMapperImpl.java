@@ -3,13 +3,13 @@ package com.curtisnewbie.dao;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.*;
 
 /**
  * @author yongjie.zhuang
@@ -24,7 +24,124 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
     }
 
     @Override
-    public TodoJob findById(int id) {
+    public CompletableFuture<List<TodoJob>> findByPageAsync(String name, int page) {
+        return CompletableFuture.supplyAsync(() -> findByPage(name, page));
+    }
+
+    @Override
+    public CompletableFuture<List<TodoJob>> findBetweenDatesAsync(String name, LocalDate startDate, LocalDate endDate) {
+        return CompletableFuture.supplyAsync(() -> findBetweenDates(name, startDate, endDate));
+    }
+
+    @Override
+    public CompletableFuture<LocalDate> findEarliestDateAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            LocalDate ld = findEarliestDate();
+            if (ld == null)
+                ld = LocalDate.now();
+            return ld;
+        });
+    }
+
+    @Override
+    public CompletableFuture<LocalDate> findLatestDateAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            LocalDate ld = findLatestDate();
+            if (ld == null)
+                ld = LocalDate.now();
+            return ld;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> updateByIdAsync(TodoJob todoJob) {
+        return CompletableFuture.supplyAsync(() -> this.updateById(todoJob) > 0);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> deleteByIdAsync(int id) {
+        return CompletableFuture.supplyAsync(() -> deleteById(id) > 0);
+    }
+
+    @Override
+    public CompletableFuture<Integer> insertAsync(TodoJob todoJob) {
+        return CompletableFuture.supplyAsync(() -> insert(todoJob));
+    }
+
+    // ------------------------------ helper methods -------------------
+
+    private Integer insert(TodoJob todoJob) {
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO todojob (name, is_done, expected_end_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, todoJob.getName());
+            stmt.setBoolean(2, todoJob.isDone());
+            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
+            int c = stmt.executeUpdate();
+            if (c > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                }
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private int deleteById(int id) {
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ?")) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private int updateById(TodoJob todoJob) {
+        Objects.requireNonNull(todoJob);
+        Objects.requireNonNull(todoJob.getId());
+        try (PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ?, actual_end_date = ? WHERE id = ?")) {
+            stmt.setString(1, todoJob.getName());
+            stmt.setBoolean(2, todoJob.isDone());
+            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
+            stmt.setDate(4, todoJob.getActualEndDate() != null ?
+                    new java.sql.Date(DateUtil.startTimeOf(todoJob.getActualEndDate())) : null);
+            stmt.setInt(5, todoJob.getId());
+            int res = stmt.executeUpdate();
+            return res;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private LocalDate findLatestDate() {
+        try (Statement stmt = connection.createStatement();) {
+            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
+            if (rs.next()) {
+                return DateUtil.localDateOf(rs.getDate(1).getTime());
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private LocalDate findEarliestDate() {
+        try (Statement stmt = connection.createStatement();) {
+            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
+            if (rs.next()) {
+                return DateUtil.localDateOf(rs.getDate(1).getTime());
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private TodoJob findById(int id) {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob WHERE id = ?"
         );) {
@@ -45,8 +162,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         }
     }
 
-    @Override
-    public List<TodoJob> findByPage(int page, int limit) {
+    private List<TodoJob> findByPage(int page, int limit) {
         if (limit <= 0)
             throw new IllegalArgumentException("limit must be greater than 0");
         if (page <= 0)
@@ -73,25 +189,15 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         }
     }
 
-    @Override
-    public List<TodoJob> findByPage(int page) {
+    private List<TodoJob> findByPage(int page) {
         return findByPage(page, DEFAULT_PAGE_LIMIT);
     }
 
-    @Override
-    public List<TodoJob> findByPage(String name, int page) {
+    private List<TodoJob> findByPage(String name, int page) {
         return findByPage(name, page, DEFAULT_PAGE_LIMIT);
     }
 
-    @Override
-    public Mono<List<TodoJob>> findByPageAsync(String name, int page) {
-        return Mono.create(sink -> {
-            sink.success(findByPage(name, page));
-        });
-    }
-
-    @Override
-    public List<TodoJob> findByPage(String name, int page, int limit) {
+    private List<TodoJob> findByPage(String name, int page, int limit) {
         if (StrUtil.isEmpty(name))
             return findByPage(page);
 
@@ -125,8 +231,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
 
     }
 
-    @Override
-    public List<TodoJob> findAll() {
+    private List<TodoJob> findAll() {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         "ORDER BY expected_end_date DESC, is_done ASC");) {
@@ -147,8 +252,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         }
     }
 
-    @Override
-    public List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
+    private List<TodoJob> findBetweenDates(LocalDate startDate, LocalDate endDate) {
         try (PreparedStatement stmt = connection.prepareStatement(
                 "SELECT id, name, is_done, expected_end_date, actual_end_date FROM todojob " +
                         "WHERE expected_end_date BETWEEN ? AND ? ORDER BY expected_end_date DESC, is_done ASC");) {
@@ -171,8 +275,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         }
     }
 
-    @Override
-    public List<TodoJob> findBetweenDates(String name, LocalDate startDate, LocalDate endDate) {
+    private List<TodoJob> findBetweenDates(String name, LocalDate startDate, LocalDate endDate) {
         if (StrUtil.isEmpty(name))
             return findBetweenDates(startDate, endDate);
 
@@ -200,158 +303,4 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
         }
     }
 
-    @Override
-    public Mono<List<TodoJob>> findBetweenDatesAsync(String name, LocalDate startDate, LocalDate endDate) {
-        return Mono.create(sink -> {
-            sink.success(findBetweenDates(name, startDate, endDate));
-        });
-    }
-
-    @Override
-    public LocalDate findEarliestDate() {
-        try (Statement stmt = connection.createStatement();) {
-            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date ASC LIMIT 1");
-            if (rs.next()) {
-                return DateUtil.localDateOf(rs.getDate(1).getTime());
-            }
-            return null;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public Mono<LocalDate> findEarliestDateAsync() {
-        return Mono.create(sink -> {
-            LocalDate ld = findEarliestDate();
-            if (ld == null)
-                ld = LocalDate.now();
-            sink.success(ld);
-        });
-    }
-
-    @Override
-    public LocalDate findLatestDate() {
-        try (Statement stmt = connection.createStatement();) {
-            ResultSet rs = stmt.executeQuery("SELECT expected_end_date FROM todojob ORDER BY expected_end_date DESC LIMIT 1");
-            if (rs.next()) {
-                return DateUtil.localDateOf(rs.getDate(1).getTime());
-            }
-            return null;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public Mono<LocalDate> findLatestDateAsync() {
-        return Mono.create(sink -> {
-            LocalDate ld = findLatestDate();
-            if (ld == null)
-                ld = LocalDate.now();
-            sink.success(ld);
-        });
-    }
-
-    @Override
-    public int updateById(TodoJob todoJob) {
-        Objects.requireNonNull(todoJob);
-        Objects.requireNonNull(todoJob.getId());
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE todojob SET name = ?, is_done = ?, expected_end_date = ?, actual_end_date = ? WHERE id = ?")) {
-            stmt.setString(1, todoJob.getName());
-            stmt.setBoolean(2, todoJob.isDone());
-            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
-            stmt.setDate(4, todoJob.getActualEndDate() != null ?
-                    new java.sql.Date(DateUtil.startTimeOf(todoJob.getActualEndDate())) : null);
-            stmt.setInt(5, todoJob.getId());
-            int res = stmt.executeUpdate();
-            return res;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public Mono<Boolean> updateByIdAsync(TodoJob todoJob) {
-        return Mono.create(sink -> {
-            sink.success(this.updateById(todoJob) > 0);
-        });
-    }
-
-    @Override
-    public int deleteById(int id) {
-        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM todojob WHERE id = ?")) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public Mono<Boolean> deleteByIdAsync(int id) {
-        return Mono.create(sink -> {
-            sink.success(deleteById(id) > 0);
-        });
-    }
-
-    @Override
-    public Integer insert(TodoJob todoJob) {
-        try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO todojob (name, is_done, expected_end_date) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, todoJob.getName());
-            stmt.setBoolean(2, todoJob.isDone());
-            stmt.setDate(3, new java.sql.Date(DateUtil.startTimeOf(todoJob.getExpectedEndDate())));
-            int c = stmt.executeUpdate();
-            if (c > 0) {
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
-                }
-            }
-            return null;
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public Mono<Integer> insertAsync(TodoJob todoJob) {
-        return Mono.create(sink -> {
-            Integer id = insert(todoJob);
-            if (id == null)
-                sink.error(new SQLException("Unable to insert todo"));
-            sink.success(id);
-        });
-    }
-
-    @Override
-    public int countRows() {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT COUNT(*) FROM todojob")) {
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            } else {
-                return 0;
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    @Override
-    public boolean hasRecord() {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT id FROM todojob LIMIT 1")) {
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

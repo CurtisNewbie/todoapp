@@ -1,5 +1,7 @@
 package com.curtisnewbie.io;
 
+import com.curtisnewbie.config.*;
+
 /**
  * An object as a printer of other object
  *
@@ -14,5 +16,5 @@ public interface ObjectPrinter<T> {
      * @param t       object
      * @param pattern pattern
      */
-    String printObject(T t, String pattern);
+    String printObject(T t, String pattern, Environment environment);
 }

@@ -32,7 +32,7 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
@@ -70,8 +70,6 @@ public class Controller {
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Redo stack, thread-safe */
     private final RedoStack redoStack = new RedoStack();
-    /** ObjectPrinter for {@link TodoJob }, thread-safe */
-    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     /**
      * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()},
@@ -99,27 +97,26 @@ public class Controller {
     @RequiresFxThread
     private final PaginationBar paginationBar;
     @RequiresFxThread
-    private final BorderPane innerPane;
+    private final BorderPane innerPane = new BorderPane();
     @RequiresFxThread
     private final BorderPane outerPane;
+
+    /** ObjectPrinter for {@link TodoJob }, thread-safe */
+    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter = new TodoJobObjectPrinter();
 
     /**
      * Create and bind the new Controller to a BorderPane
      */
     public Controller(BorderPane parent) {
         this.outerPane = parent;
-        this.innerPane = new BorderPane();
         this.outerPane.setCenter(this.innerPane);
 
         final MapperFactory mapperFactory = new MapperFactoryBase();
         dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
-        _prepareMapper(mapperFactory);
+        _prepareMapperAsync(mapperFactory);
 
         // load locale-specific resource bundle
         properties.changeToLocale(environment.getLanguage().locale);
-
-        // setup to-do job printer
-        this.todoJobExportObjectPrinter = new TodoJobObjectPrinter(properties, environment);
 
         // instantiate view components after we changed the locale
         todoJobListView = new TodoJobListView();
@@ -135,14 +132,18 @@ public class Controller {
 
         // reload page when we are on next day
         _subscribeTickingFluxForReloading();
-
-        // load the first page
-        reloadCurrPageAsync();
     }
 
     /** Initialize a Controller that is bound to the given BorderPane */
-    public static Controller initialize(BorderPane parent) {
-        return new Controller(parent);
+    public static void initialize(BorderPane parent) {
+        CountdownTimer timer = new CountdownTimer();
+        timer.start();
+        final Controller controller = new Controller(parent);
+        timer.stop();
+        log.info("Controller initialized, took: {} ms", timer.getMilliSec());
+
+        // load the first page
+        controller.loadCurrPageAsync();
     }
 
     /**
@@ -159,15 +160,12 @@ public class Controller {
      */
     private void loadNextPageAsync() {
         _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
-                .subscribeOn(taskScheduler)
-                .subscribe(list -> {
-                    if (!list.isEmpty()) {
-                        runLater(() -> {
-                            volatileCurrPage += 1;
-                            paginationBar.setCurrPage(volatileCurrPage);
-                            todoJobListView.clearAndLoadList(list, environment);
-                        });
-                    }
+                .thenAcceptAsync(list -> {
+                    runLater(() -> {
+                        volatileCurrPage += 1;
+                        paginationBar.setCurrPage(volatileCurrPage);
+                        todoJobListView.clearAndLoadList(list, environment);
+                    });
                 });
     }
 
@@ -178,28 +176,24 @@ public class Controller {
         if (volatileCurrPage <= 1)
             return;
 
-        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
-                .subscribeOn(taskScheduler)
-                .subscribe(list -> {
-                    if (!list.isEmpty()) {
-                        runLater(() -> {
-                            volatileCurrPage -= 1;
-                            paginationBar.setCurrPage(volatileCurrPage);
-                            todoJobListView.clearAndLoadList(list, environment);
-                        });
-                    }
+        _todoJobMapper()
+                .findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
+                .thenAcceptAsync(list -> {
+                    runLater(() -> {
+                        volatileCurrPage -= 1;
+                        paginationBar.setCurrPage(volatileCurrPage);
+                        todoJobListView.clearAndLoadList(list, environment);
+                    });
                 });
     }
 
     /**
      * Reload current page asynchronously
      */
-    private void reloadCurrPageAsync() {
+    private void loadCurrPageAsync() {
         _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
-                .subscribeOn(taskScheduler)
-                .subscribe(list -> {
-                    if (!list.isEmpty())
-                        runLater(() -> todoJobListView.clearAndLoadList(list, environment));
+                .thenAcceptAsync(list -> {
+                    runLater(() -> todoJobListView.clearAndLoadList(list, environment));
                 });
     }
 
@@ -285,12 +279,10 @@ public class Controller {
 
             TodoJob newTodo = result.get();
             _todoJobMapper().insertAsync(newTodo)
-                    .subscribeOn(taskScheduler)
-                    .subscribe(id -> {
-                        reloadCurrPageAsync();
-                    }, (err) -> {
-                        toast("Failed to add new to-do, please try again");
-                        log.error("Failed to add new to-do", err);
+                    .thenAcceptAsync(id -> loadCurrPageAsync())
+                    .exceptionally(err -> {
+                        toast("Failed to add new to-do, please try again\n\n" + err.getMessage());
+                        return null;
                     });
         });
     }
@@ -316,11 +308,11 @@ public class Controller {
             updated.setId(old.getId());
 
             // executed in task scheduler, rather than in UI thread
-            _todoJobMapper().updateByIdAsync(updated)
-                    .subscribeOn(taskScheduler)
-                    .subscribe(isUpdated -> {
+            _todoJobMapper()
+                    .updateByIdAsync(updated)
+                    .thenAcceptAsync(isUpdated -> {
                         if (isUpdated)
-                            reloadCurrPageAsync();
+                            loadCurrPageAsync();
                         else
                             toast("Failed to update to-do, please try again");
                     });
@@ -331,31 +323,33 @@ public class Controller {
     private void deleteSelected() {
         runLater(() -> {
             int selected = todoJobListView.getSelectedIndex();
-            if (selected >= 0) {
-                final TodoJobView tjv = todoJobListView.get(selected);
+            if (selected < 0)
+                return;
 
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setResizable(true);
-                alert.setTitle(properties.getLocalizedProperty(TITLE_DELETE_KEY));
-                alert.setContentText(properties.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY) + "\n\n" + tjv.getName() + "\n");
-                DialogUtil.disableHeader(alert);
-                alert.showAndWait()
-                        .filter(resp -> resp == ButtonType.OK)
-                        .ifPresent(resp -> {
-                            _todoJobMapper().deleteByIdAsync(tjv.getTodoJobId())
-                                    .subscribe(isDeleted -> {
-                                        if (isDeleted) {
-                                            TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
-                                            synchronized (redoStack) {
-                                                redoStack.push(new Redo(RedoType.DELETE, jobCopy));
-                                            }
-                                        } else {
-                                            toast("Failed to delete to-do, please try again");
+            final TodoJobView tjv = todoJobListView.get(selected);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setResizable(true);
+            alert.setTitle(properties.getLocalizedProperty(TITLE_DELETE_KEY));
+            alert.setContentText(properties.getLocalizedProperty(TEXT_DELETE_CONFIRM_KEY) + "\n\n" + tjv.getName() + "\n");
+            DialogUtil.disableHeader(alert);
+            alert.showAndWait()
+                    .filter(resp -> resp == ButtonType.OK)
+                    .ifPresent(resp -> {
+                        _todoJobMapper()
+                                .deleteByIdAsync(tjv.getTodoJobId())
+                                .thenAcceptAsync(isDeleted -> {
+                                    if (isDeleted) {
+                                        TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
+                                        synchronized (redoStack) {
+                                            redoStack.push(new Redo(RedoType.DELETE, jobCopy));
                                         }
-                                    });
-                        });
-            }
-            reloadCurrPageAsync();
+                                    } else {
+                                        toast("Failed to delete to-do, please try again");
+                                    }
+                                });
+                    });
+
+            loadCurrPageAsync();
         });
     }
 
@@ -371,9 +365,17 @@ public class Controller {
     }
 
     private void _onExportHandler(ActionEvent e) {
-        Mono.zip(_todoJobMapper().findEarliestDateAsync(), _todoJobMapper().findLatestDateAsync())
-                .subscribeOn(taskScheduler)
-                .subscribe((tuple) -> {
+        final CompletableFuture<LocalDate> c1 = _todoJobMapper().findEarliestDateAsync();
+        final CompletableFuture<LocalDate> c2 = _todoJobMapper().findLatestDateAsync();
+        CompletableFuture.allOf(c1, c2)
+                .thenApplyAsync(ignored -> {
+                    try {
+                        return new Pair(c1.get(), c2.get());
+                    } catch (InterruptedException | ExecutionException ex) {
+                        throw new IllegalStateException(ex);
+                    }
+                })
+                .thenAcceptAsync(pair -> {
                     runLater(() -> {
                         if (todoJobListView.isEmpty())
                             return;
@@ -381,28 +383,35 @@ public class Controller {
                         // 1. pick date range and searched text
                         final LocalDate now = LocalDate.now();
                         final ExportDialog dialog = new ExportDialog(now, now, searchBar.getSearchTextField().getText());
-                        dialog.showEarliestDate(tuple.getT1());
-                        dialog.showLatestDate(tuple.getT2());
-                        Optional<ExportDialog.ExportParam> opt = dialog.showAndWait();
-                        if (opt.isPresent()) {
-                            final ExportDialog.ExportParam ep = opt.get();
+                        dialog.showEarliestDate((LocalDate) pair.getLeft());
+                        dialog.showLatestDate((LocalDate) pair.getRight());
+                        final Optional<ExportDialog.ExportParam> opt = dialog.showAndWait();
+                        if (!opt.isPresent())
+                            return;
 
-                            // 2. choose where to export
-                            FileChooser fileChooser = new FileChooser();
-                            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
-                            fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
-                            fileChooser.getExtensionFilters().add(getTxtExtFilter());
-                            final File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                            if (nFile == null)
-                                return;
+                        final ExportDialog.ExportParam ep = opt.get();
 
-                            final String exportPattern = environment.getPattern(); // nullable
-                            final DateRange dateRange = ep.getDateRange();
-                            _todoJobMapper().findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
-                                    .subscribeOn(taskScheduler)
-                                    .subscribe((list) -> ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern), nFile));
-                        }
+                        // 2. choose where to export
+                        FileChooser fileChooser = new FileChooser();
+                        fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
+                        fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
+                        fileChooser.getExtensionFilters().add(getTxtExtFilter());
+                        final File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                        if (nFile == null)
+                            return;
+
+                        final String exportPattern = environment.getPattern(); // nullable
+                        final DateRange dateRange = ep.getDateRange();
+                        _todoJobMapper()
+                                .findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
+                                .thenAcceptAsync((list) -> {
+                                    ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern, environment), nFile);
+                                });
                     });
+                })
+                .exceptionally(ex -> {
+                    toast("Export Failure, please try again\n\n" + ex.getMessage());
+                    return null;
                 });
     }
 
@@ -451,7 +460,7 @@ public class Controller {
             writeConfigAsync(environment);
 
             properties.changeToLocale(environment.getLanguage().locale);
-            reloadCurrPageAsync();
+            loadCurrPageAsync();
             refreshView();
         });
     }
@@ -460,12 +469,12 @@ public class Controller {
     private void _onChangeExportPatternHandler(ActionEvent e) {
         runLater(() -> {
             final String pattern = environment.getPattern();
-            TxtAreaDialog dialog = new TxtAreaDialog(pattern != null ? pattern : "");
+            final TxtAreaDialog dialog = new TxtAreaDialog(pattern != null ? pattern : "");
             dialog.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY));
             dialog.setContentText(properties.getLocalizedProperty(TEXT_EXPORT_PATTERN_DESC_KEY));
             DialogUtil.disableHeader(dialog);
 
-            Optional<String> opt = dialog.showAndWait();
+            final Optional<String> opt = dialog.showAndWait();
             if (opt.isPresent()) {
                 environment.setPattern(opt.get());
                 writeConfigAsync(environment);
@@ -479,23 +488,24 @@ public class Controller {
         final String disable = properties.getLocalizedProperty(TEXT_DISABLE);
 
         runLater(() -> {
-            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            final ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY));
             choiceDialog.setSelectedItem(environment.isSearchOnTypingEnabled() ? enable : disable);
             choiceDialog.getItems().add(enable);
             choiceDialog.getItems().add(disable);
             DialogUtil.disableHeader(choiceDialog);
-            Optional<String> opt = choiceDialog.showAndWait();
-            if (opt.isPresent()) {
-                final boolean prevIsEnabled = environment.isSearchOnTypingEnabled();
-                final boolean currIsEnabled = opt.get().equals(enable);
-                if (currIsEnabled != prevIsEnabled) {
-                    // changed
-                    environment.setSearchOnTypingEnabled(currIsEnabled);
-                    searchBar.setSearchOnTypeEnabled(currIsEnabled);
-                    writeConfigAsync(environment);
-                }
-            }
+            final Optional<String> opt = choiceDialog.showAndWait();
+            if (!opt.isPresent())
+                return;
+
+            final boolean prevIsEnabled = environment.isSearchOnTypingEnabled();
+            final boolean currIsEnabled = opt.get().equals(enable);
+            if (currIsEnabled == prevIsEnabled)
+                return;
+
+            environment.setSearchOnTypingEnabled(currIsEnabled);
+            searchBar.setSearchOnTypeEnabled(currIsEnabled);
+            writeConfigAsync(environment);
         });
     }
 
@@ -534,10 +544,9 @@ public class Controller {
     private void doInsertTodo(TodoJob job) {
         _todoJobMapper()
                 .insertAsync(job)
-                .subscribeOn(taskScheduler)
-                .subscribe(id -> {
+                .thenAcceptAsync(id -> {
                     if (id != null) {
-                        reloadCurrPageAsync();
+                        loadCurrPageAsync();
                     } else {
                         toast("Unknown error happens when try to redo");
                     }
@@ -555,7 +564,7 @@ public class Controller {
                     searchBar.setSearchTextChanged(false);
                     volatileCurrPage = 1;
                     paginationBar.setCurrPage(volatileCurrPage);
-                    reloadCurrPageAsync();
+                    loadCurrPageAsync();
                 }
             });
         });
@@ -595,19 +604,18 @@ public class Controller {
                     if (isNextDate) {
                         log.info("Next date, reload current page");
                         // we are now on next date, reload current page to refresh the timeLeftLabel in TodoJobView
-                        reloadCurrPageAsync();
+                        loadCurrPageAsync();
                     }
                 });
     }
 
-    private void _prepareMapper(MapperFactory mapperFactory) {
+    private void _prepareMapperAsync(MapperFactory mapperFactory) {
         /**
          * speed up initialisation process, we make it async, and we rely on the {@link #_todoJobMapper() } method to
          * delay the timing that we retrieve the mapper
          */
         mapperFactory.getNewTodoJobMapperAsync()
-                .subscribeOn(taskScheduler)
-                .subscribe((mapper) -> {
+                .thenAcceptAsync((mapper) -> {
                     if (this._todoJobMapper.compareAndSet(null, mapper)) {
                         log.info("TodoJobMapper loaded");
                     }
@@ -630,17 +638,16 @@ public class Controller {
                 if (e.getCode().equals(KeyCode.DELETE))
                     deleteSelected();
                 else if (e.getCode().equals(KeyCode.F5))
-                    reloadCurrPageAsync();
-
+                    loadCurrPageAsync();
             }
         });
         // do on each to-do changes
         todoJobListView.onModelChanged(evt -> {
-            _todoJobMapper().updateByIdAsync((TodoJob) evt.getNewValue())
-                    .subscribeOn(taskScheduler)
-                    .subscribe(isUpdated -> {
+            _todoJobMapper()
+                    .updateByIdAsync((TodoJob) evt.getNewValue())
+                    .thenAcceptAsync(isUpdated -> {
                         if (isUpdated)
-                            reloadCurrPageAsync();
+                            loadCurrPageAsync();
                         else
                             toast("Failed to update to-do, please try again");
                     });

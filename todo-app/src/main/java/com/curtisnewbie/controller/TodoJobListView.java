@@ -44,6 +44,10 @@ public class TodoJobListView extends BorderPane {
     /** Load Todos into ListView */
     public void clearAndLoadList(List<TodoJob> list, Environment environment) {
         listView.getItems().clear();
+
+        if (list == null)
+            return;
+
         list.stream()
                 .map(t -> new TodoJobView(t, environment))
                 .forEach(this::displayTodoJobView);

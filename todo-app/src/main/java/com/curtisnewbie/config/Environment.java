@@ -13,22 +13,22 @@ public class Environment {
     /**
      * Language to use
      */
-    private Language language;
+    private volatile Language language;
 
     /**
      * Should finished task have strikethrough effect
      */
-    private boolean strikethroughEffectEnabled;
+    private volatile boolean strikethroughEffectEnabled;
 
     /**
      * Should search on typing
      */
-    private boolean searchOnTypingEnabled;
+    private volatile boolean searchOnTypingEnabled;
 
     /**
      * Pattern used to export to-dos
      */
-    private String pattern;
+    private volatile String pattern;
 
     public Environment(Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled, String pattern) {
         this.language = language;
