@@ -13,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import lombok.extern.slf4j.*;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import static com.curtisnewbie.util.MarginFactory.padding;
  *
  * @author yongjie.zhuang
  */
+@Slf4j
 @RequiresFxThread
 public class TodoJobDialog extends Dialog<TodoJob> {
 

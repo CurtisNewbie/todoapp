@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
+import static java.util.concurrent.CompletableFuture.*;
 import static javafx.application.Platform.*;
 
 /**
@@ -342,10 +343,14 @@ public class Controller {
                                 .deleteByIdAsync(tjv.getTodoJobId())
                                 .thenAcceptAsync(isDeleted -> {
                                     if (isDeleted) {
-                                        TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
-                                        synchronized (redoStack) {
-                                            redoStack.push(new Redo(RedoType.DELETE, jobCopy));
-                                        }
+                                        runLater(() -> {
+                                            final TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
+                                            runAsync(() -> {
+                                                synchronized (redoStack) {
+                                                    redoStack.push(new Redo(RedoType.DELETE, jobCopy));
+                                                }
+                                            });
+                                        });
                                     } else {
                                         toast("Failed to delete to-do, please try again");
                                     }
@@ -413,7 +418,7 @@ public class Controller {
                     });
                 })
                 .exceptionally(ex -> {
-                    toast("Export Failure, please try again\n\n" + ex.getMessage());
+                    toast("Error occurred, please try again\n\n" + ex.getMessage());
                     return null;
                 });
     }
