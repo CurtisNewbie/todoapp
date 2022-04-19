@@ -15,7 +15,9 @@ import com.curtisnewbie.io.ObjectPrinter;
 import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
 import javafx.event.ActionEvent;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -30,15 +32,19 @@ import reactor.core.scheduler.Schedulers;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
-import static java.util.concurrent.CompletableFuture.*;
-import static javafx.application.Platform.*;
+import static java.util.concurrent.CompletableFuture.runAsync;
+import static javafx.application.Platform.runLater;
 
 /**
  * <p>
@@ -70,11 +76,14 @@ public class Controller {
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Redo stack, thread-safe */
     private final RedoStack redoStack = new RedoStack();
+    /** Manager of Suggestion */
     private final SuggestionManager suggestionManager = new SuggestionManager();
+    /** Atomic Reference to the Environment */
+    private final AtomicReference<Environment> _environment = new AtomicReference(new Environment(ioHandler.readConfig()));
 
     /**
-     * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()},
-     * must be synchronized using {@link #lastTickDateLock}
+     * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()}, must be synchronized using
+     * {@link #lastTickDateLock}
      */
     @LockedBy(field = "lastTickDateLock")
     private LocalDate lastTickDate = LocalDate.now();
@@ -85,8 +94,6 @@ public class Controller {
      */
     private final Scheduler taskScheduler = Schedulers.fromExecutor(ForkJoinPool.commonPool());
 
-    @RequiresFxThread
-    private final Environment environment = new Environment(ioHandler.readConfig());
     @RequiresFxThread
     private final TodoJobListView todoJobListView;
     @RequiresFxThread
@@ -117,7 +124,7 @@ public class Controller {
         _prepareMapperAsync(mapperFactory);
 
         // load locale-specific resource bundle
-        properties.changeToLocale(environment.getLanguage().locale);
+        properties.changeToLocale(getEnvironment().getLanguage().locale);
 
         // instantiate view components after we changed the locale
         todoJobListView = new TodoJobListView();
@@ -167,7 +174,7 @@ public class Controller {
                             return;
                         volatileCurrPage += 1;
                         paginationBar.setCurrPage(volatileCurrPage);
-                        todoJobListView.clearAndLoadList(list, environment);
+                        todoJobListView.clearAndLoadList(list, getEnvironment());
                     });
                 });
     }
@@ -185,7 +192,7 @@ public class Controller {
                     runLater(() -> {
                         volatileCurrPage -= 1;
                         paginationBar.setCurrPage(volatileCurrPage);
-                        todoJobListView.clearAndLoadList(list, environment);
+                        todoJobListView.clearAndLoadList(list, getEnvironment());
                     });
                 });
     }
@@ -196,7 +203,7 @@ public class Controller {
     private void loadCurrPageAsync() {
         _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
                 .thenAcceptAsync(list -> {
-                    runLater(() -> todoJobListView.clearAndLoadList(list, environment));
+                    runLater(() -> todoJobListView.clearAndLoadList(list, getEnvironment()));
                 });
     }
 
@@ -431,6 +438,7 @@ public class Controller {
                         if (nFile == null)
                             return;
 
+                        final Environment environment = getEnvironment();
                         final String exportPattern = environment.getPattern(); // nullable
                         final DateRange dateRange = ep.getDateRange();
                         _todoJobMapper()
@@ -470,7 +478,8 @@ public class Controller {
         final String engChoice = "English";
         final String chnChoice = "中文";
         runLater(() -> {
-            final Language oldLang = environment.getLanguage();
+            final Environment prevEnv = getEnvironment();
+            final Language oldLang = prevEnv.getLanguage();
 
             ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY));
@@ -487,10 +496,11 @@ public class Controller {
             if (newLang.equals(oldLang))
                 return;
 
-            environment.setLanguage(newLang);
-            writeConfigAsync(environment);
+            final Environment newEnv = prevEnv.setLanguage(newLang);
+            setEnvironment(newEnv);
+            writeConfigAsync();
 
-            properties.changeToLocale(environment.getLanguage().locale);
+            properties.changeToLocale(newEnv.getLanguage().locale);
             loadCurrPageAsync();
             refreshView();
         });
@@ -499,7 +509,8 @@ public class Controller {
     @RunInFxThread
     private void _onChangeExportPatternHandler(ActionEvent e) {
         runLater(() -> {
-            final String pattern = environment.getPattern();
+            final Environment prevEnv = getEnvironment();
+            final String pattern = prevEnv.getPattern();
             final TxtAreaDialog dialog = new TxtAreaDialog(pattern != null ? pattern : "");
             dialog.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY));
             dialog.setContentText(properties.getLocalizedProperty(TEXT_EXPORT_PATTERN_DESC_KEY));
@@ -507,8 +518,8 @@ public class Controller {
 
             final Optional<String> opt = dialog.showAndWait();
             if (opt.isPresent()) {
-                environment.setPattern(opt.get());
-                writeConfigAsync(environment);
+                setEnvironment(prevEnv.setPattern(opt.get()));
+                writeConfigAsync();
             }
         });
     }
@@ -519,9 +530,10 @@ public class Controller {
         final String disable = properties.getLocalizedProperty(TEXT_DISABLE);
 
         runLater(() -> {
+            final Environment prevEnv = getEnvironment();
             final ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
             choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY));
-            choiceDialog.setSelectedItem(environment.isSearchOnTypingEnabled() ? enable : disable);
+            choiceDialog.setSelectedItem(prevEnv.isSearchOnTypingEnabled() ? enable : disable);
             choiceDialog.getItems().add(enable);
             choiceDialog.getItems().add(disable);
             DialogUtil.disableHeader(choiceDialog);
@@ -529,19 +541,20 @@ public class Controller {
             if (!opt.isPresent())
                 return;
 
-            final boolean prevIsEnabled = environment.isSearchOnTypingEnabled();
+            final boolean prevIsEnabled = prevEnv.isSearchOnTypingEnabled();
             final boolean currIsEnabled = opt.get().equals(enable);
             if (currIsEnabled == prevIsEnabled)
                 return;
 
-            environment.setSearchOnTypingEnabled(currIsEnabled);
+            setEnvironment(prevEnv.setSearchOnTypingEnabled(currIsEnabled));
             searchBar.setSearchOnTypeEnabled(currIsEnabled);
-            writeConfigAsync(environment);
+            writeConfigAsync();
         });
     }
 
-    private void writeConfigAsync(Environment environment) {
-        ioHandler.writeConfigAsync(new Config(environment));
+    /** Write Environment to file as async */
+    private void writeConfigAsync() {
+        ioHandler.writeConfigAsync(new Config(getEnvironment()));
     }
 
     @RequiresFxThread
@@ -587,7 +600,7 @@ public class Controller {
     @RequiresFxThread
     private void _setupSearchBar() {
         innerPane.setTop(searchBar);
-        searchBar.setSearchOnTypeEnabled(environment.isSearchOnTypingEnabled());
+        searchBar.setSearchOnTypeEnabled(getEnvironment().isSearchOnTypingEnabled());
         searchBar.searchTextFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));
         searchBar.onSearchTextFieldEnterPressed(() -> {
             runLater(() -> {
@@ -683,6 +696,14 @@ public class Controller {
                             toast("Failed to update to-do, please try again");
                     });
         });
+    }
+
+    private Environment getEnvironment() {
+        return _environment.get();
+    }
+
+    private void setEnvironment(Environment environment) {
+        this._environment.set(environment);
     }
 
 }

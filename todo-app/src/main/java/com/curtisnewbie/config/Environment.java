@@ -1,46 +1,57 @@
 package com.curtisnewbie.config;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * Environment Configuration
+ * Immutable Environment Configuration
  *
  * @author yongjie.zhuang
  */
-@Data
+@Getter
+@AllArgsConstructor
 public class Environment {
 
     /**
      * Language to use
      */
-    private volatile Language language;
+    private final Language language;
 
     /**
      * Should finished task have strikethrough effect
      */
-    private volatile boolean strikethroughEffectEnabled;
+    private final boolean strikethroughEffectEnabled;
 
     /**
      * Should search on typing
      */
-    private volatile boolean searchOnTypingEnabled;
+    private final boolean searchOnTypingEnabled;
 
     /**
      * Pattern used to export to-dos
      */
-    private volatile String pattern;
-
-    public Environment(Language language, boolean strikethroughEffectEnabled, boolean searchOnTypingEnabled, String pattern) {
-        this.language = language;
-        this.strikethroughEffectEnabled = strikethroughEffectEnabled;
-        this.searchOnTypingEnabled = searchOnTypingEnabled;
-        this.pattern = pattern;
-    }
+    private final String pattern;
 
     public Environment(Config config) {
         this(Language.parseLang(config.getLanguage()),
                 config.isStrikethroughEffectEnabled(),
                 config.isSearchOnTypingEnabled(),
                 config.getPattern());
+    }
+
+    public Environment setLanguage(Language language) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+    }
+
+    public Environment setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+    }
+
+    public Environment setSearchOnTypingEnabled(boolean searchOnTypingEnabled) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+    }
+
+    public Environment setPattern(String pattern) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
     }
 }
