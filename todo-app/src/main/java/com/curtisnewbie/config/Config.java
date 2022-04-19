@@ -64,7 +64,7 @@ public class Config implements Serializable {
         this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
         this.pattern = environment.getPattern();
         this.quickTodoBarDisplayed = environment.isQuickTodoBarDisplayed();
-        this.suggestionsToggle = new HashMap<>(environment.get_suggestionsToggle());
+        this.suggestionsToggle = new HashMap<>(environment._getSuggestionsToggle());
     }
 
     public static Config getDefaultConfig() {

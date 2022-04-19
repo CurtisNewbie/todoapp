@@ -12,33 +12,37 @@ import java.util.Map;
  *
  * @author yongjie.zhuang
  */
-@Getter
 @AllArgsConstructor
 public class Environment {
 
     /**
      * Language to use
      */
+    @Getter
     private final Language language;
 
     /**
      * Should finished task have strikethrough effect
      */
+    @Getter
     private final boolean strikethroughEffectEnabled;
 
     /**
      * Should search on typing
      */
+    @Getter
     private final boolean searchOnTypingEnabled;
 
     /**
      * quick to-do bar displayed by default
      */
+    @Getter
     private final boolean quickTodoBarDisplayed;
 
     /**
      * Pattern used to export to-dos
      */
+    @Getter
     private final String pattern;
 
     /**
@@ -89,4 +93,7 @@ public class Environment {
         return _suggestionsToggle.get(key);
     }
 
+    public Map<SuggestionType, Boolean> _getSuggestionsToggle() {
+        return new HashMap<>(_suggestionsToggle);
+    }
 }
