@@ -14,7 +14,6 @@ import com.curtisnewbie.io.IOHandlerFactory;
 import com.curtisnewbie.io.ObjectPrinter;
 import com.curtisnewbie.io.TodoJobObjectPrinter;
 import com.curtisnewbie.util.*;
-import javafx.application.*;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
@@ -25,7 +24,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -213,13 +211,13 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::_onLanguageHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::_onChangeExportPatternHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onSwitchQuickTodoHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onToggleQuickTodoHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::_onAboutHandler);
         return ctxMenu;
     }
 
     @RunInFxThread
-    private void _onSwitchQuickTodoHandler(ActionEvent e) {
+    private void _onToggleQuickTodoHandler(ActionEvent e) {
         runLater(() -> {
             if (this.outerPane.getTop() != null)
                 this.outerPane.setTop(null);
@@ -230,8 +228,8 @@ public class Controller {
 
     private void _onCopyHandler(ActionEvent e) {
         copySelected();
-        if (suggestionManager.shouldSuggest(SuggestionType.COPY_SUGGESTION))
-            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 1_500L);
+        if (suggestionManager.shouldSuggest(SuggestionType.COPY_HANDLER))
+            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 3_000L);
     }
 
     /**
@@ -293,8 +291,12 @@ public class Controller {
             TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.ADD_TODO_JOB, null);
             dialog.setTitle(properties.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
-            if (!result.isPresent() || StrUtil.isEmpty(result.get().getName()))
+            if (!result.isPresent() || StrUtil.isEmpty(result.get().getName())) {
+                if (suggestionManager.shouldSuggest(SuggestionType.NEW_TODO_HANDLER)) {
+                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), 5_000L);
+                }
                 return;
+            }
 
             TodoJob newTodo = result.get();
             _todoJobMapper().insertAsync(newTodo)
@@ -302,8 +304,14 @@ public class Controller {
                     .exceptionally(err -> {
                         toast("Failed to add new to-do, please try again\n\n" + err.getMessage());
                         return null;
+                    })
+                    .thenRun(() -> {
+                        if (suggestionManager.shouldSuggest(SuggestionType.NEW_TODO_HANDLER)) {
+                            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), 5_000L);
+                        }
                     });
         });
+
     }
 
     @RunInFxThread
