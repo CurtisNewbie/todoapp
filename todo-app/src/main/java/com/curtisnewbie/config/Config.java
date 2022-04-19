@@ -1,9 +1,12 @@
 package com.curtisnewbie.config;
 
+import com.curtisnewbie.controller.SuggestionType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -45,6 +48,12 @@ public class Config implements Serializable {
     @JsonProperty(required = false, defaultValue = "false")
     private boolean searchOnTypingEnabled;
 
+    /**
+     * Config map for suggestion
+     */
+    @JsonProperty(required = false)
+    private Map<SuggestionType, Boolean> suggestionsToggle = new HashMap<>();
+
     public Config() {
 
     }
@@ -55,6 +64,7 @@ public class Config implements Serializable {
         this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
         this.pattern = environment.getPattern();
         this.quickTodoBarDisplayed = environment.isQuickTodoBarDisplayed();
+        this.suggestionsToggle = new HashMap<>(environment.get_suggestionsToggle());
     }
 
     public static Config getDefaultConfig() {

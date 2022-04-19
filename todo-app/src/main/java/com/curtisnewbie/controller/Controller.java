@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
@@ -61,6 +62,8 @@ import static javafx.application.Platform.runLater;
 @Slf4j
 public class Controller {
 
+    private static final long SUGGESTION_TOAST_DURATION = TimeUnit.SECONDS.toMillis(10);
+
     /** Properties Loader, thread-safe */
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
     /** GitHub link in About */
@@ -77,8 +80,6 @@ public class Controller {
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Redo stack, thread-safe */
     private final RedoStack redoStack = new RedoStack();
-    /** Manager of Suggestion */
-    private final SuggestionManager suggestionManager = new SuggestionManager();
     /** Atomic Reference to the Environment */
     private final AtomicReference<Environment> _environment = new AtomicReference<>();
 
@@ -244,8 +245,13 @@ public class Controller {
     private void _onCopyHandler(ActionEvent e) {
         copySelected();
         runAsync(() -> {
-            if (suggestionManager.shouldSuggest(SuggestionType.COPY_HANDLER))
-                toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 3_000L);
+            final Environment env = getEnvironment();
+            final SuggestionType type = SuggestionType.COPY_HANDLER;
+            if (env.isSuggestionToggleOn(type)) {
+                toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), SUGGESTION_TOAST_DURATION);
+                setEnvironment(env.toggleSuggestionOff(type));
+                writeConfigAsync();
+            }
         });
     }
 
@@ -293,8 +299,12 @@ public class Controller {
             dialog.setTitle(properties.getLocalizedProperty(TITLE_ADD_NEW_TODO_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
             if (!result.isPresent() || StrUtil.isEmpty(result.get().getName())) {
-                if (suggestionManager.shouldSuggest(SuggestionType.NEW_TODO_HANDLER)) {
-                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), 5_000L);
+                final Environment env = getEnvironment();
+                final SuggestionType type = SuggestionType.NEW_TODO_HANDLER;
+                if (env.isSuggestionToggleOn(type)) {
+                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), SUGGESTION_TOAST_DURATION);
+                    setEnvironment(env.toggleSuggestionOff(type));
+                    writeConfigAsync();
                 }
                 return;
             }
@@ -307,8 +317,12 @@ public class Controller {
                         return null;
                     })
                     .thenRunAsync(() -> {
-                        if (suggestionManager.shouldSuggest(SuggestionType.NEW_TODO_HANDLER)) {
-                            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), 5_000L);
+                        final Environment env = getEnvironment();
+                        final SuggestionType type = SuggestionType.NEW_TODO_HANDLER;
+                        if (env.isSuggestionToggleOn(type)) {
+                            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), SUGGESTION_TOAST_DURATION);
+                            setEnvironment(env.toggleSuggestionOff(type));
+                            writeConfigAsync();
                         }
                     });
         });
@@ -319,8 +333,12 @@ public class Controller {
     private void _onDeleteHandler(ActionEvent e) {
         deleteSelected(() -> {
             runAsync(() -> {
-                if (suggestionManager.shouldSuggest(SuggestionType.DELETE_TODO_HANDLER)) {
-                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_DELETE_TODO_HANDLER), 5_000L);
+                final Environment env = getEnvironment();
+                final SuggestionType type = SuggestionType.DELETE_TODO_HANDLER;
+                if (env.isSuggestionToggleOn(type)) {
+                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_DELETE_TODO_HANDLER), SUGGESTION_TOAST_DURATION);
+                    setEnvironment(env.toggleSuggestionOff(type));
+                    writeConfigAsync();
                 }
             });
         });

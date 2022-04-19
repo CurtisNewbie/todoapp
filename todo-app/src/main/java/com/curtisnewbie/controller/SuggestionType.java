@@ -4,7 +4,6 @@ package com.curtisnewbie.controller;
  * Suggestion Type
  *
  * @author yongj.zhuang
- * @see SuggestionManager
  */
 public enum SuggestionType {
 
