@@ -243,8 +243,10 @@ public class Controller {
 
     private void _onCopyHandler(ActionEvent e) {
         copySelected();
-        if (suggestionManager.shouldSuggest(SuggestionType.COPY_HANDLER))
-            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 3_000L);
+        runAsync(() -> {
+            if (suggestionManager.shouldSuggest(SuggestionType.COPY_HANDLER))
+                toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 3_000L);
+        });
     }
 
     /**
@@ -304,7 +306,7 @@ public class Controller {
                         toast("Failed to add new to-do, please try again\n\n" + err.getMessage());
                         return null;
                     })
-                    .thenRun(() -> {
+                    .thenRunAsync(() -> {
                         if (suggestionManager.shouldSuggest(SuggestionType.NEW_TODO_HANDLER)) {
                             toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), 5_000L);
                         }
