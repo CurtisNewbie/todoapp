@@ -72,6 +72,7 @@ public class Controller {
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Redo stack, thread-safe */
     private final RedoStack redoStack = new RedoStack();
+    private final SuggestionManager suggestionManager = new SuggestionManager();
 
     /**
      * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()},
@@ -207,7 +208,7 @@ public class Controller {
         ctxMenu.addMenuItem(properties.getLocalizedProperty(TITLE_ADD_KEY), this::_onAddHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), e -> deleteSelected())
                 .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::_onUpdateHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), e -> copySelected())
+                .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::_onCopyHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::_onExportHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::_onLanguageHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
@@ -225,6 +226,12 @@ public class Controller {
             else
                 this.outerPane.setTop(padding(quickTodoBar, 3, 0, 3, 0));
         });
+    }
+
+    private void _onCopyHandler(ActionEvent e) {
+        copySelected();
+        if (suggestionManager.shouldSuggest(SuggestionType.COPY_SUGGESTION))
+            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_COPY_HANDLER), 1_500L);
     }
 
     /**
@@ -247,6 +254,14 @@ public class Controller {
     @RunInFxThread
     private void toast(String msg) {
         runLater(() -> ToastUtil.toast(msg));
+    }
+
+    /**
+     * Toast a message
+     */
+    @RunInFxThread
+    private void toast(String msg, long mili) {
+        runLater(() -> ToastUtil.toast(msg, mili));
     }
 
     /**
@@ -635,7 +650,7 @@ public class Controller {
         this.todoJobListView.setContextMenu(createCtxMenu());
 
         todoJobListView.onKeyPressed(e -> {
-            if (e.isControlDown()) {
+            if (e.isControlDown() || e.isMetaDown()) { // metaDown is for mac
                 if (e.getCode().equals(KeyCode.Z))
                     redo();
                 else if (e.getCode().equals(KeyCode.C))

@@ -40,6 +40,7 @@ public final class PropertyConstants {
     public static final String TEXT_QUICK_TODO_HELP = "text.quick.todo.help";
     public static final String TEXT_DISABLE = "text.disable";
     public static final String TEXT_EXPORT_PATTERN_DESC_KEY = "text.export.pattern.desc";
+    public static final String TEXT_SUGGESTION_COPY_HANDLER = "text.suggestion.copy.handler";
 
 
 
