@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
+import static com.curtisnewbie.util.ToastUtil.toast;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static javafx.application.Platform.runLater;
 
@@ -79,7 +80,7 @@ public class Controller {
     /** Manager of Suggestion */
     private final SuggestionManager suggestionManager = new SuggestionManager();
     /** Atomic Reference to the Environment */
-    private final AtomicReference<Environment> _environment = new AtomicReference(new Environment(ioHandler.readConfig()));
+    private final AtomicReference<Environment> _environment = new AtomicReference<>();
 
     /**
      * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()}, must be synchronized using
@@ -124,6 +125,7 @@ public class Controller {
         _prepareMapperAsync(mapperFactory);
 
         // load locale-specific resource bundle
+        setEnvironment(new Environment(ioHandler.readConfig()));
         properties.changeToLocale(getEnvironment().getLanguage().locale);
 
         // instantiate view components after we changed the locale
@@ -226,10 +228,16 @@ public class Controller {
     @RunInFxThread
     private void _onToggleQuickTodoHandler(ActionEvent e) {
         runLater(() -> {
-            if (this.outerPane.getTop() != null)
+            final Environment env = getEnvironment();
+            final boolean wasDisplayed = env.isQuickTodoBarDisplayed();
+
+            if (wasDisplayed)
                 this.outerPane.setTop(null);
             else
                 this.outerPane.setTop(padding(quickTodoBar, 3, 0, 3, 0));
+
+            setEnvironment(env.setQuickTodoBarDisplayed(!wasDisplayed));
+            writeConfigAsync();
         });
     }
 
@@ -251,22 +259,6 @@ public class Controller {
                 doInsertTodo(redo.getTodoJob());
             }
         }
-    }
-
-    /**
-     * Toast a message
-     */
-    @RunInFxThread
-    private void toast(String msg) {
-        runLater(() -> ToastUtil.toast(msg));
-    }
-
-    /**
-     * Toast a message
-     */
-    @RunInFxThread
-    private void toast(String msg, long mili) {
-        runLater(() -> ToastUtil.toast(msg, mili));
     }
 
     /**
@@ -570,6 +562,9 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupQuickTodoBar() {
+        if (getEnvironment().isQuickTodoBarDisplayed())
+            this.outerPane.setTop(padding(quickTodoBar, 3, 0, 3, 0));
+
         quickTodoBar.textFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));
         quickTodoBar.setOnEnter(name -> {
             final LocalDate now = LocalDate.now();

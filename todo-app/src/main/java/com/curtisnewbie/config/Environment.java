@@ -28,6 +28,11 @@ public class Environment {
     private final boolean searchOnTypingEnabled;
 
     /**
+     * quick to-do bar displayed by default
+     */
+    private final boolean quickTodoBarDisplayed;
+
+    /**
      * Pattern used to export to-dos
      */
     private final String pattern;
@@ -36,22 +41,28 @@ public class Environment {
         this(Language.parseLang(config.getLanguage()),
                 config.isStrikethroughEffectEnabled(),
                 config.isSearchOnTypingEnabled(),
+                config.isQuickTodoBarDisplayed(),
                 config.getPattern());
     }
 
     public Environment setLanguage(Language language) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern);
     }
 
     public Environment setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern);
     }
 
     public Environment setSearchOnTypingEnabled(boolean searchOnTypingEnabled) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern);
     }
 
     public Environment setPattern(String pattern) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, pattern);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern);
     }
+
+    public Environment setQuickTodoBarDisplayed(boolean quickTodoBarDisplayed) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern);
+    }
+
 }

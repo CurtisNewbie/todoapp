@@ -34,6 +34,12 @@ public class Config implements Serializable {
     private boolean strikethroughEffectEnabled;
 
     /**
+     * quick to-do bar displayed by default
+     */
+    @JsonProperty(required = false, defaultValue = "false")
+    private boolean quickTodoBarDisplayed;
+
+    /**
      * Should search on typing
      */
     @JsonProperty(required = false, defaultValue = "false")
@@ -48,12 +54,14 @@ public class Config implements Serializable {
         this.strikethroughEffectEnabled = environment.isStrikethroughEffectEnabled();
         this.searchOnTypingEnabled = environment.isSearchOnTypingEnabled();
         this.pattern = environment.getPattern();
+        this.quickTodoBarDisplayed = environment.isQuickTodoBarDisplayed();
     }
 
     public static Config getDefaultConfig() {
         Config c = new Config();
         c.setSearchOnTypingEnabled(false);
         c.setStrikethroughEffectEnabled(false);
+        c.setQuickTodoBarDisplayed(false);
         c.setLanguage(Language.DEFAULT.key);
         return c;
     }

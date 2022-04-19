@@ -14,10 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-import static java.util.concurrent.CompletableFuture.*;
+import static com.curtisnewbie.util.ToastUtil.toast;
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 /**
  * @author yongjie.zhuang
@@ -136,11 +137,11 @@ public class IOHandlerImpl implements IOHandler {
         CompletableFuture.runAsync(() -> {
             File file = new File(getConfPath());
             try {
-                if (!file.exists())
-                    file.createNewFile();
+                if (!file.exists()) file.createNewFile();
+
                 writeConfig(config, file);
             } catch (IOException e) {
-                log.error("Unable to write config", e);
+                toast("Failed to write config file\n\n" + e.getMessage(), 10_000);
             }
         });
     }

@@ -20,7 +20,7 @@ public final class FxThreadUtil {
     /**
      * This tool is only used for debugging, so this will always be false
      */
-    private static final boolean isDebug = false;
+    private static final boolean isDebug = true;
 
     private FxThreadUtil() {
     }
