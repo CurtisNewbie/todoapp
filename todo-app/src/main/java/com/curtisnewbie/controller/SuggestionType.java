@@ -12,5 +12,9 @@ public enum SuggestionType {
     COPY_HANDLER,
 
     /** Suggestion for using quick-to do bar to add to-do */
-    NEW_TODO_HANDLER;
+    NEW_TODO_HANDLER,
+
+    /** Suggestion for using hotkey to delete to-do */
+    DELETE_TODO_HANDLER;
+
 }

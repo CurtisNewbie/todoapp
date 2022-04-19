@@ -213,7 +213,7 @@ public class Controller {
     private CnvCtxMenu createCtxMenu() {
         CnvCtxMenu ctxMenu = new CnvCtxMenu();
         ctxMenu.addMenuItem(properties.getLocalizedProperty(TITLE_ADD_KEY), this::_onAddHandler)
-                .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), e -> deleteSelected())
+                .addMenuItem(properties.getLocalizedProperty(TITLE_DELETE_KEY), this::_onDeleteHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_UPDATE_KEY), this::_onUpdateHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::_onCopyHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::_onExportHandler)
@@ -316,6 +316,17 @@ public class Controller {
     }
 
     @RunInFxThread
+    private void _onDeleteHandler(ActionEvent e) {
+        deleteSelected(() -> {
+            runAsync(() -> {
+                if (suggestionManager.shouldSuggest(SuggestionType.DELETE_TODO_HANDLER)) {
+                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_DELETE_TODO_HANDLER), 5_000L);
+                }
+            });
+        });
+    }
+
+    @RunInFxThread
     private void _onUpdateHandler(ActionEvent e) {
         runLater(() -> {
             final int selected = todoJobListView.getSelectedIndex();
@@ -348,13 +359,15 @@ public class Controller {
     }
 
     @RunInFxThread
-    private void deleteSelected() {
+    private void deleteSelected(Runnable afterDialog) {
         runLater(() -> {
             int selected = todoJobListView.getSelectedIndex();
             if (selected < 0)
                 return;
 
             final TodoJobView tjv = todoJobListView.get(selected);
+            final TodoJob copy = tjv.createTodoJobCopy();
+
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setResizable(true);
             alert.setTitle(properties.getLocalizedProperty(TITLE_DELETE_KEY));
@@ -362,27 +375,24 @@ public class Controller {
             DialogUtil.disableHeader(alert);
             alert.showAndWait()
                     .filter(resp -> resp == ButtonType.OK)
-                    .ifPresent(resp -> {
-                        _todoJobMapper()
-                                .deleteByIdAsync(tjv.getTodoJobId())
-                                .thenAcceptAsync(isDeleted -> {
-                                    if (isDeleted) {
-                                        runLater(() -> {
-                                            final TodoJob jobCopy = todoJobListView.remove(selected).createTodoJobCopy();
-                                            runAsync(() -> {
-                                                synchronized (redoStack) {
-                                                    redoStack.push(new Redo(RedoType.DELETE, jobCopy));
-                                                }
-                                            });
-                                        });
-                                    } else {
-                                        toast("Failed to delete to-do, please try again");
-                                    }
-                                });
-                    });
+                    .ifPresent(resp -> doDeleteAndReloadAsync(tjv.getTodoJobId(), copy));
 
-            loadCurrPageAsync();
+            if (afterDialog != null)
+                afterDialog.run();
         });
+    }
+
+    private void doDeleteAndReloadAsync(int id, TodoJob copy) {
+        _todoJobMapper()
+                .deleteByIdAsync(id)
+                .thenAcceptAsync(isDeleted -> {
+                    if (isDeleted) {
+                        runAsync(() -> redoStack.push(new Redo(RedoType.DELETE, copy)));
+                    } else {
+                        toast("Failed to delete to-do, please try again");
+                    }
+                })
+                .thenRun(this::loadCurrPageAsync);
     }
 
     @RunInFxThread
@@ -679,7 +689,7 @@ public class Controller {
                     loadCurrPageAsync();
             } else {
                 if (e.getCode().equals(KeyCode.DELETE) || e.getCode().equals(KeyCode.BACK_SPACE))
-                    deleteSelected();
+                    deleteSelected(null);
                 else if (e.getCode().equals(KeyCode.F5))
                     loadCurrPageAsync();
             }
