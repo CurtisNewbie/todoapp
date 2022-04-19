@@ -675,8 +675,10 @@ public class Controller {
                     copySelected();
                 else if (e.getCode().equals(KeyCode.F))
                     runLater(() -> searchBar.getSearchTextField().requestFocus());
+                else if (e.getCode().equals(KeyCode.R))
+                    loadCurrPageAsync();
             } else {
-                if (e.getCode().equals(KeyCode.DELETE))
+                if (e.getCode().equals(KeyCode.DELETE) || e.getCode().equals(KeyCode.BACK_SPACE))
                     deleteSelected();
                 else if (e.getCode().equals(KeyCode.F5))
                     loadCurrPageAsync();
