@@ -176,6 +176,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         this.textArea = new TextArea(defaultText);
         this.textArea.setMaxWidth(MAX_WIDTH);
         this.textArea.setWrapText(true);
+        this.textArea.setPrefRowCount(20);
         GridPane.setHgrow(textArea, Priority.ALWAYS);
         GridPane.setFillWidth(textArea, true);
     }
