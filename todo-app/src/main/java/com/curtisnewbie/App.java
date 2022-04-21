@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 public class App extends Application {
 
-    private static final PropertiesLoader properties = PropertiesLoader.getInstance();
+    private static final PropertiesLoader properties = PropertiesLoader.getInstance(); // can only use common props
     public static final String VERSION = properties.getCommonProperty("app.version");
     public static final String STARTUP_TITLE = "TO-DO " + VERSION;
     private static final int MIN_WIDTH = 500;

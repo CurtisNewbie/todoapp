@@ -15,6 +15,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface LockedBy {
 
-    /** field name */
-    String field();
+    /** name */
+    String name();
 }

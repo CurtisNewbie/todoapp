@@ -30,12 +30,13 @@ public class DateRangeDialog extends Dialog<DateRange> {
     private final DatePicker endDatePicker;
     private boolean earliestDateIsShown = false;
     private boolean latestDateIsShown = false;
-    private final PropertiesLoader properties = PropertiesLoader.getInstance();
+    private final PropertiesLoader properties;
 
     /**
      * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
      */
-    public DateRangeDialog(LocalDate start, LocalDate end) {
+    public DateRangeDialog(LocalDate start, LocalDate end, PropertiesLoader properties) {
+        this.properties = properties;
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();
         this.startDatePicker.setConverter(new LocalDateStringConverter());

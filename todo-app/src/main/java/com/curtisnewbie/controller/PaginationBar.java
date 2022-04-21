@@ -19,14 +19,13 @@ import static com.curtisnewbie.config.PropertyConstants.TEXT_PAGE;
 @RequiresFxThread
 public class PaginationBar extends HBox {
 
-    private static final PropertiesLoader properties = PropertiesLoader.getInstance();
     private final Button prevPageBtn = ButtonFactory.getArrowLeftBtn();
     private final Button nextPageBtn = ButtonFactory.getArrowRightBtn();
     private final Label currPageLabel = LabelFactory.classicLabel("1");
 
     public PaginationBar() {
         this.setAlignment(Pos.BASELINE_RIGHT);
-        this.getChildren().addAll(LabelFactory.classicLabel(properties.getLocalizedProperty(TEXT_PAGE)),
+        this.getChildren().addAll(LabelFactory.classicLabel(PropertiesLoader.getInstance().getLocalizedProperty(TEXT_PAGE)),
                 MarginFactory.margin(10),
                 currPageLabel, MarginFactory.margin(10),
                 prevPageBtn, MarginFactory.margin(10),

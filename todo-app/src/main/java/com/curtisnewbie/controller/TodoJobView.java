@@ -8,6 +8,7 @@ import com.curtisnewbie.util.CheckBoxFactory;
 import com.curtisnewbie.util.RequiresFxThread;
 import com.curtisnewbie.util.ShapeFactory;
 import com.curtisnewbie.util.TextFactory;
+import com.fasterxml.jackson.databind.annotation.*;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
@@ -48,6 +49,8 @@ import static com.curtisnewbie.util.MarginFactory.*;
  */
 @RequiresFxThread
 public class TodoJobView extends HBox {
+
+    private static final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**
      * Label for displaying whether to-do is finished
@@ -91,7 +94,6 @@ public class TodoJobView extends HBox {
 
     /** Environment configuration */
     private final Environment environment;
-    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     private final String DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
     private final String MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
@@ -103,8 +105,6 @@ public class TodoJobView extends HBox {
 
     /**
      * Create a TodoJobView with the given {@code todoJob}
-     *
-     * @param todoJob
      */
     public TodoJobView(TodoJob todoJob, Environment environment) {
         Objects.requireNonNull(todoJob);

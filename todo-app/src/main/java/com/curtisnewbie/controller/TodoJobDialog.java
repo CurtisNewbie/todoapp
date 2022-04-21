@@ -40,7 +40,6 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     private DatePicker actualEndDatePicker;
     private LocalDate actualEndDate;
     private final Optional<TodoJob> optionalTodoJob;
-    private final PropertiesLoader properties = PropertiesLoader.getInstance();
 
     /**
      * Create a TodoJobDialog for creating new to-do or updating existing to-do
@@ -120,18 +119,19 @@ public class TodoJobDialog extends Dialog<TodoJob> {
     }
 
     private void setupGrid(DialogPane dialogPane) {
+        final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
         this.grid.setHgap(10);
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(contextLabel, 0, 0);
-        String expectedEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_EXPECTED_END_DATE_KEY);
+        String expectedEndDateText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPECTED_END_DATE_KEY);
         this.grid.add(padding(classicLabel(expectedEndDateText + ":"), new Insets(1, 2, 5, 2)),
                 1, 1);
         this.grid.add(padding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
                 2, 1);
 
         if (shouldDisplayActualEndDatePicker()) {
-            String actualEndDateText = properties.getLocalizedProperty(PropertyConstants.TEXT_ACTUAL_END_DATE_KEY);
+            String actualEndDateText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_ACTUAL_END_DATE_KEY);
             this.grid.add(padding(classicLabel(actualEndDateText + ":"), new Insets(1, 2, 5, 2)),
                     1, 2);
             this.grid.add(padding(actualEndDatePicker, new Insets(1, 2, 5, 2)),

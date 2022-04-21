@@ -66,16 +66,10 @@ public class Controller {
 
     /** Properties Loader, thread-safe */
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
-    /** GitHub link in About */
-    private final String GITHUB_ABOUT = properties.getCommonProperty(APP_GITHUB);
-    /** Author in About */
-    private final String AUTHOR_ABOUT = properties.getCommonProperty(APP_AUTHOR);
-
     /** Path to DB */
     private final String dbAbsPath;
     /** AtomicReference for mapper */
     private final AtomicReference<TodoJobMapper> _todoJobMapper = new AtomicReference<>();
-
     /** IO Handler, thread-safe */
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Atomic Reference to the Environment */
@@ -85,7 +79,7 @@ public class Controller {
      * The last date used and updated by the {@link #_subscribeTickingFluxForReloading()}, must be synchronized using
      * {@link #lastTickDateLock}
      */
-    @LockedBy(field = "lastTickDateLock")
+    @LockedBy(name = "lastTickDateLock")
     private LocalDate lastTickDate = LocalDate.now();
     private final Object lastTickDateLock = new Object();
 
@@ -110,7 +104,7 @@ public class Controller {
     private final BorderPane outerPane;
 
     /** ObjectPrinter for {@link TodoJob }, thread-safe */
-    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter = new TodoJobObjectPrinter();
+    private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
     /**
      * Create and bind the new Controller to a BorderPane
@@ -132,6 +126,7 @@ public class Controller {
         searchBar = new SearchBar();
         quickTodoBar = new QuickTodoBar();
         paginationBar = new PaginationBar(volatileCurrPage);
+        todoJobExportObjectPrinter = new TodoJobObjectPrinter();
 
         // setup components for the first time
         _setupTodoJobListView();
@@ -466,8 +461,8 @@ public class Controller {
 
             String desc = String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
             desc += String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
-            desc += GITHUB_ABOUT + "\n";
-            desc += AUTHOR_ABOUT;
+            desc += properties.getCommonProperty(APP_GITHUB) + "\n";
+            desc += properties.getCommonProperty(APP_AUTHOR);
             gPane.add(selectableText(desc), 0, 0);
 
             aboutDialog.getDialogPane().setContent(gPane);

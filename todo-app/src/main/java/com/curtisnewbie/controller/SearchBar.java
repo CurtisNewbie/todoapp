@@ -25,6 +25,7 @@ import static com.curtisnewbie.util.MarginFactory.padding;
 @RequiresFxThread
 public class SearchBar extends VBox implements Refreshable {
 
+    private static final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
     private final TextField searchTextField = new TextField();
     private final List<Runnable> onSearchTextFieldEnterPressed = new ArrayList<>();
     private boolean searchTextChanged = false;
@@ -88,7 +89,7 @@ public class SearchBar extends VBox implements Refreshable {
     @Override
     public void refresh() {
         this.getChildren().clear();
-        final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_SEARCH);
+        final String label = propertiesLoader.getLocalizedProperty(TEXT_SEARCH);
         this.getChildren().addAll(
                 margin(5),
                 padding(classicLabel(label), 0, 5, 0, 5),

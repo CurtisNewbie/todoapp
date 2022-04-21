@@ -24,7 +24,6 @@ import static com.curtisnewbie.config.PropertyConstants.*;
 @RequiresFxThread
 public class TodoJobListView extends BorderPane {
 
-    private static final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
     private static final int LISTVIEW_PADDING = 55;
     private final ListView<TodoJobView> listView = new ListView<>();
     private PropertyChangeListener propertyChangeListener;
@@ -89,7 +88,7 @@ public class TodoJobListView extends BorderPane {
 
         jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
         jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
-                .subtract(Integer.parseInt(propertiesLoader.getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
+                .subtract(Integer.parseInt(PropertiesLoader.getInstance().getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
         listView.getItems().add(jobView);
     }
 
