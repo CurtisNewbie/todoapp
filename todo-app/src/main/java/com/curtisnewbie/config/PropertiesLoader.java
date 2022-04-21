@@ -5,7 +5,6 @@ import com.curtisnewbie.util.*;
 import java.io.*;
 import java.nio.charset.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Objects.*;
 
@@ -26,11 +25,9 @@ public final class PropertiesLoader {
     private static final PropertiesLoader INSTANCE = new PropertiesLoader();
 
     private final Properties commonProp = new Properties();
-    private final AtomicReference<ResourceBundle> localizedPropBundleRef = new AtomicReference<>();
 
-    /** cache of ResourceBundle */
     @LockedBy(name = "this")
-    private final HashMap<Locale, ResourceBundle> resourceBundleCache = new HashMap<>();
+    private volatile ResourceBundle localizedProp;
 
     private PropertiesLoader() {
         try (final InputStreamReader isr = read(COMMON_PROPERTIES)) {
@@ -47,17 +44,8 @@ public final class PropertiesLoader {
      */
     public void changeToLocale(Locale locale) {
         synchronized (this) {
-            ResourceBundle resourceBundle = resourceBundleCache.get(locale);
-            if (resourceBundle != null) {
-                this.localizedPropBundleRef.set(resourceBundle);
-                return;
-            }
-
-            // this is to avoid encoding issue
             try (final InputStreamReader isr = read(BASE_BUNDLE_NAME + "_" + locale.getLanguage() + ".properties")) {
-                resourceBundle = new PropertyResourceBundle(isr);
-                this.resourceBundleCache.put(locale, resourceBundle);
-                this.localizedPropBundleRef.set(resourceBundle);
+                this.localizedProp = new PropertyResourceBundle(isr);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
@@ -81,7 +69,7 @@ public final class PropertiesLoader {
      * @return value (which may be null)
      */
     public String getLocalizedProperty(String key) {
-        return localizedPropBundleRef.get().getString(key);
+        return localizedProp.getString(key);
     }
 
     /**
