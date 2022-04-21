@@ -78,8 +78,6 @@ public class Controller {
 
     /** IO Handler, thread-safe */
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
-    /** Redo stack, thread-safe */
-    private final RedoStack redoStack = new RedoStack();
     /** Atomic Reference to the Environment */
     private final AtomicReference<Environment> _environment = new AtomicReference<>();
 
@@ -256,20 +254,6 @@ public class Controller {
     }
 
     /**
-     * Redo previous action
-     */
-    private void redo() {
-        synchronized (redoStack) {
-            Redo redo = redoStack.pop();
-            if (redo == null)
-                return;
-            if (redo.getType().equals(RedoType.DELETE)) {
-                doInsertTodo(redo.getTodoJob());
-            }
-        }
-    }
-
-    /**
      * Copy content to clipboard (This method is always ran within a Javafx' UI Thread)
      *
      * @param content text
@@ -404,11 +388,8 @@ public class Controller {
         _todoJobMapper()
                 .deleteByIdAsync(id)
                 .thenAcceptAsync(isDeleted -> {
-                    if (isDeleted) {
-                        runAsync(() -> redoStack.push(new Redo(RedoType.DELETE, copy)));
-                    } else {
+                    if (!isDeleted)
                         toast("Failed to delete to-do, please try again");
-                    }
                 })
                 .thenRun(this::loadCurrPageAsync);
     }
@@ -697,9 +678,7 @@ public class Controller {
 
         todoJobListView.onKeyPressed(e -> {
             if (e.isControlDown() || e.isMetaDown()) { // metaDown is for mac
-                if (e.getCode().equals(KeyCode.Z))
-                    redo();
-                else if (e.getCode().equals(KeyCode.C))
+                if (e.getCode().equals(KeyCode.C))
                     copySelected();
                 else if (e.getCode().equals(KeyCode.F))
                     runLater(() -> searchBar.getSearchTextField().requestFocus());
