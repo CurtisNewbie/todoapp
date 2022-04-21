@@ -459,10 +459,12 @@ public class Controller {
             GridPane gPane = new GridPane();
             aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
 
-            String desc = String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
-            desc += String.format("%s: '%s'", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
+            String desc = String.format("%s: %s", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
+            desc += String.format("%s: %s", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
             desc += properties.getCommonProperty(APP_GITHUB) + "\n";
-            desc += properties.getCommonProperty(APP_AUTHOR);
+            desc += properties.getCommonProperty(APP_AUTHOR) + "\n\n";
+            desc += properties.getLocalizedProperty(TEXT_ABOUT_TIPS);
+
             gPane.add(selectableText(desc), 0, 0);
 
             aboutDialog.getDialogPane().setContent(gPane);
@@ -673,7 +675,9 @@ public class Controller {
 
         todoJobListView.onKeyPressed(e -> {
             if (e.isControlDown() || e.isMetaDown()) { // metaDown is for mac
-                if (e.getCode().equals(KeyCode.C))
+                if (e.getCode().equals(KeyCode.N))
+                    _onAddHandler(null);
+                else if (e.getCode().equals(KeyCode.C))
                     copySelected();
                 else if (e.getCode().equals(KeyCode.F))
                     runLater(() -> searchBar.getSearchTextField().requestFocus());

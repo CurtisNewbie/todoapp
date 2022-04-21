@@ -43,6 +43,7 @@ public final class PropertyConstants {
     public static final String TEXT_SUGGESTION_COPY_HANDLER = "text.suggestion.copy.handler";
     public static final String TEXT_SUGGESTION_NEW_TODO_HANDLER = "text.suggestion.new-todo.handler";
     public static final String TEXT_SUGGESTION_DELETE_TODO_HANDLER = "text.suggestion.todo.delete.handler";
+    public static final String TEXT_ABOUT_TIPS = "text.about.tips";
 
 
     // ------------------ titles ----------------
