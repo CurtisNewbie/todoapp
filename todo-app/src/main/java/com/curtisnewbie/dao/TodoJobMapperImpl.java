@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 @Slf4j
 public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMapper {
 
-    private static final int DEFAULT_PAGE_LIMIT = 30;
+    private static final int DEFAULT_PAGE_LIMIT = 15;
 
     public TodoJobMapperImpl(Connection connection) {
         super(connection);
