@@ -1,6 +1,6 @@
 # Todo-App
 
-JavaFX app for managing TO-DOs. Supports both Windows and Linux platforms. Download it in RELEASE.
+JavaFX app for managing TO-DOs. Supports Windows, Linux and Mac. Download it in RELEASE or build it on your own :D.
 
 ## Pre-requisite
 
