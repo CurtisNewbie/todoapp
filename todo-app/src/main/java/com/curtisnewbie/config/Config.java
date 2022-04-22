@@ -60,6 +60,12 @@ public class Config implements Serializable {
     @JsonProperty(required = false)
     private Map<SuggestionType, Boolean> suggestionsToggle = new HashMap<>();
 
+    /**
+     * Hide special tag
+     */
+    @Getter
+    private boolean specialTagHidden;
+
     public Config() {
 
     }
@@ -72,6 +78,7 @@ public class Config implements Serializable {
         this.quickTodoBarDisplayed = environment.isQuickTodoBarDisplayed();
         this.suggestionsToggle = new HashMap<>(environment._getSuggestionsToggle());
         this.copyNameOnly = environment.isCopyNameOnly();
+        this.specialTagHidden = environment.isSpecialTagHidden();
     }
 
     public static Config getDefaultConfig() {
@@ -81,6 +88,7 @@ public class Config implements Serializable {
         c.setQuickTodoBarDisplayed(false);
         c.setLanguage(Language.DEFAULT.key);
         c.setCopyNameOnly(true);
+        c.setSpecialTagHidden(true);
         return c;
     }
 }

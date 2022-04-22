@@ -213,6 +213,7 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::_onChangeExportPatternHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onToggleQuickTodoHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_SPECIAL_TAG_HIDDEN_KEY), this::_onToggleSpecialTagHiddenHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::_onAboutHandler);
         return ctxMenu;
     }
@@ -230,6 +231,16 @@ public class Controller {
 
             setEnvironment(env.setQuickTodoBarDisplayed(!wasDisplayed));
             writeConfigAsync();
+        });
+    }
+
+    @RunInFxThread
+    private void _onToggleSpecialTagHiddenHandler(ActionEvent e) {
+        runLater(() -> {
+            final Environment env = getEnvironment();
+            setEnvironment(env.setSpecialTagHidden(!env.isSpecialTagHidden()));
+            writeConfigAsync();
+            loadCurrPageAsync();
         });
     }
 

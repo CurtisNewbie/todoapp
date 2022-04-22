@@ -30,6 +30,7 @@ import static com.curtisnewbie.util.FxThreadUtil.checkThreadConfinement;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
 import static com.curtisnewbie.util.MarginFactory.*;
+import static com.curtisnewbie.util.TextFactory.*;
 
 
 /**
@@ -111,7 +112,8 @@ public class TodoJobView extends HBox {
         this.environment = environment;
         this.model = new TodoJob(todoJob);
         this.doneLabel = new Label();
-        this.nameText = TextFactory.getClassicText(Tag.EXCL.escape(model.getName()));
+        final String displayedName = environment.isSpecialTagHidden() ? Tag.EXCL.escape(model.getName()) : model.getName();
+        this.nameText = getClassicText(displayedName);
         this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getExpectedEndDate()));
         if (this.model.getActualEndDate() != null) {
             this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
