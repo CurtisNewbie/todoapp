@@ -2,7 +2,7 @@ package com.curtisnewbie.config;
 
 import com.curtisnewbie.controller.SuggestionType;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -49,6 +49,12 @@ public class Config implements Serializable {
     private boolean searchOnTypingEnabled;
 
     /**
+     * Copy the name of To-do only
+     */
+    @JsonProperty(required = false, defaultValue = "true")
+    private boolean copyNameOnly;
+
+    /**
      * Config map for suggestion
      */
     @JsonProperty(required = false)
@@ -65,6 +71,7 @@ public class Config implements Serializable {
         this.pattern = environment.getPattern();
         this.quickTodoBarDisplayed = environment.isQuickTodoBarDisplayed();
         this.suggestionsToggle = new HashMap<>(environment._getSuggestionsToggle());
+        this.copyNameOnly = environment.isCopyNameOnly();
     }
 
     public static Config getDefaultConfig() {
@@ -73,6 +80,7 @@ public class Config implements Serializable {
         c.setStrikethroughEffectEnabled(false);
         c.setQuickTodoBarDisplayed(false);
         c.setLanguage(Language.DEFAULT.key);
+        c.setCopyNameOnly(true);
         return c;
     }
 }

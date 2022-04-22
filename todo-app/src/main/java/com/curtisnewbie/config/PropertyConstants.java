@@ -44,9 +44,11 @@ public final class PropertyConstants {
     public static final String TEXT_SUGGESTION_NEW_TODO_HANDLER = "text.suggestion.new-todo.handler";
     public static final String TEXT_SUGGESTION_DELETE_TODO_HANDLER = "text.suggestion.todo.delete.handler";
     public static final String TEXT_ABOUT_TIPS = "text.about.tips";
-
+    public static final String TEXT_COPY_MODE_NAME_ONLY = "text.copy-mode.name-only";
+    public static final String TEXT_COPY_MODE_EXPORT_FORMAT = "text.copy-mode.export-format";
 
     // ------------------ titles ----------------
+    public static final String TITLE_CHANGE_COPY_MODE_KEY = "title.copy-mode.choice";
     public static final String TITLE_CHOOSE_SEARCH_ON_TYPE_KEY = "title.search-on-type.choice";
     public static final String TITLE_CHOOSE_LANGUAGE_KEY = "title.lang.choice";
     public static final String TITLE_EXPORT_TODO_KEY = "title.export.todo";

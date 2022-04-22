@@ -212,6 +212,7 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_COPY_KEY), this::_onCopyHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_KEY), this::_onExportHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_LANGUAGE_KEY), this::_onLanguageHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_CHANGE_COPY_MODE_KEY), this::_onChangeCopyModeHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::_onChangeExportPatternHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onToggleQuickTodoHandler)
@@ -394,8 +395,16 @@ public class Controller {
         runLater(() -> {
             int selected = todoJobListView.getSelectedIndex();
             if (selected >= 0) {
-                TodoJobView todoJobView = todoJobListView.get(selected);
-                copyToClipBoard(todoJobView.getName());
+                final TodoJobView todoJobView = todoJobListView.get(selected);
+                final Environment env = getEnvironment();
+                final String copied;
+                if (env.isCopyNameOnly()) {
+                    copied = todoJobView.getName();
+                } else {
+                    final TodoJob todoJobCopy = todoJobView.createTodoJobCopy();
+                    copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), env);
+                }
+                copyToClipBoard(copied);
             }
         });
     }
@@ -503,6 +512,35 @@ public class Controller {
             properties.changeToLocale(newEnv.getLanguage().locale);
             loadCurrPageAsync();
             refreshView();
+        });
+    }
+
+    @RunInFxThread
+    private void _onChangeCopyModeHandler(ActionEvent e) {
+        final String nameOnly = properties.getLocalizedProperty(TEXT_COPY_MODE_NAME_ONLY);
+        final String exportFormat = properties.getLocalizedProperty(TEXT_COPY_MODE_EXPORT_FORMAT);
+
+        runLater(() -> {
+            final Environment env = getEnvironment();
+            final String prev = env.isCopyNameOnly() ? nameOnly : exportFormat;
+
+            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_CHANGE_COPY_MODE_KEY));
+            choiceDialog.setSelectedItem(prev);
+            choiceDialog.getItems().add(nameOnly);
+            choiceDialog.getItems().add(exportFormat);
+            DialogUtil.disableHeader(choiceDialog);
+
+            final Optional<String> opt = choiceDialog.showAndWait();
+            if (!opt.isPresent())
+                return;
+
+            final String selected = opt.get();
+            if (prev.equals(selected))
+                return;
+
+            setEnvironment(env.setCopyNameOnly(selected.equals(nameOnly)));
+            writeConfigAsync();
         });
     }
 

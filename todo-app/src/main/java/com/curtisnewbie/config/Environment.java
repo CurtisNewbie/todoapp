@@ -22,7 +22,7 @@ public class Environment {
     private final Language language;
 
     /**
-     * Should finished task have strikethrough effect
+     * Should the finished task have strikethrough effect
      */
     @Getter
     private final boolean strikethroughEffectEnabled;
@@ -50,40 +50,58 @@ public class Environment {
      */
     private final Map<SuggestionType, Boolean> _suggestionsToggle;
 
+    /**
+     * Copy the name of To-do only
+     */
+    @Getter
+    private final boolean copyNameOnly;
+
     public Environment(Config config) {
         this(Language.parseLang(config.getLanguage()),
                 config.isStrikethroughEffectEnabled(),
                 config.isSearchOnTypingEnabled(),
                 config.isQuickTodoBarDisplayed(),
                 config.getPattern(),
-                config.getSuggestionsToggle()
+                config.getSuggestionsToggle(),
+                config.isCopyNameOnly()
         );
     }
 
     public Environment setLanguage(Language language) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, _suggestionsToggle);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
     }
 
     public Environment setStrikethroughEffectEnabled(boolean strikethroughEffectEnabled) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, _suggestionsToggle);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
     }
 
     public Environment setSearchOnTypingEnabled(boolean searchOnTypingEnabled) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, _suggestionsToggle);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
     }
 
     public Environment setPattern(String pattern) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, _suggestionsToggle);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
     }
 
     public Environment setQuickTodoBarDisplayed(boolean quickTodoBarDisplayed) {
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, _suggestionsToggle);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
+    }
+
+    public Environment setCopyNameOnly(boolean copyNameOnly) {
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                _suggestionsToggle, copyNameOnly);
     }
 
     public Environment toggleSuggestionOff(SuggestionType key) {
         final Map<SuggestionType, Boolean> nst = new HashMap<>(_suggestionsToggle);
         nst.put(key, false);
-        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern, nst);
+        return new Environment(language, strikethroughEffectEnabled, searchOnTypingEnabled, quickTodoBarDisplayed, pattern,
+                nst, copyNameOnly);
     }
 
     public boolean isSuggestionToggleOn(SuggestionType key) {
