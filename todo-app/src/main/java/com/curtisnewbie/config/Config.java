@@ -63,8 +63,14 @@ public class Config implements Serializable {
     /**
      * Hide special tag
      */
-    @Getter
+    @JsonProperty(required = false, defaultValue = "true")
     private boolean specialTagHidden;
+
+    /**
+     * Enable functionalities for the special tags
+     */
+    @JsonProperty(required = false, defaultValue = "true")
+    private boolean specialTagEnabled;
 
     public Config() {
 
@@ -79,6 +85,7 @@ public class Config implements Serializable {
         this.suggestionsToggle = new HashMap<>(environment._getSuggestionsToggle());
         this.copyNameOnly = environment.isCopyNameOnly();
         this.specialTagHidden = environment.isSpecialTagHidden();
+        this.specialTagEnabled = environment.isSpecialTagEnabled();
     }
 
     public static Config getDefaultConfig() {
@@ -89,6 +96,7 @@ public class Config implements Serializable {
         c.setLanguage(Language.DEFAULT.key);
         c.setCopyNameOnly(true);
         c.setSpecialTagHidden(true);
+        c.setSpecialTagEnabled(true);
         return c;
     }
 }

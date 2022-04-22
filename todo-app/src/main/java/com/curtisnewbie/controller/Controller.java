@@ -209,6 +209,7 @@ public class Controller {
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHANGE_COPY_MODE_KEY), this::_onChangeCopyModeHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_CHOOSE_SEARCH_ON_TYPE_KEY), this::_searchOnTypingConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_EXPORT_PATTERN_KEY), this::_onChangeExportPatternHandler)
+                .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_SPECIAL_TAG_ENABLE_KEY), this::_onToggleSecialTagEnabledConfigHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_QUICK_TODO_KEY), this::_onToggleQuickTodoHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_SWITCH_SPECIAL_TAG_HIDDEN_KEY), this::_onToggleSpecialTagHiddenHandler)
                 .addMenuItem(properties.getLocalizedProperty(TITLE_ABOUT_KEY), this::_onAboutHandler);
@@ -404,7 +405,7 @@ public class Controller {
                 final Environment env = getEnvironment();
                 final String copied;
                 if (env.isCopyNameOnly()) {
-                    copied = Tag.EXCL.strip(todoJobView.getName());
+                    copied = env.isSpecialTagEnabled() ? Tag.EXCL.strip(todoJobView.getName()) : todoJobView.getName();
                 } else {
                     final TodoJob todoJobCopy = todoJobView.createTodoJobCopy();
                     copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), PrintContext.builder()
@@ -602,6 +603,33 @@ public class Controller {
 
             setEnvironment(prevEnv.setSearchOnTypingEnabled(currIsEnabled));
             searchBar.setSearchOnTypeEnabled(currIsEnabled);
+            writeConfigAsync();
+        });
+    }
+
+    @RunInFxThread
+    private void _onToggleSecialTagEnabledConfigHandler(ActionEvent e) {
+        final String enable = properties.getLocalizedProperty(TEXT_ENABLE);
+        final String disable = properties.getLocalizedProperty(TEXT_DISABLE);
+
+        runLater(() -> {
+            final Environment prevEnv = getEnvironment();
+            final boolean isPrevEnabled = prevEnv.isSpecialTagEnabled();
+            final ChoiceDialog<String> choiceDialog = new ChoiceDialog<>();
+            choiceDialog.setTitle(properties.getLocalizedProperty(TITLE_SWITCH_SPECIAL_TAG_ENABLE_KEY));
+            choiceDialog.setSelectedItem(isPrevEnabled ? enable : disable);
+            choiceDialog.getItems().add(enable);
+            choiceDialog.getItems().add(disable);
+            DialogUtil.disableHeader(choiceDialog);
+            final Optional<String> opt = choiceDialog.showAndWait();
+            if (!opt.isPresent())
+                return;
+
+            final boolean isCurrEnabled = opt.get().equals(enable);
+            if (isCurrEnabled == isPrevEnabled)
+                return;
+
+            setEnvironment(prevEnv.setSpecialTagEnabled(isCurrEnabled));
             writeConfigAsync();
         });
     }

@@ -42,7 +42,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         final String status = todoJob.isDone() ? propertiesLoader.getLocalizedProperty(TEXT_DONE_KEY) : propertiesLoader.getLocalizedProperty(TEXT_IN_PROGRESS_KEY);
         final String expectedEndDate = toDDmmUUUUSlash(todoJob.getExpectedEndDate());
         final String actualEndDate = todoJob.getActualEndDate() != null ? toDDmmUUUUSlash(todoJob.getActualEndDate()) : "__/__/____";
-        final String content = formatContent(todoJob.getName());
+        final String content = formatContent(todoJob.getName(), environment.isSpecialTagEnabled());
 
         // no pattern specified, use the default one
         if (pattern == null || StrUtil.isEmpty(pattern)) {
@@ -65,8 +65,9 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         return String.format("%s. %s", context.getAndIncr(), content);
     }
 
-    private static String formatContent(String content) {
-        content = Tag.EXCL.strip(content);
+    private static String formatContent(String content, boolean isTagStripped) {
+        if (isTagStripped)
+            content = Tag.EXCL.strip(content);
         return content.replaceAll("\\n", "\n  ") + "\n";
     }
 

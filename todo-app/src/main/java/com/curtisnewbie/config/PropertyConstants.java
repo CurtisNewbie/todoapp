@@ -49,6 +49,7 @@ public final class PropertyConstants {
     public static final String TEXT_EXPORT_NUMBERED = "text.export.is-numbered";
 
     // ------------------ titles ----------------
+    public static final String TITLE_SWITCH_SPECIAL_TAG_ENABLE_KEY = "title.tag.enable.switch";
     public static final String TITLE_SWITCH_SPECIAL_TAG_HIDDEN_KEY = "title.tag.hidden.switch";
     public static final String TITLE_CHANGE_COPY_MODE_KEY = "title.copy-mode.choice";
     public static final String TITLE_CHOOSE_SEARCH_ON_TYPE_KEY = "title.search-on-type.choice";
