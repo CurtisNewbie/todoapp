@@ -1,10 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.App;
-import com.curtisnewbie.config.Config;
-import com.curtisnewbie.config.Environment;
-import com.curtisnewbie.config.Language;
-import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.MapperFactory;
 import com.curtisnewbie.dao.MapperFactoryBase;
 import com.curtisnewbie.dao.TodoJob;
@@ -399,7 +396,7 @@ public class Controller {
                 final Environment env = getEnvironment();
                 final String copied;
                 if (env.isCopyNameOnly()) {
-                    copied = todoJobView.getName();
+                    copied = Tag.EXCL.strip(todoJobView.getName());
                 } else {
                     final TodoJob todoJobCopy = todoJobView.createTodoJobCopy();
                     copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), env);

@@ -1,8 +1,6 @@
 package com.curtisnewbie.io;
 
-import com.curtisnewbie.config.Environment;
-import com.curtisnewbie.config.Language;
-import com.curtisnewbie.config.PropertiesLoader;
+import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.StrInterpolationUtil;
 import com.curtisnewbie.util.StrUtil;
@@ -60,6 +58,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     }
 
     private static String formatContent(String content) {
+        content = Tag.EXCL.strip(content);
         return content.replaceAll("\\n", "\n  ") + "\n";
     }
 

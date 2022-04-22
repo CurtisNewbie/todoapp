@@ -23,6 +23,7 @@ public final class TextFactory {
 
     public static TextArea selectableText(String txt) {
         TextArea tf = new TextArea(txt);
+        tf.setPrefRowCount(20);
         tf.setEditable(false);
         tf.setWrapText(true);
         tf.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-background-radius: 0; -fx-padding: 0;");

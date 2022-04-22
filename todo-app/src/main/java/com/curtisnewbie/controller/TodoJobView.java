@@ -1,8 +1,6 @@
 package com.curtisnewbie.controller;
 
-import com.curtisnewbie.config.Environment;
-import com.curtisnewbie.config.PropertiesLoader;
-import com.curtisnewbie.config.PropertyConstants;
+import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.CheckBoxFactory;
 import com.curtisnewbie.util.RequiresFxThread;
@@ -113,7 +111,7 @@ public class TodoJobView extends HBox {
         this.environment = environment;
         this.model = new TodoJob(todoJob);
         this.doneLabel = new Label();
-        this.nameText = TextFactory.getClassicText(model.getName());
+        this.nameText = TextFactory.getClassicText(Tag.EXCL.escape(model.getName()));
         this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getExpectedEndDate()));
         if (this.model.getActualEndDate() != null) {
             this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
