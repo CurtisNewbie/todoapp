@@ -15,6 +15,7 @@ public interface ObjectPrinter<T> {
      *
      * @param t       object
      * @param pattern pattern
+     * @param context context
      */
-    String printObject(T t, String pattern, Environment environment);
+    String printObject(T t, String pattern, PrintContext context);
 }

@@ -6,10 +6,7 @@ import com.curtisnewbie.dao.MapperFactory;
 import com.curtisnewbie.dao.MapperFactoryBase;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.dao.TodoJobMapper;
-import com.curtisnewbie.io.IOHandler;
-import com.curtisnewbie.io.IOHandlerFactory;
-import com.curtisnewbie.io.ObjectPrinter;
-import com.curtisnewbie.io.TodoJobObjectPrinter;
+import com.curtisnewbie.io.*;
 import com.curtisnewbie.util.*;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
@@ -410,7 +407,9 @@ public class Controller {
                     copied = Tag.EXCL.strip(todoJobView.getName());
                 } else {
                     final TodoJob todoJobCopy = todoJobView.createTodoJobCopy();
-                    copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), env);
+                    copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), PrintContext.builder()
+                            .environment(env)
+                            .build());
                 }
                 copyToClipBoard(copied);
             }
@@ -456,10 +455,19 @@ public class Controller {
                         final Environment environment = getEnvironment();
                         final String exportPattern = environment.getPattern(); // nullable
                         final DateRange dateRange = ep.getDateRange();
+                        final PrintContext printContext = PrintContext.builder()
+                                .environment(environment)
+                                .isNumbered(ep.isNumbered())
+                                .build();
+
                         _todoJobMapper()
                                 .findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
                                 .thenAcceptAsync((list) -> {
-                                    ioHandler.writeObjectsAsync(list, todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern, environment), nFile);
+                                    ioHandler.writeObjectsAsync(
+                                            list,
+                                            todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern, printContext),
+                                            nFile
+                                    );
                                 });
                     });
                 })

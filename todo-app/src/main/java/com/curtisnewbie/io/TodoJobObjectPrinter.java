@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.DateUtil.toDDmmUUUUSlash;
+import static com.curtisnewbie.util.StrInterpolationUtil.*;
 
 /**
  * ObjectPrinter for {@link TodoJob}
@@ -34,10 +35,10 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     private static final int ENG_WIDTH = 13;
     private static final int CN_WIDTH = 5;
 
-
     @Override
-    public String printObject(TodoJob todoJob, String pattern, Environment environment) {
-        PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
+    public String printObject(TodoJob todoJob, String pattern, PrintContext context) {
+        final Environment environment = context.getEnvironment();
+        final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
         final String status = todoJob.isDone() ? propertiesLoader.getLocalizedProperty(TEXT_DONE_KEY) : propertiesLoader.getLocalizedProperty(TEXT_IN_PROGRESS_KEY);
         final String expectedEndDate = toDDmmUUUUSlash(todoJob.getExpectedEndDate());
         final String actualEndDate = todoJob.getActualEndDate() != null ? toDDmmUUUUSlash(todoJob.getActualEndDate()) : "__/__/____";
@@ -45,7 +46,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
 
         // no pattern specified, use the default one
         if (pattern == null || StrUtil.isEmpty(pattern)) {
-            return defaultPattern(status, actualEndDate, expectedEndDate, content, environment);
+            return prefixNumberIfNeeded(context, defaultPattern(status, actualEndDate, expectedEndDate, content, environment));
         }
 
         // do string interpolation based on the given pattern
@@ -54,7 +55,14 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         params.put(ACTUAL_END_DATE_KEY, actualEndDate);
         params.put(STATUS_KEY, status);
         params.put(CONTENT_KEY, content);
-        return StrInterpolationUtil.interpolate(pattern, params) + "\n";
+        return prefixNumberIfNeeded(context, interpolate(pattern, params) + "\n");
+    }
+
+    private static String prefixNumberIfNeeded(PrintContext context, String content) {
+        if (!context.isNumbered())
+            return content;
+
+        return String.format("%s. %s", context.getAndIncr(), content);
     }
 
     private static String formatContent(String content) {

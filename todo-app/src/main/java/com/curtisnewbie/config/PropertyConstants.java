@@ -46,6 +46,7 @@ public final class PropertyConstants {
     public static final String TEXT_ABOUT_TIPS = "text.about.tips";
     public static final String TEXT_COPY_MODE_NAME_ONLY = "text.copy-mode.name-only";
     public static final String TEXT_COPY_MODE_EXPORT_FORMAT = "text.copy-mode.export-format";
+    public static final String TEXT_EXPORT_NUMBERED = "text.export.is-numbered";
 
     // ------------------ titles ----------------
     public static final String TITLE_SWITCH_SPECIAL_TAG_HIDDEN_KEY = "title.tag.hidden.switch";

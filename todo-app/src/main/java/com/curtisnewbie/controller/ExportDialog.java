@@ -2,9 +2,7 @@ package com.curtisnewbie.controller;
 
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
-import com.curtisnewbie.util.DateUtil;
-import com.curtisnewbie.util.DialogUtil;
-import com.curtisnewbie.util.RequiresFxThread;
+import com.curtisnewbie.util.*;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,7 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import static com.curtisnewbie.util.LabelFactory.rightPaddedLabel;
+import static com.curtisnewbie.util.LabelFactory.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
@@ -32,6 +30,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
     private final GridPane grid;
     private final DatePicker startDatePicker;
     private final DatePicker endDatePicker;
+    private final CheckBox isNumberedCheckBox;
     private final TextField searchedTextField;
     private boolean earliestDateIsShown = false;
     private boolean latestDateIsShown = false;
@@ -47,6 +46,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         this.endDatePicker = new DatePicker();
         this.endDatePicker.setConverter(new LocalDateStringConverter());
         this.searchedTextField = new TextField(searchText);
+        this.isNumberedCheckBox = CheckBoxFactory.getClassicCheckBox();
 
         this.startDatePicker.setValue(start);
         this.endDatePicker.setValue(end);
@@ -60,8 +60,10 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_SEARCH)), 0, 0);
         this.grid.add(padding(searchedTextField, new Insets(1, 2, 5, 0)), 1, 0);
-        this.grid.add(padding(startDatePicker, new Insets(1, 2, 5, 0)), 0, 1);
-        this.grid.add(padding(endDatePicker, new Insets(1, 2, 5, 0)), 1, 1);
+        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_NUMBERED)), 0, 1);
+        this.grid.add(padding(isNumberedCheckBox, new Insets(1, 2, 5, 0)), 1, 1);
+        this.grid.add(padding(startDatePicker, new Insets(1, 2, 5, 0)), 0, 2);
+        this.grid.add(padding(endDatePicker, new Insets(1, 2, 5, 0)), 1, 2);
 
         final LocalDate today = LocalDate.now();
         final DayOfWeek dayOfWeek = today.getDayOfWeek();
@@ -69,7 +71,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         final String currentWeekText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_CURRENT_WEEK_KEY);
         final Button currentWeek = new Button(currentWeekText + ": " + DateUtil.toDDmmUUUUSlash(startOfWeek) + " - " + DateUtil.toDDmmUUUUSlash(today));
-        grid.add(padding(currentWeek, new Insets(1, 2, 5, 2)), 0, 2);
+        grid.add(padding(currentWeek, new Insets(1, 2, 5, 2)), 0, 3);
         currentWeek.setOnAction(e -> {
             startDatePicker.setValue(startOfWeek);
             endDatePicker.setValue(today);
@@ -96,6 +98,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
                 return ExportParam.builder()
                         .dateRange(dr)
                         .searchText(searchedTextField.getText())
+                        .isNumbered(isNumberedCheckBox.isSelected())
                         .build();
             } else {
                 return null;
@@ -119,7 +122,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         String earliestStr = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
         Objects.requireNonNull(earliestStr);
         Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, 3);
+        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, 4);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(d);
         });
@@ -140,7 +143,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         String latestStr = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
         Objects.requireNonNull(latestStr);
         Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, 3);
+        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, 4);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(d);
         });
@@ -151,5 +154,6 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
     public static class ExportParam {
         private final DateRange dateRange;
         private final String searchText;
+        private final boolean isNumbered;
     }
 }
