@@ -4,6 +4,8 @@ import javafx.stage.*;
 
 import java.util.*;
 
+import static java.util.Collections.*;
+
 /**
  * File Extension Util
  *
@@ -11,19 +13,25 @@ import java.util.*;
  */
 public final class FileExtUtil {
 
+    /**
+     * These objects are immutable, thus thread-safe
+     */
+    private static final FileChooser.ExtensionFilter textExtFilter = new FileChooser.ExtensionFilter("text", singletonList("*.txt"));
+    private static final FileChooser.ExtensionFilter markdownExtFilter = new FileChooser.ExtensionFilter("markdown", singletonList("*.md"));
+
     private FileExtUtil() {
 
     }
 
     public static FileChooser.ExtensionFilter txtExtFilter() {
-        return new FileChooser.ExtensionFilter("text", Arrays.asList("*.txt"));
+        return textExtFilter;
     }
 
     public static FileChooser.ExtensionFilter markdownExtFilter() {
-        return new FileChooser.ExtensionFilter("markdown", Arrays.asList("*.md"));
+        return markdownExtFilter;
     }
 
     public static FileChooser.ExtensionFilter jsonExtFilter() {
-        return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
+        return new FileChooser.ExtensionFilter("json", singletonList("*.json"));
     }
 }
