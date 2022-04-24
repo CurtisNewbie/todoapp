@@ -39,6 +39,7 @@ import static com.curtisnewbie.util.FileExtUtil.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
 import static com.curtisnewbie.util.ToastUtil.toast;
+import static java.lang.String.*;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static javafx.application.Platform.runLater;
 
@@ -261,12 +262,15 @@ public class Controller {
      * @param content text
      */
     @RunInFxThread
-    private void copyToClipBoard(String content) {
+    private void copyToClipBoard(String content, Runnable doOnFinished) {
         runLater(() -> {
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent cc = new ClipboardContent();
             cc.putString(content);
             clipboard.setContent(cc);
+
+            if (doOnFinished != null)
+                doOnFinished.run();
         });
     }
 
@@ -404,7 +408,7 @@ public class Controller {
                             .environment(env)
                             .build());
                 }
-                copyToClipBoard(copied);
+                copyToClipBoard(copied, null);
             }
         });
     }
@@ -462,7 +466,8 @@ public class Controller {
                                 .findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
                                 .thenAcceptAsync((list) -> {
                                     final StringBuilder sb = new StringBuilder();
-                                    for (int i = 0; i < list.size(); i++) {
+                                    final int len = list.size();
+                                    for (int i = 0; i < len; i++) {
                                         if (i > 0) sb.append("\n");
                                         sb.append(todoJobExportObjectPrinter.printObject(list.get(i), exportPattern, printContext));
                                     }
@@ -470,7 +475,9 @@ public class Controller {
                                     if (isToFile)
                                         ioHandler.writeObjectsAsync(sb.toString(), nFile);
                                     else
-                                        copyToClipBoard(content);
+                                        copyToClipBoard(content, () -> {
+                                            toast(format("Copied %s Todos to clipboard", len), 1_500);
+                                        });
                                 });
                     });
                 })
@@ -487,8 +494,8 @@ public class Controller {
             GridPane gPane = new GridPane();
             aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
 
-            String desc = String.format("%s: %s", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
-            desc += String.format("%s: %s", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
+            String desc = format("%s: %s", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
+            desc += format("%s: %s", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
             desc += properties.getCommonProperty(APP_GITHUB) + "\n";
             desc += properties.getCommonProperty(APP_AUTHOR) + "\n\n";
             desc += properties.getLocalizedProperty(TEXT_ABOUT_TIPS);
