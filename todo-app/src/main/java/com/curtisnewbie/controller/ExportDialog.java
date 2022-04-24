@@ -27,19 +27,22 @@ import static com.curtisnewbie.util.MarginFactory.padding;
 @RequiresFxThread
 public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
+    private final String copyMode;
+    private final String fileMode;
+
     private final GridPane grid;
     private final DatePicker startDatePicker;
     private final DatePicker endDatePicker;
     private final CheckBox isNumberedCheckBox;
+    private final ChoiceBox<String> exportModeChoiceBox;
     private final TextField searchedTextField;
-    private boolean earliestDateIsShown = false;
-    private boolean latestDateIsShown = false;
+    private int rowCount = 0;
 
     /**
      * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
      */
-    public ExportDialog(LocalDate start, LocalDate end, String searchText) {
-        PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
+    public ExportDialog(LocalDate start, LocalDate end, String searchText, LocalDate earliest, LocalDate latest) {
+        final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();
         this.startDatePicker.setConverter(new LocalDateStringConverter());
@@ -47,6 +50,12 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         this.endDatePicker.setConverter(new LocalDateStringConverter());
         this.searchedTextField = new TextField(searchText);
         this.isNumberedCheckBox = CheckBoxFactory.getClassicCheckBox();
+
+        copyMode = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_MODE_COPY);
+        fileMode = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_MODE_FILE);
+        this.exportModeChoiceBox = new ChoiceBox<>();
+        this.exportModeChoiceBox.getItems().addAll(fileMode, copyMode);
+        this.exportModeChoiceBox.getSelectionModel().selectFirst();
 
         this.startDatePicker.setValue(start);
         this.endDatePicker.setValue(end);
@@ -58,12 +67,37 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
-        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_SEARCH)), 0, 0);
-        this.grid.add(padding(searchedTextField, new Insets(1, 2, 5, 0)), 1, 0);
-        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_NUMBERED)), 0, 1);
-        this.grid.add(padding(isNumberedCheckBox, new Insets(1, 2, 5, 0)), 1, 1);
-        this.grid.add(padding(startDatePicker, new Insets(1, 2, 5, 0)), 0, 2);
-        this.grid.add(padding(endDatePicker, new Insets(1, 2, 5, 0)), 1, 2);
+
+        final Insets pad = new Insets(1, 2, 5, 0);
+        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_SEARCH)), 0, rowCount);
+        this.grid.add(padding(searchedTextField, pad), 1, rowCount++);
+
+        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_NUMBERED)), 0, rowCount);
+        this.grid.add(padding(isNumberedCheckBox, pad), 1, rowCount++);
+
+        this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPORT_MODE)), 0, rowCount);
+        this.grid.add(padding(exportModeChoiceBox, pad), 1, rowCount++);
+
+        this.grid.add(padding(startDatePicker, pad), 0, rowCount);
+        this.grid.add(padding(endDatePicker, pad), 1, rowCount++);
+
+        final LocalDate now = LocalDate.now();
+        final LocalDate earliestOption = earliest != null ? earliest : now;
+        final String earliestStr = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
+        Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(earliestOption));
+        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, rowCount);
+        earliestBtn.setOnAction(e -> {
+            startDatePicker.setValue(earliestOption);
+        });
+
+        final LocalDate latestOption = latest != null ? latest : now;
+        final String latestStr = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
+        Objects.requireNonNull(latestStr);
+        Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(latestOption));
+        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, rowCount++);
+        latestBtn.setOnAction(e -> {
+            endDatePicker.setValue(latestOption);
+        });
 
         final LocalDate today = LocalDate.now();
         final DayOfWeek dayOfWeek = today.getDayOfWeek();
@@ -71,7 +105,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         final String currentWeekText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_CURRENT_WEEK_KEY);
         final Button currentWeek = new Button(currentWeekText + ": " + DateUtil.toDDmmUUUUSlash(startOfWeek) + " - " + DateUtil.toDDmmUUUUSlash(today));
-        grid.add(padding(currentWeek, new Insets(1, 2, 5, 2)), 0, 3);
+        grid.add(padding(currentWeek, new Insets(1, 2, 5, 2)), 0, rowCount);
         currentWeek.setOnAction(e -> {
             startDatePicker.setValue(startOfWeek);
             endDatePicker.setValue(today);
@@ -95,10 +129,13 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
                 else
                     dr = new DateRange(sDate, eDate);
 
+                final String selectedItem = exportModeChoiceBox.getSelectionModel().getSelectedItem();
+                final boolean isExportedToFile = selectedItem == null || selectedItem.equals(fileMode);
                 return ExportParam.builder()
                         .dateRange(dr)
                         .searchText(searchedTextField.getText())
                         .isNumbered(isNumberedCheckBox.isSelected())
+                        .exportToFile(isExportedToFile)
                         .build();
             } else {
                 return null;
@@ -107,53 +144,12 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         DialogUtil.disableHeader(this);
     }
 
-    /**
-     * Show a button which displays the earliest startDate that the user can select, clicking on it makes the {@code
-     * startDatePicker} set to this given {@code earliestDate}
-     * <p>
-     * Note that this method only works for once
-     */
-    public void showEarliestDate(LocalDate earliestDate) {
-        LocalDate d = earliestDate == null ? LocalDate.now() : earliestDate;
-        if (earliestDateIsShown)
-            return;
-        earliestDateIsShown = true;
-
-        String earliestStr = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
-        Objects.requireNonNull(earliestStr);
-        Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, 4);
-        earliestBtn.setOnAction(e -> {
-            startDatePicker.setValue(d);
-        });
-    }
-
-    /**
-     * Show a button which displays the latest startDate that the user can select, clicking on it makes the {@code
-     * endDatePicker} set to this given {@code latest}
-     * <p>
-     * Note that this method only works for once
-     */
-    public void showLatestDate(LocalDate latestDate) {
-        LocalDate d = latestDate == null ? LocalDate.now() : latestDate;
-        if (latestDateIsShown)
-            return;
-        latestDateIsShown = true;
-
-        String latestStr = PropertiesLoader.getInstance().getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
-        Objects.requireNonNull(latestStr);
-        Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(d));
-        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, 4);
-        latestBtn.setOnAction(e -> {
-            endDatePicker.setValue(d);
-        });
-    }
-
     @Data
     @Builder
     public static class ExportParam {
         private final DateRange dateRange;
         private final String searchText;
         private final boolean isNumbered;
+        private final boolean exportToFile;
     }
 }

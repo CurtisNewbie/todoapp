@@ -47,6 +47,9 @@ public final class PropertyConstants {
     public static final String TEXT_COPY_MODE_NAME_ONLY = "text.copy-mode.name-only";
     public static final String TEXT_COPY_MODE_EXPORT_FORMAT = "text.copy-mode.export-format";
     public static final String TEXT_EXPORT_NUMBERED = "text.export.is-numbered";
+    public static final String TEXT_EXPORT_MODE = "text.export.mode";
+    public static final String TEXT_EXPORT_MODE_FILE = "text.export.mode.file";
+    public static final String TEXT_EXPORT_MODE_COPY = "text.export.mode.copy";
 
     // ------------------ titles ----------------
     public static final String TITLE_SWITCH_SPECIAL_TAG_ENABLE_KEY = "title.tag.enable.switch";

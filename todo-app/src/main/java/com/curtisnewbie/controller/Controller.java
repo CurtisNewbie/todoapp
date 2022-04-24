@@ -427,23 +427,28 @@ public class Controller {
 
                         // 1. pick date range and searched text
                         final LocalDate now = LocalDate.now();
-                        final ExportDialog dialog = new ExportDialog(now, now, searchBar.getSearchTextField().getText());
-                        dialog.showEarliestDate((LocalDate) pair.getLeft());
-                        dialog.showLatestDate((LocalDate) pair.getRight());
+                        final ExportDialog dialog = new ExportDialog(now, now, searchBar.getSearchTextField().getText(),
+                                (LocalDate) pair.getLeft(), (LocalDate) pair.getRight());
                         final Optional<ExportDialog.ExportParam> opt = dialog.showAndWait();
                         if (!opt.isPresent())
                             return;
 
                         final ExportDialog.ExportParam ep = opt.get();
+                        final boolean isToFile = ep.isExportToFile();
 
-                        // 2. choose where to export
-                        FileChooser fileChooser = new FileChooser();
-                        fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
-                        fileChooser.setInitialFileName("TodoApp_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
-                        fileChooser.getExtensionFilters().addAll(txtExtFilter(), markdownExtFilter());
-                        final File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
-                        if (nFile == null)
-                            return;
+                        final File nFile;
+                        if (isToFile) {
+                            // 2. choose where to export
+                            FileChooser fileChooser = new FileChooser();
+                            fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
+                            fileChooser.setInitialFileName("TodoApp_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
+                            fileChooser.getExtensionFilters().addAll(txtExtFilter(), markdownExtFilter());
+                            nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
+                            if (nFile == null)
+                                return;
+                        } else {
+                            nFile = null;
+                        }
 
                         final Environment environment = getEnvironment();
                         final String exportPattern = environment.getPattern(); // nullable
@@ -461,8 +466,11 @@ public class Controller {
                                         if (i > 0) sb.append("\n");
                                         sb.append(todoJobExportObjectPrinter.printObject(list.get(i), exportPattern, printContext));
                                     }
-
-                                    ioHandler.writeObjectsAsync(sb.toString(), nFile);
+                                    final String content = sb.toString();
+                                    if (isToFile)
+                                        ioHandler.writeObjectsAsync(sb.toString(), nFile);
+                                    else
+                                        copyToClipBoard(content);
                                 });
                     });
                 })
