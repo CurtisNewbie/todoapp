@@ -464,11 +464,13 @@ public class Controller {
                         _todoJobMapper()
                                 .findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
                                 .thenAcceptAsync((list) -> {
-                                    ioHandler.writeObjectsAsync(
-                                            list,
-                                            todo -> todoJobExportObjectPrinter.printObject(todo, exportPattern, printContext),
-                                            nFile
-                                    );
+                                    final StringBuilder sb = new StringBuilder();
+                                    for (int i = 0; i < list.size(); i++) {
+                                        if (i > 0) sb.append("\n");
+                                        sb.append(todoJobExportObjectPrinter.printObject(list.get(i), exportPattern, printContext));
+                                    }
+
+                                    ioHandler.writeObjectsAsync(sb.toString(), nFile);
                                 });
                     });
                 })

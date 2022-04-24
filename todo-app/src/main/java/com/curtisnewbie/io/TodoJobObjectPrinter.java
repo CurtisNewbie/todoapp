@@ -55,7 +55,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         params.put(ACTUAL_END_DATE_KEY, actualEndDate);
         params.put(STATUS_KEY, status);
         params.put(CONTENT_KEY, content);
-        return prefixNumberIfNeeded(context, interpolate(pattern, params) + "\n");
+        return prefixNumberIfNeeded(context, interpolate(pattern, params));
     }
 
     private static String prefixNumberIfNeeded(PrintContext context, String content) {
@@ -68,7 +68,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
     private static String formatContent(String content, boolean isTagStripped) {
         if (isTagStripped)
             content = Tag.EXCL.strip(content);
-        return content.replaceAll("\\n", "\n  ") + "\n";
+        return content.replaceAll("\\n", "\n  ");
     }
 
     /** default formatting */
@@ -77,7 +77,7 @@ public class TodoJobObjectPrinter implements ObjectPrinter<TodoJob> {
         final String expectedText = propertiesLoader.getLocalizedProperty(TEXT_EXPECTED_END_DATE_KEY);
         final String actualText = propertiesLoader.getLocalizedProperty(TEXT_ACTUAL_END_DATE_KEY);
         int width = environment.getLanguage().equals(Language.ENG) ? ENG_WIDTH : CN_WIDTH;
-        return String.format("%-" + width + "s %s: %s - %s: %s \n\t%s\n",
+        return String.format("%-" + width + "s %s: %s - %s: %s \n\t%s",
                 "[" + status + "]",
                 expectedText,
                 expectedEndDate,

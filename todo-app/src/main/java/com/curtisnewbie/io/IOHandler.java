@@ -44,13 +44,11 @@ public interface IOHandler {
     Config readConfig();
 
     /**
-     * Writer list of objects to file in an asynchronous way
+     * Writer content to file
      *
-     * @param objs      objects
-     * @param converter converter that convert the given object T to String
-     * @param file      file that the jobs exported to
+     * @param file file
      */
-    <T> void writeObjectsAsync(List<T> objs, Function<T, String> converter, File file);
+    void writeObjectsAsync(String content, File file);
 
     /**
      * Get Conf file path

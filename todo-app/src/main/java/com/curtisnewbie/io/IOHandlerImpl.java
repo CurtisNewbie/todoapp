@@ -101,7 +101,7 @@ public class IOHandlerImpl implements IOHandler {
     }
 
     @Override
-    public <T> void writeObjectsAsync(List<T> objs, Function<T, String> converter, File file) {
+    public void writeObjectsAsync(String content, File file) {
         if (file == null)
             return;
         runAsync(() -> {
@@ -110,9 +110,7 @@ public class IOHandlerImpl implements IOHandler {
                     file.createNewFile();
 
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-                    for (T t : objs) {
-                        bw.write(converter.apply(t));
-                    }
+                    bw.write(content);
                 }
             } catch (IOException e) {
                 log.error("Unable to write objects", e);
