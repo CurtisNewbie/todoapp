@@ -26,7 +26,6 @@ import reactor.core.scheduler.Schedulers;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
+import static com.curtisnewbie.util.FileExtUtil.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
 import static com.curtisnewbie.util.ToastUtil.toast;
@@ -270,14 +270,6 @@ public class Controller {
         });
     }
 
-    private static FileChooser.ExtensionFilter getTxtExtFilter() {
-        return new FileChooser.ExtensionFilter("txt", Arrays.asList("*.txt"));
-    }
-
-    private static FileChooser.ExtensionFilter getJsonExtFilter() {
-        return new FileChooser.ExtensionFilter("json", Arrays.asList("*.json"));
-    }
-
     @RunInFxThread
     private void _onAddHandler(ActionEvent e) {
         runLater(() -> {
@@ -447,8 +439,8 @@ public class Controller {
                         // 2. choose where to export
                         FileChooser fileChooser = new FileChooser();
                         fileChooser.setTitle(properties.getLocalizedProperty(TITLE_EXPORT_TODO_KEY));
-                        fileChooser.setInitialFileName("Export_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
-                        fileChooser.getExtensionFilters().add(getTxtExtFilter());
+                        fileChooser.setInitialFileName("TodoApp_" + DateUtil.toLongDateStrDash(new Date()).replace(":", "") + ".txt");
+                        fileChooser.getExtensionFilters().addAll(txtExtFilter(), markdownExtFilter());
                         final File nFile = fileChooser.showSaveDialog(App.getPrimaryStage());
                         if (nFile == null)
                             return;
