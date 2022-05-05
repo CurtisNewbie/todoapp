@@ -6,6 +6,8 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 
+import static com.curtisnewbie.util.FxThreadUtil.*;
+
 /**
  * <p>
  * Convenient extension of {@code ContextMenu}
@@ -24,6 +26,7 @@ public class CnvCtxMenu extends ContextMenu {
      * @return current {@code JobCtxMenu}, this is convenient for method chaining
      */
     public CnvCtxMenu addMenuItem(String itemName, EventHandler<ActionEvent> eh) {
+        checkThreadConfinement();
         MenuItem menuItem = new MenuItem(itemName);
         menuItem.setOnAction(eh);
         this.getItems().add(menuItem);

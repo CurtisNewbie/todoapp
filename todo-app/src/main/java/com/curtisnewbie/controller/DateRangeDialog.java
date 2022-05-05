@@ -15,6 +15,7 @@ import javafx.scene.layout.Region;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 
 /**
@@ -36,6 +37,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
      * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
      */
     public DateRangeDialog(LocalDate start, LocalDate end, PropertiesLoader properties) {
+        checkThreadConfinement();
         this.properties = properties;
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();

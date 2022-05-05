@@ -16,6 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.LabelFactory.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 
@@ -42,6 +43,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
      * Create TodoJobDialog with {@code start} and {@code end} as the default value of the DatePicker(s)
      */
     public ExportDialog(LocalDate start, LocalDate end, String searchText, LocalDate earliest, LocalDate latest) {
+        checkThreadConfinement();
         final PropertiesLoader propertiesLoader = PropertiesLoader.getInstance();
         final DialogPane dialogPane = getDialogPane();
         this.startDatePicker = new DatePicker();

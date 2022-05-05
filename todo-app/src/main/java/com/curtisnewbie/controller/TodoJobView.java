@@ -106,6 +106,7 @@ public class TodoJobView extends HBox {
      * Create a TodoJobView with the given {@code todoJob}
      */
     public TodoJobView(TodoJob todoJob, Environment environment) {
+        checkThreadConfinement();
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(environment);
 

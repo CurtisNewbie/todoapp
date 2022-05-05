@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
 import static com.curtisnewbie.config.PropertyConstants.TEXT_PAGE;
+import static com.curtisnewbie.util.FxThreadUtil.*;
 
 /**
  * <p>
@@ -24,6 +25,7 @@ public class PaginationBar extends HBox {
     private final Label currPageLabel = LabelFactory.classicLabel("1");
 
     public PaginationBar() {
+        checkThreadConfinement();
         this.setAlignment(Pos.BASELINE_RIGHT);
         this.getChildren().addAll(LabelFactory.classicLabel(PropertiesLoader.getInstance().getLocalizedProperty(TEXT_PAGE)),
                 MarginFactory.margin(10),

@@ -18,6 +18,7 @@ import lombok.extern.slf4j.*;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.MarginFactory.padding;
 
@@ -52,6 +53,7 @@ public class TodoJobDialog extends Dialog<TodoJob> {
      * @param todoJob optional todoJob (mandatory for updating todojob)
      */
     public TodoJobDialog(DialogType type, TodoJob todoJob) {
+        checkThreadConfinement();
         this.type = type;
         this.optionalTodoJob = Optional.ofNullable(todoJob);
         if (type == DialogType.UPDATE_TODO_JOB && !optionalTodoJob.isPresent())

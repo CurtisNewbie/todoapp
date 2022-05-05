@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 
 import static com.curtisnewbie.config.PropertyConstants.TEXT_QUICK_TODO;
 import static com.curtisnewbie.config.PropertyConstants.TEXT_QUICK_TODO_HELP;
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.MarginFactory.margin;
 import static com.curtisnewbie.util.MarginFactory.padding;
@@ -30,6 +31,7 @@ public class QuickTodoBar extends VBox implements Refreshable {
     private Consumer<String> onEnter;
 
     public QuickTodoBar() {
+        checkThreadConfinement();
         tooltip(this, PropertiesLoader.getInstance().getLocalizedProperty(TEXT_QUICK_TODO_HELP));
 
         textField.setOnKeyReleased(e -> {
@@ -65,6 +67,7 @@ public class QuickTodoBar extends VBox implements Refreshable {
 
     @Override
     public void refresh() {
+        checkThreadConfinement();
         final String label = PropertiesLoader.getInstance().getLocalizedProperty(TEXT_QUICK_TODO);
         this.getChildren().clear();
         this.getChildren().addAll(

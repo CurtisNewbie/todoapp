@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.FileExtUtil.*;
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.MarginFactory.padding;
 import static com.curtisnewbie.util.TextFactory.selectableText;
 import static com.curtisnewbie.util.ToastUtil.toast;
@@ -650,6 +651,8 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupPaginationBar() {
+        checkThreadConfinement();
+
         innerPane.setBottom(paginationBar);
         paginationBar.getPrevPageBtn().setOnAction(e -> {
             loadPrevPageAsync();
@@ -661,6 +664,8 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupQuickTodoBar() {
+        checkThreadConfinement();
+
         if (getEnvironment().isQuickTodoBarDisplayed())
             this.outerPane.setTop(padding(quickTodoBar, 3, 0, 3, 0));
 
@@ -693,6 +698,8 @@ public class Controller {
 
     @RequiresFxThread
     private void _setupSearchBar() {
+        checkThreadConfinement();
+
         innerPane.setTop(searchBar);
         searchBar.setSearchOnTypeEnabled(getEnvironment().isSearchOnTypingEnabled());
         searchBar.searchTextFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));

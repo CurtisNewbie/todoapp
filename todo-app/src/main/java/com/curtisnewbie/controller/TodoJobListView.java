@@ -14,6 +14,7 @@ import java.beans.*;
 import java.util.*;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
+import static com.curtisnewbie.util.FxThreadUtil.*;
 
 
 /**
@@ -42,6 +43,7 @@ public class TodoJobListView extends BorderPane {
 
     /** Load Todos into ListView */
     public void clearAndLoadList(List<TodoJob> list, Environment environment) {
+        checkThreadConfinement();
         listView.getItems().clear();
 
         if (list == null)

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.curtisnewbie.config.PropertyConstants.TEXT_SEARCH;
+import static com.curtisnewbie.util.FxThreadUtil.*;
 import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.MarginFactory.margin;
 import static com.curtisnewbie.util.MarginFactory.padding;
@@ -33,6 +34,7 @@ public class SearchBar extends VBox implements Refreshable {
     private boolean searchOnTypeEnabled = false;
 
     public SearchBar() {
+        checkThreadConfinement();
         searchTextField.setOnKeyReleased(e -> {
             if (!Objects.equals(e.getText(), prevSearchText)) {
                 searchTextChanged = true;
@@ -88,6 +90,7 @@ public class SearchBar extends VBox implements Refreshable {
 
     @Override
     public void refresh() {
+        checkThreadConfinement();
         this.getChildren().clear();
         final String label = propertiesLoader.getLocalizedProperty(TEXT_SEARCH);
         this.getChildren().addAll(
