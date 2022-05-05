@@ -766,14 +766,17 @@ public class Controller {
 
         todoJobListView.onKeyPressed(e -> {
             if (e.isControlDown() || e.isMetaDown()) { // metaDown is for mac
-                if (e.getCode().equals(KeyCode.N))
+                final KeyCode code = e.getCode();
+                if (code.equals(KeyCode.N))
                     _onAddHandler(null);
-                else if (e.getCode().equals(KeyCode.C))
+                else if (code.equals(KeyCode.C))
                     copySelected();
-                else if (e.getCode().equals(KeyCode.F))
+                else if (code.equals(KeyCode.F))
                     runLater(() -> searchBar.getSearchTextField().requestFocus());
-                else if (e.getCode().equals(KeyCode.R))
+                else if (code.equals(KeyCode.R))
                     loadCurrPageAsync();
+                else if (code.equals(KeyCode.E))
+                    _onUpdateHandler(null);
             } else {
                 if (e.getCode().equals(KeyCode.DELETE) || e.getCode().equals(KeyCode.BACK_SPACE))
                     deleteSelected(null);
