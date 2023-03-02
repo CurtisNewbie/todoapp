@@ -1,12 +1,11 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.CheckBoxFactory;
 import com.curtisnewbie.util.RequiresFxThread;
 import com.curtisnewbie.util.ShapeFactory;
-import com.curtisnewbie.util.TextFactory;
-import com.fasterxml.jackson.databind.annotation.*;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
@@ -111,7 +110,7 @@ public class TodoJobView extends HBox {
         Objects.requireNonNull(environment);
 
         this.environment = environment;
-        this.model = new TodoJob(todoJob);
+        this.model = todoJob;
         this.doneLabel = new Label();
         final String displayedName = environment.isSpecialTagHidden() ? Tag.EXCL.escape(model.getName()) : model.getName();
         this.nameText = getClassicText(displayedName);
@@ -213,7 +212,13 @@ public class TodoJobView extends HBox {
      */
     public TodoJob createTodoJobCopy() {
         checkThreadConfinement();
-        return new TodoJob(model);
+        final TodoJob todoJob = GlobalPools.todoJobPool.borrowT();
+        todoJob.setId(model.getId());
+        todoJob.setName(model.getName());
+        todoJob.setDone(model.isDone());
+        todoJob.setExpectedEndDate(model.getExpectedEndDate());
+        todoJob.setActualEndDate(model.getActualEndDate());
+        return todoJob;
     }
 
     /**
@@ -338,5 +343,9 @@ public class TodoJobView extends HBox {
         public String getValue() {
             return s;
         }
+    }
+
+    public TodoJob getModel() {
+        return this.model;
     }
 }

@@ -1,5 +1,6 @@
 package com.curtisnewbie.dao;
 
+import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -148,7 +149,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -175,7 +176,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -216,7 +217,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -238,7 +239,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -261,7 +262,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));
@@ -289,7 +290,7 @@ public final class TodoJobMapperImpl extends AbstractMapper implements TodoJobMa
             ResultSet rs = stmt.executeQuery();
             List<TodoJob> result = new ArrayList<>();
             while (rs.next()) {
-                TodoJob job = new TodoJob();
+                TodoJob job = GlobalPools.todoJobPool.borrowT();
                 job.setId(rs.getInt(1));
                 job.setName(rs.getString(2));
                 job.setDone(rs.getBoolean(3));

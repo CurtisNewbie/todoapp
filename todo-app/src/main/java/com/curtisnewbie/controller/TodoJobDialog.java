@@ -1,5 +1,6 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
@@ -160,7 +161,8 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         setResultConverter((dialogButton) -> {
             ButtonBar.ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
             if (data == ButtonBar.ButtonData.OK_DONE) {
-                TodoJob todoJob = new TodoJob(textArea.getText().trim());
+                TodoJob todoJob = GlobalPools.todoJobPool.borrowT();
+                todoJob.withName(textArea.getText().trim());
                 todoJob.setExpectedEndDate(expectedEndDate != null ? expectedEndDate : LocalDate.now());
                 if (shouldDisplayActualEndDatePicker()) {
                     todoJob.setActualEndDate(actualEndDate);

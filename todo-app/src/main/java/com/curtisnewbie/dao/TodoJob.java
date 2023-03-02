@@ -1,5 +1,6 @@
 package com.curtisnewbie.dao;
 
+import com.curtisnewbie.common.Cleanable;
 import com.curtisnewbie.util.DateUtil;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,7 +19,7 @@ import java.util.Date;
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TodoJob {
+public class TodoJob implements Cleanable {
 
     /** primary key */
     private Integer id;
@@ -54,12 +55,11 @@ public class TodoJob {
         this.actualEndDate = null;
     }
 
-    public TodoJob(TodoJob copied) {
-        this.id = copied.id;
-        this.name = copied.name;
-        this.done = copied.done;
-        this.expectedEndDate = copied.expectedEndDate;
-        this.actualEndDate = copied.actualEndDate;
+    public void withName(String name) {
+        this.name = name;
+        this.done = false;
+        this.expectedEndDate = LocalDate.now();
+        this.actualEndDate = null;
     }
 
     @JsonGetter("expectedEndDate")
@@ -94,5 +94,14 @@ public class TodoJob {
                 ", expectedEndDate=" + expectedEndDate +
                 ", actualEndDate=" + actualEndDate +
                 '}';
+    }
+
+    @Override
+    public void clean() {
+        this.id = null;
+        this.name = null;
+        this.done = false;
+        this.expectedEndDate = null;
+        this.actualEndDate = null;
     }
 }

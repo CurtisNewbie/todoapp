@@ -1,6 +1,7 @@
 package com.curtisnewbie.controller;
 
 import com.curtisnewbie.App;
+import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.MapperFactory;
 import com.curtisnewbie.dao.MapperFactoryBase;
@@ -307,6 +308,8 @@ public class Controller {
                             setEnvironment(env.toggleSuggestionOff(type));
                             writeConfigAsync();
                         }
+                    }).whenComplete((v, ex) -> {
+                        GlobalPools.todoJobPool.returnT(newTodo);
                     });
         });
 
@@ -335,17 +338,17 @@ public class Controller {
                 return;
 
             final TodoJobView jobView = todoJobListView.get(selected);
-            final TodoJob old = jobView.createTodoJobCopy();
-            final TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB,
-                    jobView.createTodoJobCopy());
+            final TodoJob old1 = jobView.createTodoJobCopy();
+            final TodoJob old2 = jobView.createTodoJobCopy();
+            final TodoJobDialog dialog = new TodoJobDialog(TodoJobDialog.DialogType.UPDATE_TODO_JOB, old2);
             dialog.setTitle(properties.getLocalizedProperty(TITLE_UPDATE_TODO_NAME_KEY));
             Optional<TodoJob> result = dialog.showAndWait();
             if (!result.isPresent())
                 return;
 
             final TodoJob updated = result.get();
-            updated.setDone(old.isDone());
-            updated.setId(old.getId());
+            updated.setDone(old1.isDone());
+            updated.setId(old1.getId());
 
             // executed in task scheduler, rather than in UI thread
             _todoJobMapper()
@@ -355,6 +358,10 @@ public class Controller {
                             loadCurrPageAsync();
                         else
                             toast("Failed to update to-do, please try again");
+                    }).whenComplete((v, ex) -> {
+                        GlobalPools.todoJobPool.returnT(old1);
+                        GlobalPools.todoJobPool.returnT(old2);
+                        GlobalPools.todoJobPool.returnT(updated);
                     });
         });
     }
@@ -377,6 +384,8 @@ public class Controller {
             alert.showAndWait()
                     .filter(resp -> resp == ButtonType.OK)
                     .ifPresent(resp -> doDeleteAndReloadAsync(tjv.getTodoJobId(), copy));
+
+            GlobalPools.todoJobPool.returnT(copy);
 
             if (afterDialog != null)
                 afterDialog.run();
@@ -408,6 +417,7 @@ public class Controller {
                     copied = todoJobExportObjectPrinter.printObject(todoJobCopy, env.getPattern(), PrintContext.builder()
                             .environment(env)
                             .build());
+                    GlobalPools.todoJobPool.returnT(todoJobCopy);
                 }
                 copyToClipBoard(copied, null);
             }
@@ -672,7 +682,7 @@ public class Controller {
         quickTodoBar.textFieldPrefWidthProperty().bind(todoJobListView.widthProperty().subtract(15));
         quickTodoBar.setOnEnter(name -> {
             final LocalDate now = LocalDate.now();
-            TodoJob tj = new TodoJob();
+            TodoJob tj = GlobalPools.todoJobPool.borrowT();
             tj.setDone(false);
             tj.setExpectedEndDate(now);
             tj.setActualEndDate(null);
@@ -693,6 +703,8 @@ public class Controller {
                     } else {
                         toast("Unknown error happens when try to redo");
                     }
+                }).whenComplete((v, e) -> {
+                    GlobalPools.todoJobPool.returnT(job);
                 });
     }
 
@@ -793,13 +805,16 @@ public class Controller {
         });
         // do on each to-do changes
         todoJobListView.onModelChanged(evt -> {
+            final TodoJob newTodo = (TodoJob) evt.getNewValue();
             _todoJobMapper()
-                    .updateByIdAsync((TodoJob) evt.getNewValue())
+                    .updateByIdAsync(newTodo)
                     .thenAcceptAsync(isUpdated -> {
                         if (isUpdated)
                             loadCurrPageAsync();
                         else
                             toast("Failed to update to-do, please try again");
+                    }).whenComplete((v, ex) -> {
+                        GlobalPools.todoJobPool.returnT(newTodo);
                     });
         });
     }

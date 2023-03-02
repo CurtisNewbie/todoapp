@@ -1,11 +1,10 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.*;
 import com.curtisnewbie.util.*;
-import javafx.beans.property.*;
 import javafx.event.EventHandler;
-import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
@@ -44,6 +43,10 @@ public class TodoJobListView extends BorderPane {
     /** Load Todos into ListView */
     public void clearAndLoadList(List<TodoJob> list, Environment environment) {
         checkThreadConfinement();
+
+        listView.getItems().forEach(it -> {
+            GlobalPools.todoJobPool.returnT(it.getModel());
+        });
         listView.getItems().clear();
 
         if (list == null)
