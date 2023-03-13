@@ -1,5 +1,6 @@
 package com.curtisnewbie;
 
+import ch.qos.logback.classic.Level;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.controller.Controller;
 import com.curtisnewbie.util.ImageUtil;
@@ -8,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -106,6 +108,11 @@ public class App extends Application {
     }
 
     public static void main(String... args) {
+        final String isDebug = PropertiesLoader.getInstance().getCommonProperty("app.debug");
+        if (isDebug == null || !isDebug.equalsIgnoreCase("true")) {
+            ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+            rootLogger.setLevel(Level.toLevel("info"));
+        }
         launch(args);
     }
 }

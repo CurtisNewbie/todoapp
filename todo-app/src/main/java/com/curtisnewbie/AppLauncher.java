@@ -1,5 +1,7 @@
 package com.curtisnewbie;
 
+import com.curtisnewbie.config.PropertiesLoader;
+
 /**
  * <p>
  * Launcher with Main method that starts the Javafx Application

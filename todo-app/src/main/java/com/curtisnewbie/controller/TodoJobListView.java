@@ -4,6 +4,7 @@ import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.*;
 import com.curtisnewbie.util.*;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
@@ -44,16 +45,14 @@ public class TodoJobListView extends BorderPane {
     public void clearAndLoadList(List<TodoJob> list, Environment environment) {
         checkThreadConfinement();
 
-        listView.getItems().forEach(it -> {
-            GlobalPools.todoJobPool.returnT(it.getModel());
-        });
+        final List<TodoJobView> copy = new ArrayList<>(listView.getItems());
         listView.getItems().clear();
+        copy.forEach(GlobalPools.todoJobViewPool::returnT);
 
-        if (list == null)
-            return;
+        if (list == null) return;
 
         list.stream()
-                .map(t -> new TodoJobView(t, environment))
+                .map(t -> GlobalPools.todoJobViewPool.borrowT().init(t, environment))
                 .forEach(this::displayTodoJobView);
     }
 
@@ -88,9 +87,7 @@ public class TodoJobListView extends BorderPane {
      * </p>
      */
     private void displayTodoJobView(TodoJobView jobView) {
-        if (propertyChangeListener != null)
-            jobView.onModelChange(propertyChangeListener);
-
+        if (propertyChangeListener != null) jobView.onModelChange(propertyChangeListener);
         jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
         jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
                 .subtract(Integer.parseInt(PropertiesLoader.getInstance().getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));

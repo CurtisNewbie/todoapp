@@ -14,22 +14,31 @@ import java.util.function.Supplier;
 @Slf4j
 public class SimplePool<T> {
 
+    private int peek = 0;
+    private final String name;
     private final Queue<T> pool = new LinkedList<>();
     private final Supplier<T> newT;
 
-    public SimplePool(int initialCapacity, Supplier<T> newT) {
+    public SimplePool(String name, int initialCapacity, Supplier<T> newT) {
+        this.name = name;
         this.newT = newT;
         if (initialCapacity < 1) initialCapacity = 0;
         while (initialCapacity-- > 0) {
             pool.add(newT.get());
+            ++peek;
         }
+    }
+
+    public SimplePool(int initialCapacity, Supplier<T> newT) {
+        this("", initialCapacity, newT);
     }
 
     public T borrowT() {
         T t = null;
         synchronized (this) {
             t = pool.poll();
-//        log.info("Pool Size: {}", pool.size());
+            if (log.isDebugEnabled())
+                log.debug("{} - Pool Size: {}, peek: {}", name, pool.size(), peek);
         }
         if (t == null) t = newT.get();
 
@@ -42,7 +51,9 @@ public class SimplePool<T> {
         }
         synchronized (this) {
             pool.add(t);
-//        log.info("Pool Size: {}", pool.size());
+            if (peek < pool.size()) peek = pool.size();
+            if (log.isDebugEnabled())
+                log.debug("{} - Pool Size: {}, peek: {}", name, pool.size(), peek);
         }
     }
 }

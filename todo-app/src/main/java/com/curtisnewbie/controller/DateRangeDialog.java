@@ -4,6 +4,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.util.DateUtil;
 import com.curtisnewbie.util.DialogUtil;
+import com.curtisnewbie.util.MarginFactory;
 import com.curtisnewbie.util.RequiresFxThread;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.geometry.Insets;
@@ -59,7 +60,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(label, 0, 0);
 
-        final Insets pad = new Insets(1, 2, 5, 2);
+        final Insets pad = MarginFactory.cachedInsets(1, 2, 5, 2);
         this.grid.add(padding(startDatePicker, pad), 1, 0);
         this.grid.add(padding(endDatePicker, pad), 2, 0);
         dialogPane.setContent(grid);

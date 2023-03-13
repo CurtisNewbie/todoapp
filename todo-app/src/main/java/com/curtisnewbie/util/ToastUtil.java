@@ -41,7 +41,7 @@ public final class ToastUtil {
             toastStage.setResizable(false);
             toastStage.initOwner(App.getPrimaryStage());
 
-            final Text text = new Text(msg);
+            final Text text = TextFactory.baseText(msg);
             final StackPane root = new StackPane(padding(text, 30, 50, 30, 50));
             final Scene scene = new Scene(root);
             toastStage.setScene(scene);

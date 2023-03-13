@@ -4,6 +4,9 @@ import javafx.geometry.Insets;
 import javafx.scene.*;
 import javafx.scene.layout.*;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 /**
  * <p>
  * Util class facilitate creation of margin (or something similar)
@@ -13,8 +16,15 @@ import javafx.scene.layout.*;
  */
 public final class MarginFactory {
 
+    private static final ConcurrentMap<String, Insets> insetsCache = new ConcurrentHashMap<>();
+
     private MarginFactory() {
 
+    }
+
+    public static Insets cachedInsets(int top, int right, int bottom, int left) {
+        String k = "" + top + right + bottom + left;
+        return insetsCache.computeIfAbsent(k, (ke) -> new Insets(top, right, bottom, left));
     }
 
     /**
@@ -57,7 +67,7 @@ public final class MarginFactory {
      * @return container that wraps the node
      */
     public static Parent padding(Node node, int top, int right, int bottom, int left) {
-        return padding(node, new Insets(top, right, bottom, left));
+        return padding(node, cachedInsets(top, right, bottom, left));
     }
 
     /**
@@ -90,6 +100,6 @@ public final class MarginFactory {
      * @return insets
      */
     public static Insets getCommonInsets() {
-        return new Insets(3, 2, 3, 2);
+        return cachedInsets(3, 2, 3, 2);
     }
 }

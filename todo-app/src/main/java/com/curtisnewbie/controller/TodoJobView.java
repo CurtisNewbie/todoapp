@@ -1,11 +1,10 @@
 package com.curtisnewbie.controller;
 
+import com.curtisnewbie.common.Cleanable;
 import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.TodoJob;
-import com.curtisnewbie.util.CheckBoxFactory;
-import com.curtisnewbie.util.RequiresFxThread;
-import com.curtisnewbie.util.ShapeFactory;
+import com.curtisnewbie.util.*;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.event.ActionEvent;
@@ -46,74 +45,67 @@ import static com.curtisnewbie.util.TextFactory.*;
  * @author yongjie.zhuang
  */
 @RequiresFxThread
-public class TodoJobView extends HBox {
-
+public class TodoJobView extends HBox implements Cleanable {
     private static final PropertiesLoader properties = PropertiesLoader.getInstance();
 
-    /**
-     * Label for displaying whether to-do is finished
-     */
-    private final Label doneLabel;
+    /** Label for displaying whether to-do is finished */
+    private Label doneLabel;
 
-    /**
-     * Model inside this view
-     */
-    private final TodoJob model;
+    /** Model inside this view */
+    private TodoJob model;
 
-    /**
-     * The name of this {@code TodoJob}
-     */
-    private final Text nameText;
+    /** The name of this {@code TodoJob} */
+    private Text nameText;
 
-    /**
-     * Expected end date in {@link Label}
-     */
-    private final Label expectedEndDateLabel;
+    /** Expected end date in {@link Label} */
+    private Label expectedEndDateLabel;
 
-    /**
-     * Actual end date in {@link Label}
-     */
-    private final Label actualEndDateLabel;
+    /** Actual end date in {@link Label} */
+    private Label actualEndDateLabel;
 
-    /**
-     * Label that displays how much time left before the expected end date
-     */
-    private final Label timeLeftLabel = classicLabel(null);
+    /** Label that displays how much time left before the expected end date */
+    private Label timeLeftLabel;
 
-    /**
-     * Whether the {@code TodoJob} is finished
-     */
-    private final CheckBox doneCheckBox = CheckBoxFactory.getClassicCheckBox();
+    /** Whether the {@code TodoJob} is finished */
+    private CheckBox doneCheckBox;
 
-    /**
-     * Property change listener support
-     */
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    /** Property change listener support */
+    private PropertyChangeSupport pcs;
 
     /** Environment configuration */
-    private final Environment environment;
+    private Environment environment;
 
-    private final String DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
-    private final String MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
-    private final String YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
-    private final String DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
-    private final String AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
-    private final String ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
-    private final String TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
+    private String DAYS;
+    private String MONTHS;
+    private String YEARS;
+    private String DELAYED_TEXT;
+    private String AHEAD_TEXT;
+    private String ON_TIME_TEXT;
+    private String TODAY_TEXT;
 
-    /**
-     * Create a TodoJobView with the given {@code todoJob}
-     */
-    public TodoJobView(TodoJob todoJob, Environment environment) {
+    public TodoJobView() {}
+
+    public TodoJobView init(TodoJob todoJob, Environment environment) {
         checkThreadConfinement();
         Objects.requireNonNull(todoJob);
         Objects.requireNonNull(environment);
 
+        DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
+        MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
+        YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
+        DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
+        AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
+        ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
+        TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
+
+        this.pcs = new PropertyChangeSupport(this);
         this.environment = environment;
         this.model = todoJob;
-        this.doneLabel = new Label();
+        this.doneLabel = GlobalPools.labelPool.borrowT();
         final String displayedName = environment.isSpecialTagHidden() ? Tag.EXCL.escape(model.getName()) : model.getName();
         this.nameText = getClassicText(displayedName);
+        this.timeLeftLabel = classicLabel(null);
+        this.doneCheckBox = CheckBoxFactory.getClassicCheckBox();
         this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getExpectedEndDate()));
         if (this.model.getActualEndDate() != null) {
             this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
@@ -147,6 +139,7 @@ public class TodoJobView extends HBox {
         HBox.setHgrow(this, Priority.SOMETIMES);
         updateGraphicOnJobStatus(model.isDone());
         this.requestFocus();
+        return this;
     }
 
     /**
@@ -320,13 +313,47 @@ public class TodoJobView extends HBox {
         // only display 'ahead' text when we indeed finished the task
         if (model.isDone() && !isDelayed) {
             s = s + " (" + AHEAD_TEXT + ")";
-        } else
+        } else {
             s = isDelayed ? s + " (" + DELAYED_TEXT + ")" : s;
+        }
         this.timeLeftLabel.setText(s);
     }
 
     private void emptyTimeLeftLabel() {
         this.timeLeftLabel.setText("");
+    }
+
+    @Override
+    public void clean() {
+        this.getChildren().clear();
+
+        Label tmpLabel = this.doneLabel;
+        this.doneLabel = null;
+        LabelFactory.returnLabel(tmpLabel);
+
+        tmpLabel = this.expectedEndDateLabel;
+        this.expectedEndDateLabel = null;
+        LabelFactory.returnLabel(tmpLabel);
+
+        tmpLabel = this.actualEndDateLabel;
+        this.actualEndDateLabel = null;
+        LabelFactory.returnLabel(tmpLabel);
+
+        tmpLabel = this.timeLeftLabel;
+        this.timeLeftLabel = null;
+        LabelFactory.returnLabel(tmpLabel);
+
+        TodoJob tmpTodo = this.model;
+        this.model = null;
+        GlobalPools.todoJobPool.returnT(tmpTodo);
+
+        Text tmpText = this.nameText;
+        this.nameText = null;
+        TextFactory.returnText(tmpText);
+
+        this.doneCheckBox = null;
+        this.pcs = null;
+        this.environment = null;
     }
 
     private enum Event {

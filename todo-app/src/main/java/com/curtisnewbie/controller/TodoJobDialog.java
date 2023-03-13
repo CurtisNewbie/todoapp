@@ -5,6 +5,7 @@ import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.config.PropertyConstants;
 import com.curtisnewbie.dao.TodoJob;
 import com.curtisnewbie.util.DialogUtil;
+import com.curtisnewbie.util.MarginFactory;
 import com.curtisnewbie.util.RequiresFxThread;
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
@@ -128,16 +129,16 @@ public class TodoJobDialog extends Dialog<TodoJob> {
         this.grid.setAlignment(Pos.CENTER_LEFT);
         this.grid.add(contextLabel, 0, 0);
         String expectedEndDateText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EXPECTED_END_DATE_KEY);
-        this.grid.add(padding(classicLabel(expectedEndDateText + ":"), new Insets(1, 2, 5, 2)),
+        this.grid.add(padding(classicLabel(expectedEndDateText + ":"), MarginFactory.cachedInsets(1, 2, 5, 2)),
                 1, 1);
-        this.grid.add(padding(expectedEndDatePicker, new Insets(1, 2, 5, 2)),
+        this.grid.add(padding(expectedEndDatePicker, MarginFactory.cachedInsets(1, 2, 5, 2)),
                 2, 1);
 
         if (shouldDisplayActualEndDatePicker()) {
             String actualEndDateText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_ACTUAL_END_DATE_KEY);
-            this.grid.add(padding(classicLabel(actualEndDateText + ":"), new Insets(1, 2, 5, 2)),
+            this.grid.add(padding(classicLabel(actualEndDateText + ":"), MarginFactory.cachedInsets(1, 2, 5, 2)),
                     1, 2);
-            this.grid.add(padding(actualEndDatePicker, new Insets(1, 2, 5, 2)),
+            this.grid.add(padding(actualEndDatePicker, MarginFactory.cachedInsets(1, 2, 5, 2)),
                     2, 2);
             this.grid.add(textArea, 1, 3);
         } else {

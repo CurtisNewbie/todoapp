@@ -1,7 +1,5 @@
 package com.curtisnewbie.dao;
 
-import reactor.core.publisher.Mono;
-
 import java.util.concurrent.*;
 
 /**
@@ -22,6 +20,6 @@ public interface MapperFactory {
      * This method may block until the factory is fully initialized
      * </p>
      */
-    CompletableFuture<TodoJobMapper> getNewTodoJobMapperAsync();
+    CompletableFuture<TodoJobMapper> getTodoJobMapperAsync();
 
 }

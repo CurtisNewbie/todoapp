@@ -19,7 +19,7 @@ public final class CheckBoxFactory {
     public static CheckBox getClassicCheckBox() {
         CheckBox cb = new CheckBox();
         cb.setAlignment(Pos.CENTER_RIGHT);
-        cb.setPadding(new Insets(1, 2, 1, 4));
+        cb.setPadding(MarginFactory.cachedInsets(1, 2, 1, 4));
         return cb;
     }
 }

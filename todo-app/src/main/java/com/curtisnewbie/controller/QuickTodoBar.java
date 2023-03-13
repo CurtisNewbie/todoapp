@@ -74,7 +74,7 @@ public class QuickTodoBar extends VBox implements Refreshable {
                 margin(5),
                 MarginFactory.padding(classicLabel(label), 0, 5, 0, 5),
                 margin(5),
-                padding(textField, new Insets(0, 5, 5, 5)),
+                padding(textField, MarginFactory.cachedInsets(0, 5, 5, 5)),
                 margin(5)
         );
     }

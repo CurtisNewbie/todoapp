@@ -63,10 +63,6 @@ public class Controller {
 
     /** Properties Loader, thread-safe */
     private final PropertiesLoader properties = PropertiesLoader.getInstance();
-    /** Path to DB */
-    private final String dbAbsPath;
-    /** AtomicReference for mapper */
-    private final AtomicReference<TodoJobMapper> _todoJobMapper = new AtomicReference<>();
     /** IO Handler, thread-safe */
     private final IOHandler ioHandler = IOHandlerFactory.getIOHandler();
     /** Atomic Reference to the Environment */
@@ -103,16 +99,14 @@ public class Controller {
     /** ObjectPrinter for {@link TodoJob }, thread-safe */
     private final ObjectPrinter<TodoJob> todoJobExportObjectPrinter;
 
+    final MapperFactory mapperFactory = new MapperFactoryBase();
+
     /**
      * Create and bind the new Controller to a BorderPane
      */
     public Controller(BorderPane parent) {
         this.outerPane = parent;
         this.outerPane.setCenter(this.innerPane);
-
-        final MapperFactory mapperFactory = new MapperFactoryBase();
-        dbAbsPath = mapperFactory.getDatabaseAbsolutePath();
-        _prepareMapperAsync(mapperFactory);
 
         // load locale-specific resource bundle
         setEnvironment(new Environment(ioHandler.readConfig()));
@@ -160,16 +154,18 @@ public class Controller {
      * Load next page asynchronously
      */
     private void loadNextPageAsync() {
-        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
-                .thenAcceptAsync(list -> {
-                    runLater(() -> {
-                        if (list.isEmpty())
-                            return;
-                        volatileCurrPage += 1;
-                        paginationBar.setCurrPage(volatileCurrPage);
-                        todoJobListView.clearAndLoadList(list, getEnvironment());
-                    });
-                });
+        mapperFactory.getTodoJobMapperAsync()
+                .thenAccept(mapper -> mapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage + 1)
+                        .thenAccept(list -> {
+                            if (list.isEmpty())
+                                return;
+
+                            runLater(() -> {
+                                volatileCurrPage += 1;
+                                paginationBar.setCurrPage(volatileCurrPage);
+                                todoJobListView.clearAndLoadList(list, getEnvironment());
+                            });
+                        }));
     }
 
     /**
@@ -179,25 +175,26 @@ public class Controller {
         if (volatileCurrPage <= 1)
             return;
 
-        _todoJobMapper()
-                .findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
-                .thenAcceptAsync(list -> {
-                    runLater(() -> {
-                        volatileCurrPage -= 1;
-                        paginationBar.setCurrPage(volatileCurrPage);
-                        todoJobListView.clearAndLoadList(list, getEnvironment());
-                    });
-                });
+        mapperFactory.getTodoJobMapperAsync()
+                .thenAccept(mapper -> mapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage - 1)
+                        .thenAccept(list -> {
+                            runLater(() -> {
+                                volatileCurrPage -= 1;
+                                paginationBar.setCurrPage(volatileCurrPage);
+                                todoJobListView.clearAndLoadList(list, getEnvironment());
+                            });
+                        }));
     }
 
     /**
      * Reload current page asynchronously
      */
     private void loadCurrPageAsync() {
-        _todoJobMapper().findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
-                .thenAcceptAsync(list -> {
-                    runLater(() -> todoJobListView.clearAndLoadList(list, getEnvironment()));
-                });
+        mapperFactory.getTodoJobMapperAsync()
+                .thenAccept(mapper -> mapper.findByPageAsync(searchBar.getSearchTextField().getText(), volatileCurrPage)
+                        .thenAccept(list ->
+                                runLater(() -> todoJobListView.clearAndLoadList(list, getEnvironment()))
+                        ));
     }
 
 
@@ -294,23 +291,24 @@ public class Controller {
             }
 
             TodoJob newTodo = result.get();
-            _todoJobMapper().insertAsync(newTodo)
-                    .thenAcceptAsync(id -> loadCurrPageAsync())
-                    .exceptionally(err -> {
-                        toast("Failed to add new to-do, please try again\n\n" + err.getMessage());
-                        return null;
-                    })
-                    .thenRunAsync(() -> {
-                        final Environment env = getEnvironment();
-                        final SuggestionType type = SuggestionType.NEW_TODO_HANDLER;
-                        if (env.isSuggestionToggleOn(type)) {
-                            toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), SUGGESTION_TOAST_DURATION);
-                            setEnvironment(env.toggleSuggestionOff(type));
-                            writeConfigAsync();
-                        }
-                    }).whenComplete((v, ex) -> {
-                        GlobalPools.todoJobPool.returnT(newTodo);
-                    });
+            mapperFactory.getTodoJobMapperAsync()
+                    .thenAccept(mapper -> mapper.insertAsync(newTodo)
+                            .thenAccept(id -> loadCurrPageAsync())
+                            .exceptionally(err -> {
+                                toast("Failed to add new to-do, please try again\n\n" + err.getMessage());
+                                return null;
+                            })
+                            .thenRunAsync(() -> {
+                                final Environment env = getEnvironment();
+                                final SuggestionType type = SuggestionType.NEW_TODO_HANDLER;
+                                if (env.isSuggestionToggleOn(type)) {
+                                    toast(properties.getLocalizedProperty(TEXT_SUGGESTION_NEW_TODO_HANDLER), SUGGESTION_TOAST_DURATION);
+                                    setEnvironment(env.toggleSuggestionOff(type));
+                                    writeConfigAsync();
+                                }
+                            }).whenComplete((v, ex) -> {
+                                GlobalPools.todoJobPool.returnT(newTodo);
+                            }));
         });
 
     }
@@ -351,18 +349,18 @@ public class Controller {
             updated.setId(old1.getId());
 
             // executed in task scheduler, rather than in UI thread
-            _todoJobMapper()
-                    .updateByIdAsync(updated)
-                    .thenAcceptAsync(isUpdated -> {
-                        if (isUpdated)
-                            loadCurrPageAsync();
-                        else
-                            toast("Failed to update to-do, please try again");
-                    }).whenComplete((v, ex) -> {
-                        GlobalPools.todoJobPool.returnT(old1);
-                        GlobalPools.todoJobPool.returnT(old2);
-                        GlobalPools.todoJobPool.returnT(updated);
-                    });
+            mapperFactory.getTodoJobMapperAsync()
+                    .thenAccept(mapper -> mapper.updateByIdAsync(updated)
+                            .thenAccept(isUpdated -> {
+                                if (isUpdated)
+                                    loadCurrPageAsync();
+                                else
+                                    toast("Failed to update to-do, please try again");
+                            }).whenComplete((v, ex) -> {
+                                GlobalPools.todoJobPool.returnT(old1);
+                                GlobalPools.todoJobPool.returnT(old2);
+                                GlobalPools.todoJobPool.returnT(updated);
+                            }));
         });
     }
 
@@ -393,13 +391,13 @@ public class Controller {
     }
 
     private void doDeleteAndReloadAsync(int id, TodoJob copy) {
-        _todoJobMapper()
-                .deleteByIdAsync(id)
-                .thenAcceptAsync(isDeleted -> {
-                    if (!isDeleted)
-                        toast("Failed to delete to-do, please try again");
-                })
-                .thenRun(this::loadCurrPageAsync);
+        mapperFactory.getTodoJobMapperAsync()
+                .thenAccept(mapper -> mapper.deleteByIdAsync(id)
+                        .thenAccept(isDeleted -> {
+                            if (!isDeleted)
+                                toast("Failed to delete to-do, please try again");
+                        })
+                        .thenRun(this::loadCurrPageAsync));
     }
 
     @RunInFxThread
@@ -425,8 +423,8 @@ public class Controller {
     }
 
     private void _onExportHandler(ActionEvent e) {
-        final CompletableFuture<LocalDate> c1 = _todoJobMapper().findEarliestDateAsync();
-        final CompletableFuture<LocalDate> c2 = _todoJobMapper().findLatestDateAsync();
+        final CompletableFuture<LocalDate> c1 = mapperFactory.getTodoJobMapperAsync().thenCompose(TodoJobMapper::findEarliestDateAsync);
+        final CompletableFuture<LocalDate> c2 = mapperFactory.getTodoJobMapperAsync().thenCompose(TodoJobMapper::findLatestDateAsync);
         CompletableFuture.allOf(c1, c2)
                 .thenApplyAsync(ignored -> {
                     try {
@@ -435,7 +433,7 @@ public class Controller {
                         throw new IllegalStateException(ex);
                     }
                 })
-                .thenAcceptAsync(pair -> {
+                .thenAccept(pair -> {
                     runLater(() -> {
                         if (todoJobListView.isEmpty())
                             return;
@@ -473,23 +471,23 @@ public class Controller {
                                 .isNumbered(ep.isNumbered())
                                 .build();
 
-                        _todoJobMapper()
-                                .findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
-                                .thenAcceptAsync((list) -> {
-                                    final StringBuilder sb = new StringBuilder();
-                                    final int len = list.size();
-                                    for (int i = 0; i < len; i++) {
-                                        if (i > 0) sb.append("\n");
-                                        sb.append(todoJobExportObjectPrinter.printObject(list.get(i), exportPattern, printContext));
-                                    }
-                                    final String content = sb.toString();
-                                    if (isToFile)
-                                        ioHandler.writeObjectsAsync(sb.toString(), nFile);
-                                    else
-                                        copyToClipBoard(content, () -> {
-                                            toast(format("Copied %s Todos to clipboard", len), 1_500);
-                                        });
-                                });
+                        mapperFactory.getTodoJobMapperAsync()
+                                .thenAccept(mapper -> mapper.findBetweenDatesAsync(ep.getSearchText(), dateRange.getStart(), dateRange.getEnd())
+                                        .thenAccept((list) -> {
+                                            final StringBuilder sb = new StringBuilder();
+                                            final int len = list.size();
+                                            for (int i = 0; i < len; i++) {
+                                                if (i > 0) sb.append("\n");
+                                                sb.append(todoJobExportObjectPrinter.printObject(list.get(i), exportPattern, printContext));
+                                            }
+                                            final String content = sb.toString();
+                                            if (isToFile)
+                                                ioHandler.writeObjectsAsync(sb.toString(), nFile);
+                                            else
+                                                copyToClipBoard(content, () -> {
+                                                    toast(format("Copied %s Todos to clipboard", len), 1_500);
+                                                });
+                                        }));
                     });
                 })
                 .exceptionally(ex -> {
@@ -506,7 +504,7 @@ public class Controller {
             aboutDialog.setTitle(properties.getLocalizedProperty(TITLE_ABOUT_KEY));
 
             String desc = format("%s: %s", properties.getLocalizedProperty(TITLE_CONFIG_PATH_KEY), ioHandler.getConfPath()) + "\n";
-            desc += format("%s: %s", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), dbAbsPath) + "\n";
+            desc += format("%s: %s", properties.getLocalizedProperty(TITLE_SAVE_PATH_KEY), mapperFactory.getDatabaseAbsolutePath()) + "\n";
             desc += properties.getCommonProperty(APP_GITHUB) + "\n";
             desc += properties.getCommonProperty(APP_AUTHOR) + "\n\n";
             desc += properties.getLocalizedProperty(TEXT_ABOUT_TIPS);
@@ -695,17 +693,18 @@ public class Controller {
      * Insert to-do job and reload current page async
      */
     private void doInsertTodo(TodoJob job) {
-        _todoJobMapper()
-                .insertAsync(job)
-                .thenAcceptAsync(id -> {
-                    if (id != null) {
-                        loadCurrPageAsync();
-                    } else {
-                        toast("Unknown error happens when try to redo");
-                    }
-                }).whenComplete((v, e) -> {
-                    GlobalPools.todoJobPool.returnT(job);
-                });
+        mapperFactory.getTodoJobMapperAsync()
+                .thenAccept(mapper -> mapper
+                        .insertAsync(job)
+                        .thenAccept(id -> {
+                            if (id != null) {
+                                loadCurrPageAsync();
+                            } else {
+                                toast("Unknown error happens when try to redo");
+                            }
+                        }).whenComplete((v, e) -> {
+                            GlobalPools.todoJobPool.returnT(job);
+                        }));
     }
 
     @RequiresFxThread
@@ -727,22 +726,6 @@ public class Controller {
         });
     }
 
-    /**
-     * Get {@link TodoJobMapper }
-     * <p>
-     * the process of initializing a new mapper is async, before returning the mapper, this method will wait until it's
-     * fully initialized
-     * </p>
-     */
-    private TodoJobMapper _todoJobMapper() {
-        // before we use the mapper, we want to make sure that the mapper is initialised properly
-        TodoJobMapper todoJobMapper;
-        while ((todoJobMapper = this._todoJobMapper.get()) == null) {
-            log.debug("Waiting for TodoJobMapper to initialize");
-        }
-        return todoJobMapper;
-    }
-
     private void _subscribeTickingFluxForReloading() {
         // register a flux that ticks every 5 seconds
         Flux.interval(Duration.ofSeconds(5))
@@ -762,19 +745,6 @@ public class Controller {
                         log.info("Next date, reload current page");
                         // we are now on next date, reload current page to refresh the timeLeftLabel in TodoJobView
                         loadCurrPageAsync();
-                    }
-                });
-    }
-
-    private void _prepareMapperAsync(MapperFactory mapperFactory) {
-        /**
-         * speed up initialisation process, we make it async, and we rely on the {@link #_todoJobMapper() } method to
-         * delay the timing that we retrieve the mapper
-         */
-        mapperFactory.getNewTodoJobMapperAsync()
-                .thenAcceptAsync((mapper) -> {
-                    if (this._todoJobMapper.compareAndSet(null, mapper)) {
-                        log.info("TodoJobMapper loaded");
                     }
                 });
     }
@@ -806,16 +776,16 @@ public class Controller {
         // do on each to-do changes
         todoJobListView.onModelChanged(evt -> {
             final TodoJob newTodo = (TodoJob) evt.getNewValue();
-            _todoJobMapper()
-                    .updateByIdAsync(newTodo)
-                    .thenAcceptAsync(isUpdated -> {
-                        if (isUpdated)
-                            loadCurrPageAsync();
-                        else
-                            toast("Failed to update to-do, please try again");
-                    }).whenComplete((v, ex) -> {
-                        GlobalPools.todoJobPool.returnT(newTodo);
-                    });
+            mapperFactory.getTodoJobMapperAsync()
+                    .thenAccept(mapper -> mapper.updateByIdAsync(newTodo)
+                            .thenAccept(isUpdated -> {
+                                if (isUpdated)
+                                    loadCurrPageAsync();
+                                else
+                                    toast("Failed to update to-do, please try again");
+                            }).whenComplete((v, ex) -> {
+                                GlobalPools.todoJobPool.returnT(newTodo);
+                            }));
         });
     }
 

@@ -64,13 +64,13 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         final BorderPane bp = new BorderPane();
         this.grid = new GridPane();
-        bp.setTop(padding(searchedTextField, new Insets(1, 0, 5, 0)));
+        bp.setTop(padding(searchedTextField, MarginFactory.cachedInsets(1, 0, 5, 0)));
         bp.setCenter(grid);
 
         this.grid.setMaxWidth(Double.MAX_VALUE);
         this.grid.setAlignment(Pos.CENTER_LEFT);
 
-        final Insets pad = new Insets(1, 2, 5, 0);
+        final Insets pad = MarginFactory.cachedInsets(1, 2, 5, 0);
         this.grid.add(rightPaddedLabel(propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_SEARCH)), 0, rowCount);
         this.grid.add(padding(searchedTextField, pad), 1, rowCount++);
 
@@ -87,7 +87,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         final LocalDate earliestOption = earliest != null ? earliest : now;
         final String earliestStr = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_EARLIEST_KEY);
         Button earliestBtn = new Button(earliestStr + ": " + DateUtil.toDDmmUUUUSlash(earliestOption));
-        grid.add(padding(earliestBtn, new Insets(1, 2, 5, 2)), 0, rowCount);
+        grid.add(padding(earliestBtn, MarginFactory.cachedInsets(1, 2, 5, 2)), 0, rowCount);
         earliestBtn.setOnAction(e -> {
             startDatePicker.setValue(earliestOption);
         });
@@ -96,7 +96,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
         final String latestStr = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_LATEST_KEY);
         Objects.requireNonNull(latestStr);
         Button latestBtn = new Button(latestStr + ": " + DateUtil.toDDmmUUUUSlash(latestOption));
-        grid.add(padding(latestBtn, new Insets(1, 2, 5, 2)), 1, rowCount++);
+        grid.add(padding(latestBtn, MarginFactory.cachedInsets(1, 2, 5, 2)), 1, rowCount++);
         latestBtn.setOnAction(e -> {
             endDatePicker.setValue(latestOption);
         });
@@ -107,7 +107,7 @@ public class ExportDialog extends Dialog<ExportDialog.ExportParam> {
 
         final String currentWeekText = propertiesLoader.getLocalizedProperty(PropertyConstants.TEXT_CURRENT_WEEK_KEY);
         final Button currentWeek = new Button(currentWeekText + ": " + DateUtil.toDDmmUUUUSlash(startOfWeek) + " - " + DateUtil.toDDmmUUUUSlash(today));
-        grid.add(padding(currentWeek, new Insets(1, 2, 5, 2)), 0, rowCount);
+        grid.add(padding(currentWeek, MarginFactory.cachedInsets(1, 2, 5, 2)), 0, rowCount);
         currentWeek.setOnAction(e -> {
             startDatePicker.setValue(startOfWeek);
             endDatePicker.setValue(today);
