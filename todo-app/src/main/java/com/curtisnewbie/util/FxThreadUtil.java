@@ -19,21 +19,6 @@ import java.util.*;
 @Slf4j
 public final class FxThreadUtil {
 
-    private static final String DEBUG = "debug";
-
-    /**
-     * This tool is only used for debugging, so this will always be false
-     */
-    private static final boolean isDebug;
-
-    static {
-        // java -Ddebug=true -jar ....
-        final Properties properties = System.getProperties();
-        isDebug = properties.containsKey(DEBUG) && Boolean.parseBoolean(properties.get(DEBUG).toString());
-        if (isDebug)
-            log.info("Debug mode turned on, will validate Fx Thread Confinement");
-    }
-
     private FxThreadUtil() {
     }
 
@@ -43,7 +28,7 @@ public final class FxThreadUtil {
      * @throws ConcurrentModificationException if current thread is not FX's UI thread
      */
     public static void checkThreadConfinement() {
-        if (!isDebug)
+        if (!DebugUtil.isDebug)
             return; // not debugging, do nothing
 
         if (!Platform.isFxApplicationThread()) {

@@ -26,6 +26,7 @@ public final class LabelFactory {
         label.setGraphic(null);
         label.setText(null);
         label.setMinWidth(USE_COMPUTED_SIZE);
+        label.setPadding(cachedInsets(0, 0, 0, 0));
         label.textProperty().unbind();
         GlobalPools.labelPool.returnT(label);
     }

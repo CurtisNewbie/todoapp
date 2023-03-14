@@ -20,6 +20,7 @@ import java.beans.PropertyChangeSupport;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ConcurrentModificationException;
+import java.util.Locale;
 import java.util.Objects;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
@@ -29,6 +30,7 @@ import static com.curtisnewbie.util.LabelFactory.classicLabel;
 import static com.curtisnewbie.util.LabelFactory.leftPaddedLabel;
 import static com.curtisnewbie.util.MarginFactory.*;
 import static com.curtisnewbie.util.TextFactory.*;
+import static java.util.Objects.requireNonNull;
 
 
 /**
@@ -75,6 +77,7 @@ public class TodoJobView extends HBox implements Cleanable {
     /** Environment configuration */
     private Environment environment;
 
+    private Locale locale;
     private String DAYS;
     private String MONTHS;
     private String YEARS;
@@ -87,32 +90,31 @@ public class TodoJobView extends HBox implements Cleanable {
 
     public TodoJobView init(TodoJob todoJob, Environment environment) {
         checkThreadConfinement();
-        Objects.requireNonNull(todoJob);
-        Objects.requireNonNull(environment);
+        requireNonNull(todoJob);
+        requireNonNull(environment);
 
-        DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
-        MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
-        YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
-        DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
-        AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
-        ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
-        TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
+        final Locale propLocale = properties.getLocale();
+        if (locale == null || !Objects.equals(locale, propLocale)) {
+            DAYS = properties.getLocalizedProperty(TEXT_DAYS_KEY);
+            MONTHS = properties.getLocalizedProperty(TEXT_MONTHS_KEY);
+            YEARS = properties.getLocalizedProperty(TEXT_YEARS_KEY);
+            DELAYED_TEXT = properties.getLocalizedProperty(TEXT_DELAYED_KEY);
+            AHEAD_TEXT = properties.getLocalizedProperty(TEXT_AHEAD_KEY);
+            ON_TIME_TEXT = properties.getLocalizedProperty(TEXT_ON_TIME_KEY);
+            TODAY_TEXT = properties.getLocalizedProperty(TEXT_TODAY_KEY);
+            locale = propLocale;
+        }
 
         this.pcs = new PropertyChangeSupport(this);
         this.environment = environment;
         this.model = todoJob;
         this.doneLabel = GlobalPools.labelPool.borrowT();
-        final String displayedName = environment.isSpecialTagHidden() ? Tag.EXCL.escape(model.getName()) : model.getName();
-        this.nameText = getClassicText(displayedName);
+        this.nameText = getClassicText(environment.isSpecialTagHidden() ? Tag.EXCL.escape(model.getName()) : model.getName());
         this.timeLeftLabel = classicLabel(null);
         this.doneCheckBox = CheckBoxFactory.getClassicCheckBox();
         this.expectedEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getExpectedEndDate()));
-        if (this.model.getActualEndDate() != null) {
-            this.actualEndDateLabel = classicLabel(toDDmmUUUUSlash(model.getActualEndDate()));
-        } else {
-            this.actualEndDateLabel = classicLabel("");
-        }
         this.expectedEndDateLabel.setMinWidth(85);
+        this.actualEndDateLabel = classicLabel(this.model.getActualEndDate() != null ? toDDmmUUUUSlash(model.getActualEndDate()) : "");
         this.actualEndDateLabel.setMinWidth(85);
 
         // update the timeLeftLabel
@@ -120,22 +122,19 @@ public class TodoJobView extends HBox implements Cleanable {
 
         this.doneCheckBox.setSelected(model.isDone());
         this.doneCheckBox.setOnAction(this::onDoneCheckBoxSelected);
-        String checkboxName = properties.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY);
-        Objects.requireNonNull(checkboxName);
-        this.getChildren()
-                .addAll(doneLabel,
-                        margin(3),
-                        expectedEndDateLabel,
-                        margin(3),
-                        actualEndDateLabel,
-                        margin(20),
-                        wrapWithCommonPadding(nameText),
-                        margin(2),
-                        timeLeftLabel,
-                        margin(2),
-                        fillingMargin(),
-                        leftPaddedLabel(checkboxName),
-                        doneCheckBox);
+        this.getChildren().addAll(doneLabel,
+                margin(3),
+                expectedEndDateLabel,
+                margin(3),
+                actualEndDateLabel,
+                margin(20),
+                wrapWithCommonPadding(nameText),
+                margin(2),
+                timeLeftLabel,
+                margin(2),
+                fillingMargin(),
+                leftPaddedLabel(requireNonNull(properties.getLocalizedProperty(PropertyConstants.TEXT_DONE_KEY))),
+                doneCheckBox);
         HBox.setHgrow(this, Priority.SOMETIMES);
         updateGraphicOnJobStatus(model.isDone());
         this.requestFocus();
@@ -148,7 +147,7 @@ public class TodoJobView extends HBox implements Cleanable {
      * @param date nullable LocalDate
      */
     public void setExpectedEndDate(LocalDate date) {
-        Objects.requireNonNull(date, "Expected End Date should never be null");
+        requireNonNull(date, "Expected End Date should never be null");
         this.model.setExpectedEndDate(date);
         this.expectedEndDateLabel.setText(toDDmmUUUUSlash(date));
         if (!this.model.isDone())
@@ -177,7 +176,7 @@ public class TodoJobView extends HBox implements Cleanable {
      */
     public void bindTextWrappingWidthProperty(final DoubleBinding binding) {
         checkThreadConfinement();
-        Objects.requireNonNull(binding);
+        requireNonNull(binding);
         nameText.wrappingWidthProperty().bind(binding);
     }
 
@@ -186,7 +185,7 @@ public class TodoJobView extends HBox implements Cleanable {
      */
     public void setName(String name) {
         checkThreadConfinement();
-        Objects.requireNonNull(name);
+        requireNonNull(name);
         this.model.setName(name);
         nameText.setText(name);
     }

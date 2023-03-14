@@ -3,6 +3,7 @@ package com.curtisnewbie;
 import ch.qos.logback.classic.Level;
 import com.curtisnewbie.config.PropertiesLoader;
 import com.curtisnewbie.controller.Controller;
+import com.curtisnewbie.util.DebugUtil;
 import com.curtisnewbie.util.ImageUtil;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -108,8 +109,7 @@ public class App extends Application {
     }
 
     public static void main(String... args) {
-        final String isDebug = PropertiesLoader.getInstance().getCommonProperty("app.debug");
-        if (isDebug == null || !isDebug.equalsIgnoreCase("true")) {
+        if (!DebugUtil.isDebug) {
             ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.toLevel("info"));
         }

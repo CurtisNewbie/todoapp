@@ -28,6 +28,8 @@ public final class PropertiesLoader {
 
     @LockedBy(name = "this")
     private volatile ResourceBundle localizedProp;
+    @LockedBy(name = "this")
+    private volatile Locale locale;
 
     private PropertiesLoader() {
         try (final InputStreamReader isr = read(COMMON_PROPERTIES)) {
@@ -46,10 +48,15 @@ public final class PropertiesLoader {
         synchronized (this) {
             try (final InputStreamReader isr = read(BASE_BUNDLE_NAME + "_" + locale.getLanguage() + ".properties")) {
                 this.localizedProp = new PropertyResourceBundle(isr);
+                this.locale = locale;
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
         }
+    }
+
+    public Locale getLocale() {
+        return this.locale;
     }
 
     /**

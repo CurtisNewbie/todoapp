@@ -4,7 +4,6 @@ import com.curtisnewbie.common.GlobalPools;
 import com.curtisnewbie.config.*;
 import com.curtisnewbie.dao.*;
 import com.curtisnewbie.util.*;
-import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
@@ -12,6 +11,7 @@ import javafx.scene.layout.*;
 
 import java.beans.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.curtisnewbie.config.PropertyConstants.*;
 import static com.curtisnewbie.util.FxThreadUtil.*;
@@ -51,9 +51,10 @@ public class TodoJobListView extends BorderPane {
 
         if (list == null) return;
 
-        list.stream()
+        listView.getItems().addAll(list.stream()
                 .map(t -> GlobalPools.todoJobViewPool.borrowT().init(t, environment))
-                .forEach(this::displayTodoJobView);
+                .peek(this::prepTodoJobView)
+                .collect(Collectors.toList()));
     }
 
     public void setContextMenu(ContextMenu contextMenu) {
@@ -78,20 +79,11 @@ public class TodoJobListView extends BorderPane {
 
     // ------------------------------------ private helper methods ------------------------
 
-    /**
-     * <p>
-     * Load {@code TodoJobView} into the {@code ListView}.
-     * </p>
-     * <p>
-     * The operation of adding the jobView to the ListView is always executed in Javafx's thread
-     * </p>
-     */
-    private void displayTodoJobView(TodoJobView jobView) {
+    private void prepTodoJobView(TodoJobView jobView) {
         if (propertyChangeListener != null) jobView.onModelChange(propertyChangeListener);
         jobView.prefWidthProperty().bind(listView.widthProperty().subtract(LISTVIEW_PADDING));
         jobView.bindTextWrappingWidthProperty(listView.widthProperty().subtract(LISTVIEW_PADDING)
                 .subtract(Integer.parseInt(PropertiesLoader.getInstance().getLocalizedProperty(TODO_VIEW_TEXT_WRAP_WIDTH_KEY))));
-        listView.getItems().add(jobView);
     }
 
 }
